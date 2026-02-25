@@ -1,0 +1,12 @@
+F:\Fluxion\Fluxion\BackEnd\src\Fluxion.Domain\bin\Debug\net9.0\Fluxion.Domain.deps.json
+F:\Fluxion\Fluxion\BackEnd\src\Fluxion.Domain\bin\Debug\net9.0\Fluxion.Domain.dll
+F:\Fluxion\Fluxion\BackEnd\src\Fluxion.Domain\bin\Debug\net9.0\Fluxion.Domain.pdb
+F:\Fluxion\Fluxion\BackEnd\src\Fluxion.Domain\obj\Debug\net9.0\Fluxion.Domain.GeneratedMSBuildEditorConfig.editorconfig
+F:\Fluxion\Fluxion\BackEnd\src\Fluxion.Domain\obj\Debug\net9.0\Fluxion.Domain.AssemblyInfoInputs.cache
+F:\Fluxion\Fluxion\BackEnd\src\Fluxion.Domain\obj\Debug\net9.0\Fluxion.Domain.AssemblyInfo.cs
+F:\Fluxion\Fluxion\BackEnd\src\Fluxion.Domain\obj\Debug\net9.0\Fluxion.Domain.csproj.CoreCompileInputs.cache
+F:\Fluxion\Fluxion\BackEnd\src\Fluxion.Domain\obj\Debug\net9.0\Fluxion.Domain.sourcelink.json
+F:\Fluxion\Fluxion\BackEnd\src\Fluxion.Domain\obj\Debug\net9.0\Fluxion.Domain.dll
+F:\Fluxion\Fluxion\BackEnd\src\Fluxion.Domain\obj\Debug\net9.0\refint\Fluxion.Domain.dll
+F:\Fluxion\Fluxion\BackEnd\src\Fluxion.Domain\obj\Debug\net9.0\Fluxion.Domain.pdb
+F:\Fluxion\Fluxion\BackEnd\src\Fluxion.Domain\obj\Debug\net9.0\ref\Fluxion.Domain.dll
