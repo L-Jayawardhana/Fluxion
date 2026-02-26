@@ -461,7 +461,6 @@ export default function LandingPage() {
                 </div>
                 <div className="footer-bottom">
                     <span>© 2025 FLUXION. All rights reserved.</span>
-                    <span>IT23746664 · IT23746114 · IT23754652 · IT23689794</span>
                 </div>
             </footer>
         </div>

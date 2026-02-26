@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Fluxion.Infrastructure")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+11abf5fe44b3d9c6024ab171961ea9a8dbf87aa2")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6e700187c5d5b9e55c9c2909ee2ecdbaee78040e")]
 [assembly: System.Reflection.AssemblyProductAttribute("Fluxion.Infrastructure")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Fluxion.Infrastructure")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
