@@ -1,3 +1,5 @@
+using Fluxion.Application.Interfaces;
+using Fluxion.Infrastructure.JWT;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -7,12 +9,14 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-        // Register infrastructure services here as you implement them:
-        // - JWT authentication
-        // - Email service
-        // - Logging
-        // - File storage
+        // JWT Settings
+        services.Configure<JwtSettings>(configuration.GetSection("JwtSettings"));
+
+        // Auth services
+        services.AddScoped<IPasswordHasher, PasswordHasher>();
+        services.AddScoped<IJwtTokenService, JwtTokenService>();
 
         return services;
     }
 }
+

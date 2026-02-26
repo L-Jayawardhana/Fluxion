@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Fluxion.Persistence")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d2af67e0c1c32ae9762f82b6fc8aba00c85b5c8d")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+11abf5fe44b3d9c6024ab171961ea9a8dbf87aa2")]
 [assembly: System.Reflection.AssemblyProductAttribute("Fluxion.Persistence")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Fluxion.Persistence")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

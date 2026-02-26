@@ -134,3 +134,12 @@ F:\Fluxion\Fluxion\BackEnd\tests\Fluxion.IntegrationTests\obj\Debug\net8.0\refin
 F:\Fluxion\Fluxion\BackEnd\tests\Fluxion.IntegrationTests\obj\Debug\net8.0\Fluxion.IntegrationTests.pdb
 F:\Fluxion\Fluxion\BackEnd\tests\Fluxion.IntegrationTests\obj\Debug\net8.0\Fluxion.IntegrationTests.genruntimeconfig.cache
 F:\Fluxion\Fluxion\BackEnd\tests\Fluxion.IntegrationTests\obj\Debug\net8.0\ref\Fluxion.IntegrationTests.dll
+F:\Fluxion\Fluxion\BackEnd\tests\Fluxion.IntegrationTests\bin\Debug\net8.0\BCrypt.Net-Next.dll
+F:\Fluxion\Fluxion\BackEnd\tests\Fluxion.IntegrationTests\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
+F:\Fluxion\Fluxion\BackEnd\tests\Fluxion.IntegrationTests\bin\Debug\net8.0\Microsoft.IdentityModel.Abstractions.dll
+F:\Fluxion\Fluxion\BackEnd\tests\Fluxion.IntegrationTests\bin\Debug\net8.0\Microsoft.IdentityModel.JsonWebTokens.dll
+F:\Fluxion\Fluxion\BackEnd\tests\Fluxion.IntegrationTests\bin\Debug\net8.0\Microsoft.IdentityModel.Logging.dll
+F:\Fluxion\Fluxion\BackEnd\tests\Fluxion.IntegrationTests\bin\Debug\net8.0\Microsoft.IdentityModel.Protocols.dll
+F:\Fluxion\Fluxion\BackEnd\tests\Fluxion.IntegrationTests\bin\Debug\net8.0\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
+F:\Fluxion\Fluxion\BackEnd\tests\Fluxion.IntegrationTests\bin\Debug\net8.0\Microsoft.IdentityModel.Tokens.dll
+F:\Fluxion\Fluxion\BackEnd\tests\Fluxion.IntegrationTests\bin\Debug\net8.0\System.IdentityModel.Tokens.Jwt.dll

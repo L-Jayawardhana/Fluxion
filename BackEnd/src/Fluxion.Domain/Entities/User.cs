@@ -9,8 +9,7 @@ public class User : IAuditable
     [Key]
     public int UserId { get; set; }
 
-    [Required]
-    public int OrgId { get; set; }
+    public int? OrgId { get; set; }
 
     [Required, MaxLength(100)]
     public string FullName { get; set; } = string.Empty;
@@ -34,7 +33,7 @@ public class User : IAuditable
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; }
 
-    public Organization Organization { get; set; } = null!;
+    public Organization? Organization { get; set; }
 
     public ICollection<UserDepartment>? UserDepartments { get; set; }
     public ICollection<AssetAssignment>? AssetAssignments { get; set; }
