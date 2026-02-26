@@ -108,3 +108,12 @@ F:\Fluxion\Fluxion\BackEnd\tests\Fluxion.UnitTests\obj\Debug\net8.0\refint\Fluxi
 F:\Fluxion\Fluxion\BackEnd\tests\Fluxion.UnitTests\obj\Debug\net8.0\Fluxion.UnitTests.pdb
 F:\Fluxion\Fluxion\BackEnd\tests\Fluxion.UnitTests\obj\Debug\net8.0\Fluxion.UnitTests.genruntimeconfig.cache
 F:\Fluxion\Fluxion\BackEnd\tests\Fluxion.UnitTests\obj\Debug\net8.0\ref\Fluxion.UnitTests.dll
+F:\Fluxion\Fluxion\BackEnd\tests\Fluxion.UnitTests\bin\Debug\net8.0\Microsoft.EntityFrameworkCore.dll
+F:\Fluxion\Fluxion\BackEnd\tests\Fluxion.UnitTests\bin\Debug\net8.0\Microsoft.EntityFrameworkCore.Abstractions.dll
+F:\Fluxion\Fluxion\BackEnd\tests\Fluxion.UnitTests\bin\Debug\net8.0\Microsoft.Extensions.Caching.Abstractions.dll
+F:\Fluxion\Fluxion\BackEnd\tests\Fluxion.UnitTests\bin\Debug\net8.0\Microsoft.Extensions.Caching.Memory.dll
+F:\Fluxion\Fluxion\BackEnd\tests\Fluxion.UnitTests\bin\Debug\net8.0\Microsoft.Extensions.DependencyInjection.dll
+F:\Fluxion\Fluxion\BackEnd\tests\Fluxion.UnitTests\bin\Debug\net8.0\Microsoft.Extensions.Logging.dll
+F:\Fluxion\Fluxion\BackEnd\tests\Fluxion.UnitTests\bin\Debug\net8.0\Microsoft.Extensions.Logging.Abstractions.dll
+F:\Fluxion\Fluxion\BackEnd\tests\Fluxion.UnitTests\bin\Debug\net8.0\Microsoft.Extensions.Options.dll
+F:\Fluxion\Fluxion\BackEnd\tests\Fluxion.UnitTests\bin\Debug\net8.0\Microsoft.Extensions.Primitives.dll
