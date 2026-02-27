@@ -8,6 +8,7 @@ export default function RegisterPage() {
     const [form, setForm] = useState({ firstName: '', lastName: '', email: '', orgName: '', password: '' });
     const [showPw, setShowPw] = useState(false);
     const [fieldErrors, setFieldErrors] = useState({});
+    const [apiError, setApiError] = useState('');
     const [plan, setPlan] = useState('free');
     const [billing, setBilling] = useState('monthly');
     const [termsAccepted, setTermsAccepted] = useState(false);
@@ -80,15 +81,32 @@ export default function RegisterPage() {
     };
 
     const handleSubmit = async () => {
-        if (!termsAccepted) { alert('Please accept the Terms of Service to continue.'); return; }
+        if (!termsAccepted) { setApiError('Please accept the Terms of Service to continue.'); return; }
+        setApiError('');
         setLoading(true);
         try {
-            await authService.register(`${form.firstName} ${form.lastName}`, form.email, form.password);
+            const fullName = `${form.firstName} ${form.lastName}`;
+            await authService.register(fullName, form.email, form.password);
             setStep(3);
             window.scrollTo({ top: 0, behavior: 'smooth' });
         } catch (err) {
-            const msg = err.response?.data?.message || err.response?.data?.errors?.join(', ') || 'Registration failed. Please try again.';
-            alert(msg);
+            const data = err.response?.data;
+            let msg = 'Registration failed. Please try again.';
+            if (typeof data === 'string') {
+                msg = data;
+            } else if (data?.message) {
+                msg = data.message;
+            } else if (data?.errors) {
+                // FluentValidation errors come as { errors: { Field: ["msg"] } } or ["msg"]
+                if (Array.isArray(data.errors)) {
+                    msg = data.errors.join(', ');
+                } else if (typeof data.errors === 'object') {
+                    msg = Object.values(data.errors).flat().join(', ');
+                }
+            } else if (data?.title) {
+                msg = data.title;
+            }
+            setApiError(msg);
         } finally {
             setLoading(false);
         }
@@ -276,6 +294,14 @@ export default function RegisterPage() {
                             <input type="checkbox" id="terms" checked={termsAccepted} onChange={(e) => setTermsAccepted(e.target.checked)} />
                             <label htmlFor="terms">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>. I understand that FLUXION will process my organisation's data in accordance with its privacy policy.</label>
                         </div>
+
+                        {apiError && (
+                            <div className="reg-api-error">
+                                <svg viewBox="0 0 16 16" fill="currentColor" width="14" height="14"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 3a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 018 4zm0 7a.875.875 0 110-1.75.875.875 0 010 1.75z" /></svg>
+                                <span>{apiError}</span>
+                                <button type="button" onClick={() => setApiError('')} className="reg-api-error-close">×</button>
+                            </div>
+                        )}
 
                         <button className="btn-next" onClick={handleSubmit} disabled={loading}>
                             {loading ? <div className="reg-spinner"></div> : <><span>Create organisation</span><ArrowIcon /></>}
