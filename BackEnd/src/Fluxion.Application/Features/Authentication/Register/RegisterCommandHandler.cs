@@ -10,11 +10,16 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, RegisterR
 {
     private readonly IApplicationDbContext _context;
     private readonly IPasswordHasher _passwordHasher;
+    private readonly IJwtTokenService _jwtTokenService;
 
-    public RegisterCommandHandler(IApplicationDbContext context, IPasswordHasher passwordHasher)
+    public RegisterCommandHandler(
+        IApplicationDbContext context,
+        IPasswordHasher passwordHasher,
+        IJwtTokenService jwtTokenService)
     {
         _context = context;
         _passwordHasher = passwordHasher;
+        _jwtTokenService = jwtTokenService;
     }
 
     public async Task<RegisterResponse> Handle(RegisterCommand request, CancellationToken cancellationToken)
@@ -52,11 +57,15 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, RegisterR
         _context.Users.Add(user);
         await _context.SaveChangesAsync(cancellationToken);
 
+        // Generate JWT token so the user can proceed to org setup
+        var token = _jwtTokenService.GenerateToken(user);
+
         return new RegisterResponse(
             UserId: user.UserId,
             FullName: user.FullName,
             Email: user.Email,
-            Role: user.Role.ToString()
+            Role: user.Role.ToString(),
+            Token: token
         );
     }
 }

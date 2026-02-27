@@ -1,7 +1,7 @@
 {
   "format": 1,
   "restore": {
-    "F:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.Infrastructure\\Fluxion.Infrastructure.csproj": {}
+    "f:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.Infrastructure\\Fluxion.Infrastructure.csproj": {}
   },
   "projects": {
     "F:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.Application\\Fluxion.Application.csproj": {
@@ -158,14 +158,14 @@
         }
       }
     },
-    "F:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.Infrastructure\\Fluxion.Infrastructure.csproj": {
+    "f:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.Infrastructure\\Fluxion.Infrastructure.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "F:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.Infrastructure\\Fluxion.Infrastructure.csproj",
+        "projectUniqueName": "f:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.Infrastructure\\Fluxion.Infrastructure.csproj",
         "projectName": "Fluxion.Infrastructure",
-        "projectPath": "F:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.Infrastructure\\Fluxion.Infrastructure.csproj",
+        "projectPath": "f:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.Infrastructure\\Fluxion.Infrastructure.csproj",
         "packagesPath": "C:\\Users\\user\\.nuget\\packages\\",
-        "outputPath": "F:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.Infrastructure\\obj\\",
+        "outputPath": "f:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.Infrastructure\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

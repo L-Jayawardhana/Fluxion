@@ -335,6 +335,148 @@
     font-weight: 500;
 }
 
+/* Logo Dropzone */
+.logo-dropzone {
+    border: 2px dashed rgba(13, 13, 13, .18);
+    border-radius: 10px;
+    padding: 28px;
+    text-align: center;
+    cursor: pointer;
+    transition: all .25s;
+    background: rgba(13, 13, 13, .02);
+    position: relative;
+}
+
+.logo-dropzone:hover {
+    border-color: rgba(13, 13, 13, .35);
+    background: rgba(13, 13, 13, .04);
+}
+
+.logo-dropzone.drag-active {
+    border-color: var(--rust);
+    background: rgba(200, 75, 47, .04);
+    border-style: solid;
+}
+
+.logo-dropzone.has-logo {
+    padding: 12px;
+    border-style: solid;
+    border-color: rgba(13, 13, 13, .12);
+}
+
+.logo-drop-icon {
+    width: 36px;
+    height: 36px;
+    color: var(--mist);
+    margin-bottom: 10px;
+}
+
+.logo-drop-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.logo-drop-text {
+    font-size: 13px;
+    color: var(--steel);
+}
+
+.logo-drop-text span {
+    color: var(--ink);
+    font-weight: 500;
+    border-bottom: 1px solid var(--ink);
+}
+
+.logo-drop-hint {
+    font-size: 10px;
+    color: var(--mist);
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    margin-top: 6px;
+}
+
+.logo-preview-wrap {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.logo-preview-img {
+    width: 56px;
+    height: 56px;
+    object-fit: contain;
+    border-radius: 8px;
+    border: 1px solid rgba(13, 13, 13, .1);
+    background: white;
+}
+
+.logo-remove-btn {
+    background: none;
+    border: 1.5px solid rgba(13, 13, 13, .15);
+    border-radius: 6px;
+    padding: 6px;
+    cursor: pointer;
+    color: var(--mist);
+    display: flex;
+    transition: all .2s;
+}
+
+.logo-remove-btn:hover {
+    border-color: var(--error);
+    color: var(--error);
+}
+
+.logo-remove-btn svg {
+    width: 14px;
+    height: 14px;
+}
+
+/* Timezone Select */
+.reg-select {
+    width: 100%;
+    background: white;
+    border: 1.5px solid rgba(13, 13, 13, .15);
+    border-radius: 6px;
+    padding: 13px 16px 13px 42px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 13px;
+    color: var(--ink);
+    transition: border-color .2s, box-shadow .2s;
+    outline: none;
+    appearance: none;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='%238A9BAD' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 14px;
+}
+
+.reg-select:focus {
+    border-color: var(--ink);
+    box-shadow: 0 0 0 3px rgba(13, 13, 13, .07);
+}
+
+/* Skip Button */
+.btn-skip {
+    width: 100%;
+    padding: 14px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 12px;
+    letter-spacing: .04em;
+    background: none;
+    color: var(--mist);
+    border: none;
+    cursor: pointer;
+    transition: color .2s;
+    margin-top: 8px;
+    text-align: center;
+}
+
+.btn-skip:hover {
+    color: var(--ink);
+}
+
 /* PW strength */
 .pw-strength {
     margin-top: 8px;

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authService } from '../../services/authService';
 import './RegisterPage.css';
@@ -13,10 +13,17 @@ export default function RegisterPage() {
     const [billing, setBilling] = useState('monthly');
     const [termsAccepted, setTermsAccepted] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [registeredUser, setRegisteredUser] = useState(null); // { userId, token }
+    const [orgTimezone, setOrgTimezone] = useState(Intl.DateTimeFormat().resolvedOptions().timeZone || '');
+    const [logoFile, setLogoFile] = useState(null);
+    const [logoPreview, setLogoPreview] = useState(null);
+    const [dragActive, setDragActive] = useState(false);
+    const [createdOrg, setCreatedOrg] = useState(null);
     const navigate = useNavigate();
 
     const dotRef = useRef(null);
     const ringRef = useRef(null);
+    const fileInputRef = useRef(null);
 
     // Custom cursor
     useEffect(() => {
@@ -68,48 +75,127 @@ export default function RegisterPage() {
         if (!form.firstName.trim()) errs.firstName = 'Required';
         if (!form.lastName.trim()) errs.lastName = 'Required';
         if (!form.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = 'Enter a valid email address.';
-        if (!form.orgName.trim()) errs.orgName = 'Required';
         if (!form.password || form.password.length < 8) errs.password = 'Password must be at least 8 characters.';
         setFieldErrors(errs);
         return Object.keys(errs).length === 0;
     };
 
-    const handleNext1 = () => {
+    // Step 1: Register user
+    const handleNext1 = async () => {
         if (!validateStep1()) return;
-        setLoading(true);
-        setTimeout(() => { setLoading(false); setStep(2); window.scrollTo({ top: 0, behavior: 'smooth' }); }, 600);
-    };
-
-    const handleSubmit = async () => {
-        if (!termsAccepted) { setApiError('Please accept the Terms of Service to continue.'); return; }
         setApiError('');
         setLoading(true);
         try {
             const fullName = `${form.firstName} ${form.lastName}`;
-            await authService.register(fullName, form.email, form.password);
-            setStep(3);
+            const res = await authService.register(fullName, form.email, form.password);
+            const data = res.data;
+            setRegisteredUser({ userId: data.userId, token: data.token });
+            // Store token so subsequent API calls (org creation) are authenticated
+            localStorage.setItem('token', data.token);
+            setStep(2);
             window.scrollTo({ top: 0, behavior: 'smooth' });
         } catch (err) {
             const data = err.response?.data;
             let msg = 'Registration failed. Please try again.';
-            if (typeof data === 'string') {
-                msg = data;
-            } else if (data?.message) {
-                msg = data.message;
-            } else if (data?.errors) {
-                // FluentValidation errors come as { errors: { Field: ["msg"] } } or ["msg"]
-                if (Array.isArray(data.errors)) {
-                    msg = data.errors.join(', ');
-                } else if (typeof data.errors === 'object') {
-                    msg = Object.values(data.errors).flat().join(', ');
+            if (typeof data === 'string') msg = data;
+            else if (data?.message) msg = data.message;
+            else if (data?.errors) {
+                if (Array.isArray(data.errors)) msg = data.errors.join(', ');
+                else if (typeof data.errors === 'object') msg = Object.values(data.errors).flat().join(', ');
+            } else if (data?.title) msg = data.title;
+            setApiError(msg);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Step 2: Create org
+    const handleOrgSubmit = async () => {
+        const errs = {};
+        if (!form.orgName.trim()) errs.orgName = 'Required';
+        if (!slug) errs.orgName = 'Organisation name is required.';
+        setFieldErrors(errs);
+        if (Object.keys(errs).length > 0) return;
+
+        setApiError('');
+        setLoading(true);
+        try {
+            const res = await authService.createOrganization(form.orgName, slug, orgTimezone, registeredUser.userId);
+            const orgData = res.data;
+            setCreatedOrg(orgData);
+
+            // Upload logo if provided
+            if (logoFile) {
+                try {
+                    await authService.uploadOrgLogo(orgData.orgId, logoFile);
+                } catch {
+                    // Logo upload is non-critical, continue
                 }
-            } else if (data?.title) {
-                msg = data.title;
+            }
+
+            setStep(3);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        } catch (err) {
+            const data = err.response?.data;
+            let msg = 'Failed to create organisation. Please try again.';
+            if (typeof data === 'string') msg = data;
+            else if (data?.message) msg = data.message;
+            else if (data?.errors) {
+                if (Array.isArray(data.errors)) msg = data.errors.join(', ');
+                else if (typeof data.errors === 'object') msg = Object.values(data.errors).flat().join(', ');
             }
             setApiError(msg);
         } finally {
             setLoading(false);
         }
+    };
+
+    // Skip org setup
+    const handleSkipOrg = () => {
+        setStep(3);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    // Step 3: Finalize (plan selection)
+    const handleSubmit = async () => {
+        if (!termsAccepted) { setApiError('Please accept the Terms of Service to continue.'); return; }
+        setApiError('');
+        // Plan selection is frontend-only for now — just proceed to success
+        setStep(4);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    // Logo drag & drop
+    const handleDrag = useCallback((e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.type === 'dragenter' || e.type === 'dragover') setDragActive(true);
+        else if (e.type === 'dragleave') setDragActive(false);
+    }, []);
+
+    const handleDrop = useCallback((e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setDragActive(false);
+        const file = e.dataTransfer.files?.[0];
+        if (file && file.type.startsWith('image/')) {
+            setLogoFile(file);
+            setLogoPreview(URL.createObjectURL(file));
+        }
+    }, []);
+
+    const handleLogoSelect = (e) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setLogoFile(file);
+            setLogoPreview(URL.createObjectURL(file));
+        }
+    };
+
+    const removeLogo = () => {
+        setLogoFile(null);
+        setLogoPreview(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
     const ErrorIcon = () => (
@@ -119,6 +205,8 @@ export default function RegisterPage() {
     const ArrowIcon = () => (
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 8h10M9 4l4 4-4 4" /></svg>
     );
+
+    const stepLabels = ['Your details', 'Organisation', 'Choose plan', 'All set'];
 
     return (
         <div className="register-page">
@@ -137,36 +225,40 @@ export default function RegisterPage() {
             {/* STEPPER */}
             <div className="stepper-wrap">
                 <div className="stepper">
-                    <div className={`step-item ${step >= 1 ? (step > 1 ? 'done' : 'active') : ''}`}>
-                        <div className={`step-circle ${step > 1 ? 'done' : step === 1 ? 'active' : ''}`}>
-                            {step > 1 ? '✓' : <span>1</span>}
-                        </div>
-                        <div className="step-label">Your details</div>
-                    </div>
-                    <div className={`step-line ${step > 1 ? 'done' : ''}`}></div>
-                    <div className={`step-item ${step >= 2 ? (step > 2 ? 'done' : 'active') : ''}`}>
-                        <div className={`step-circle ${step > 2 ? 'done' : step === 2 ? 'active' : ''}`}>
-                            {step > 2 ? '✓' : <span>2</span>}
-                        </div>
-                        <div className="step-label">Choose plan</div>
-                    </div>
-                    <div className={`step-line ${step > 2 ? 'done' : ''}`}></div>
-                    <div className={`step-item ${step === 3 ? 'done' : ''}`}>
-                        <div className={`step-circle ${step === 3 ? 'done' : ''}`}>
-                            {step === 3 ? '✓' : <span>3</span>}
-                        </div>
-                        <div className="step-label">All set</div>
-                    </div>
+                    {stepLabels.map((label, i) => {
+                        const num = i + 1;
+                        const isDone = step > num;
+                        const isActive = step === num;
+                        return (
+                            <span key={num} style={{ display: 'contents' }}>
+                                {i > 0 && <div className={`step-line ${isDone ? 'done' : ''}`}></div>}
+                                <div className={`step-item ${isDone ? 'done' : isActive ? 'active' : ''}`}>
+                                    <div className={`step-circle ${isDone ? 'done' : isActive ? 'active' : ''}`}>
+                                        {isDone ? '✓' : <span>{num}</span>}
+                                    </div>
+                                    <div className="step-label">{label}</div>
+                                </div>
+                            </span>
+                        );
+                    })}
                 </div>
             </div>
 
             {/* MAIN */}
             <div className="reg-main">
-                {/* STEP 1 */}
+                {/* STEP 1 — Details */}
                 {step === 1 && (
                     <div className="reg-step-panel" key="step1">
-                        <h1 className="panel-title">Create your <em>organisation.</em></h1>
+                        <h1 className="panel-title">Create your <em>account.</em></h1>
                         <p className="panel-sub">Set up your workspace. You'll be the Owner — you can invite Admins, Technicians, and Users after setup.</p>
+
+                        {apiError && (
+                            <div className="reg-api-error">
+                                <svg viewBox="0 0 16 16" fill="currentColor" width="14" height="14"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 3a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 018 4zm0 7a.875.875 0 110-1.75.875.875 0 010 1.75z" /></svg>
+                                <span>{apiError}</span>
+                                <button type="button" onClick={() => setApiError('')} className="reg-api-error-close">×</button>
+                            </div>
+                        )}
 
                         <div className="reg-field-grid">
                             <div className="reg-field">
@@ -197,21 +289,6 @@ export default function RegisterPage() {
                         </div>
 
                         <div className="reg-field">
-                            <label className="reg-field-label">Organisation name</label>
-                            <div className="reg-field-wrap">
-                                <div className="reg-field-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="2" y="6" width="12" height="8" rx="1" /><path d="M5 6V4a3 3 0 016 0v2" /></svg></div>
-                                <input type="text" name="orgName" className={fieldErrors.orgName ? 'input-error' : ''} value={form.orgName} onChange={handleChange} placeholder="Acme Corporation" />
-                            </div>
-                            {fieldErrors.orgName && <div className="reg-field-error"><ErrorIcon />{fieldErrors.orgName}</div>}
-                            {slug && (
-                                <div className="slug-preview">
-                                    <span className="slug-prefix">fluxion.io/</span>
-                                    <span className="slug-value">{slug}</span>
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="reg-field">
                             <label className="reg-field-label">Password</label>
                             <div className="reg-field-wrap">
                                 <div className="reg-field-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="7" width="10" height="7" rx="1.5" /><path d="M5 7V5a3 3 0 016 0v2" /></svg></div>
@@ -236,7 +313,7 @@ export default function RegisterPage() {
                         </div>
 
                         <button className="btn-next" onClick={handleNext1} disabled={loading}>
-                            {loading ? <div className="reg-spinner"></div> : <><span>Continue to plan selection</span><ArrowIcon /></>}
+                            {loading ? <div className="reg-spinner"></div> : <><span>Continue</span><ArrowIcon /></>}
                         </button>
 
                         <div className="reg-divider">or</div>
@@ -244,9 +321,100 @@ export default function RegisterPage() {
                     </div>
                 )}
 
-                {/* STEP 2 */}
+                {/* STEP 2 — Organisation Setup */}
                 {step === 2 && (
                     <div className="reg-step-panel" key="step2">
+                        <h1 className="panel-title">Set up your <em>organisation.</em></h1>
+                        <p className="panel-sub">Create your workspace. You can always update these details later from Settings.</p>
+
+                        {apiError && (
+                            <div className="reg-api-error">
+                                <svg viewBox="0 0 16 16" fill="currentColor" width="14" height="14"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 3a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 018 4zm0 7a.875.875 0 110-1.75.875.875 0 010 1.75z" /></svg>
+                                <span>{apiError}</span>
+                                <button type="button" onClick={() => setApiError('')} className="reg-api-error-close">×</button>
+                            </div>
+                        )}
+
+                        {/* Logo Drop Zone */}
+                        <div className="reg-field">
+                            <label className="reg-field-label">Organisation logo</label>
+                            <div
+                                className={`logo-dropzone ${dragActive ? 'drag-active' : ''} ${logoPreview ? 'has-logo' : ''}`}
+                                onDragEnter={handleDrag}
+                                onDragLeave={handleDrag}
+                                onDragOver={handleDrag}
+                                onDrop={handleDrop}
+                                onClick={() => fileInputRef.current?.click()}
+                            >
+                                {logoPreview ? (
+                                    <div className="logo-preview-wrap">
+                                        <img src={logoPreview} alt="Logo preview" className="logo-preview-img" />
+                                        <button type="button" className="logo-remove-btn" onClick={(e) => { e.stopPropagation(); removeLogo(); }}>
+                                            <svg viewBox="0 0 16 16" fill="currentColor"><path d="M4.6 3.5L3.5 4.6 6.9 8l-3.4 3.4 1.1 1.1L8 9.1l3.4 3.4 1.1-1.1L9.1 8l3.4-3.4-1.1-1.1L8 6.9z" /></svg>
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="logo-drop-content">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="logo-drop-icon">
+                                            <path d="M12 16V8m0 0l-3 3m3-3l3 3" />
+                                            <path d="M2 12c0 5.523 4.477 10 10 10s10-4.477 10-10S17.523 2 12 2 2 6.477 2 12z" />
+                                        </svg>
+                                        <div className="logo-drop-text"><span>Drop your logo here</span> or click to browse</div>
+                                        <div className="logo-drop-hint">PNG, JPG, SVG or WebP · Max 2 MB</div>
+                                    </div>
+                                )}
+                                <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp" onChange={handleLogoSelect} style={{ display: 'none' }} />
+                            </div>
+                        </div>
+
+                        <div className="reg-field">
+                            <label className="reg-field-label">Organisation name</label>
+                            <div className="reg-field-wrap">
+                                <div className="reg-field-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="2" y="4" width="12" height="10" rx="1" /><path d="M5 4V2h6v2" /><line x1="2" y1="8" x2="14" y2="8" /></svg></div>
+                                <input type="text" name="orgName" className={fieldErrors.orgName ? 'input-error' : ''} value={form.orgName} onChange={handleChange} placeholder="Acme Corporation" />
+                            </div>
+                            {fieldErrors.orgName && <div className="reg-field-error"><ErrorIcon />{fieldErrors.orgName}</div>}
+                            {slug && (
+                                <div className="slug-preview">
+                                    <span className="slug-prefix">fluxion.io/</span>
+                                    <span className="slug-value">{slug}</span>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="reg-field">
+                            <label className="reg-field-label">Timezone</label>
+                            <div className="reg-field-wrap">
+                                <div className="reg-field-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="8" cy="8" r="6" /><path d="M8 4v4l3 2" /></svg></div>
+                                <select className="reg-select" value={orgTimezone} onChange={(e) => setOrgTimezone(e.target.value)}>
+                                    <option value="">Select timezone...</option>
+                                    {Intl.supportedValuesOf?.('timeZone')?.map(tz => (
+                                        <option key={tz} value={tz}>{tz.replace(/_/g, ' ')}</option>
+                                    )) || (
+                                            <>
+                                                <option value="UTC">UTC</option>
+                                                <option value="America/New_York">America/New York</option>
+                                                <option value="Europe/London">Europe/London</option>
+                                                <option value="Asia/Colombo">Asia/Colombo</option>
+                                                <option value="Asia/Tokyo">Asia/Tokyo</option>
+                                            </>
+                                        )}
+                                </select>
+                            </div>
+                        </div>
+
+                        <button className="btn-next" onClick={handleOrgSubmit} disabled={loading}>
+                            {loading ? <div className="reg-spinner"></div> : <><span>Create organisation</span><ArrowIcon /></>}
+                        </button>
+                        <button className="btn-skip" onClick={handleSkipOrg}>
+                            Skip — I'll set this up later
+                        </button>
+                    </div>
+                )}
+
+                {/* STEP 3 — Plan */}
+                {step === 3 && (
+                    <div className="reg-step-panel" key="step3">
                         <h1 className="panel-title">Choose a <em>plan.</em></h1>
                         <p className="panel-sub">Start free — no credit card required. Upgrade anytime as your team grows.</p>
 
@@ -304,41 +472,45 @@ export default function RegisterPage() {
                         )}
 
                         <button className="btn-next" onClick={handleSubmit} disabled={loading}>
-                            {loading ? <div className="reg-spinner"></div> : <><span>Create organisation</span><ArrowIcon /></>}
+                            {loading ? <div className="reg-spinner"></div> : <><span>Complete setup</span><ArrowIcon /></>}
                         </button>
-                        <button className="btn-back" onClick={() => { setStep(1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
+                        <button className="btn-back" onClick={() => { setStep(2); setApiError(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
                             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2"><path d="M13 8H3M7 4L3 8l4 4" /></svg>
                             Back
                         </button>
                     </div>
                 )}
 
-                {/* STEP 3 — Success */}
-                {step === 3 && (
-                    <div className="reg-step-panel" key="step3">
+                {/* STEP 4 — Success */}
+                {step === 4 && (
+                    <div className="reg-step-panel" key="step4">
                         <div className="success-panel">
                             <div className="success-icon">
                                 <svg viewBox="0 0 32 32"><polyline points="6 16 13 23 26 9" /></svg>
                             </div>
                             <h2 className="success-title">You're all set, <em>{form.firstName}</em>.</h2>
-                            <p className="success-sub">Your organisation workspace is ready. Sign in to start registering assets, adding your team, and managing maintenance.</p>
+                            <p className="success-sub">Your workspace is ready. Sign in to start registering assets, adding your team, and managing maintenance.</p>
 
                             <div className="success-details">
-                                <div className="detail-row">
-                                    <span className="detail-key">Organisation</span>
-                                    <span className="detail-val">{form.orgName}</span>
-                                </div>
-                                <div className="detail-row">
-                                    <span className="detail-key">Workspace</span>
-                                    <span className="detail-val">fluxion.io/{slug}</span>
-                                </div>
+                                {createdOrg && (
+                                    <>
+                                        <div className="detail-row">
+                                            <span className="detail-key">Organisation</span>
+                                            <span className="detail-val">{createdOrg.orgName}</span>
+                                        </div>
+                                        <div className="detail-row">
+                                            <span className="detail-key">Workspace</span>
+                                            <span className="detail-val">fluxion.io/{createdOrg.slug}</span>
+                                        </div>
+                                    </>
+                                )}
                                 <div className="detail-row">
                                     <span className="detail-key">Plan</span>
                                     <span className="detail-val">{plan.charAt(0).toUpperCase() + plan.slice(1)}{billing === 'annual' ? ' (Annual)' : ''}</span>
                                 </div>
                                 <div className="detail-row">
                                     <span className="detail-key">Your role</span>
-                                    <span className="detail-val">Owner</span>
+                                    <span className="detail-val">{createdOrg ? 'Owner' : 'User'}</span>
                                 </div>
                             </div>
 
