@@ -1,4 +1,3 @@
-F:\Fluxion\Fluxion\BackEnd\src\Fluxion.API\bin\Debug\net8.0\appsettings.Development.json
 F:\Fluxion\Fluxion\BackEnd\src\Fluxion.API\bin\Debug\net8.0\appsettings.json
 F:\Fluxion\Fluxion\BackEnd\src\Fluxion.API\bin\Debug\net8.0\Fluxion.API.staticwebassets.endpoints.json
 F:\Fluxion\Fluxion\BackEnd\src\Fluxion.API\bin\Debug\net8.0\Fluxion.API.exe
