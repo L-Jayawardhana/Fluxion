@@ -1,18 +1,12 @@
 import axios from 'axios';
 
-// Environment-based API URL configuration
-const getApiBaseUrl = () => {
-  // For containerized environments, use port 8080
-  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    // Check if we're in a browser accessing containerized apps
-    return 'http://localhost:8080/api';
-  }
-  // For production, this would be your actual API domain
-  return 'http://localhost:5226/api';
-};
+// VITE_API_URL is injected at build time via .env files or Dockerfile build args:
+//   npm run dev  → .env.development → http://localhost:5226/api
+//   npm run build (Docker) → .env.production → /api  (relative, proxied by nginx)
+const API_BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:5226/api';
 
 const api = axios.create({
-  baseURL: getApiBaseUrl(),
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },

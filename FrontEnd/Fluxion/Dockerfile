@@ -3,6 +3,10 @@
 FROM node:18-alpine AS build
 WORKDIR /app
 
+# Allow overriding the API URL at build time (defaults to relative /api for nginx)
+ARG VITE_API_URL=/api
+ENV VITE_API_URL=$VITE_API_URL
+
 # Copy package files
 COPY package*.json ./
 

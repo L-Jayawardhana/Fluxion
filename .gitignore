@@ -8,6 +8,9 @@
 .env
 .env.*
 !.env.example
+# Vite environment files — no secrets, safe to track
+!.env.development
+!.env.production
 **/appsettings.Development.json
 **/appsettings.Local.json
 **/appsettings.Secrets.json
@@ -437,6 +440,9 @@ appsettings.Local.json
 .env
 .env.*
 !.env.example
+# Vite environment files — no secrets, safe to track
+!.env.development
+!.env.production
 
 # JetBrains IDEs
 .idea/
