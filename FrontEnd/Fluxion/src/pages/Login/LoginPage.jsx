@@ -77,6 +77,13 @@ export default function LoginPage() {
         setLoading(true);
         try {
             const { data } = await authService.googleLogin(response.credential);
+
+            if (data.isNewUser) {
+                // User is not registered. Redirect to register page with state to jump to org setup.
+                navigate('/register', { state: { googleData: data } });
+                return;
+            }
+
             login(data.token, { userId: data.userId, fullName: data.fullName, email: data.email, role: data.role });
             navigate('/dashboard');
         } catch (err) {

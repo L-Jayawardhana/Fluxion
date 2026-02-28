@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { authService, GOOGLE_CLIENT_ID } from '../../services/authService';
 import './RegisterPage.css';
@@ -28,6 +28,7 @@ export default function RegisterPage() {
     const [codeError, setCodeError] = useState('');
     const [codeSending, setCodeSending] = useState(false);
     const navigate = useNavigate();
+    const location = useLocation();
     const { login } = useAuth();
 
     const dotRef = useRef(null);
@@ -56,6 +57,31 @@ export default function RegisterPage() {
             els.forEach(el => { el.removeEventListener('mouseenter', onEnter); el.removeEventListener('mouseleave', onLeave); });
         };
     }, [step]);
+
+    // Handle Google login data passed from LoginPage navigation state
+    useEffect(() => {
+        if (location.state?.googleData && step === 1) {
+            const data = location.state.googleData;
+            localStorage.setItem('token', data.token);
+            setRegisteredUser({ userId: data.userId, token: data.token });
+
+            // Pre-fill name from Google
+            const nameParts = data.fullName?.split(' ') || ['', ''];
+            setForm(prev => ({
+                ...prev,
+                firstName: nameParts[0] || prev.firstName,
+                lastName: nameParts.slice(1).join(' ') || prev.lastName,
+                email: data.email || prev.email,
+            }));
+
+            // Skip to org setup (step 2)
+            setStep(2);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            // Clear the state so it doesn't trigger again on refresh
+            navigate('/register', { replace: true, state: {} });
+        }
+    }, [location.state, navigate, step]);
 
     // Google Sign-In
     const handleGoogleSignUp = useCallback(async (response) => {
