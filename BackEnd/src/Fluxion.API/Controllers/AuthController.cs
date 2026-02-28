@@ -76,4 +76,19 @@ public class AuthController : ControllerBase
             return Unauthorized(new { message = ex.Message });
         }
     }
+
+    [HttpPost("send-verification-code")]
+    public async Task<IActionResult> SendVerificationCode([FromBody] Application.Features.Authentication.Verification.SendVerificationCodeCommand command)
+    {
+        var result = await _mediator.Send(command);
+        return Ok(result);
+    }
+
+    [HttpPost("verify-code")]
+    public async Task<IActionResult> VerifyCode([FromBody] Application.Features.Authentication.Verification.VerifyCodeCommand command)
+    {
+        var result = await _mediator.Send(command);
+        if (!result.IsValid) return BadRequest(result);
+        return Ok(result);
+    }
 }

@@ -1,6 +1,7 @@
 using Fluxion.Application.Interfaces;
 using Fluxion.Infrastructure.Email;
 using Fluxion.Infrastructure.JWT;
+using Fluxion.Infrastructure.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -22,6 +23,9 @@ public static class DependencyInjection
 
         // Email service
         services.AddScoped<IEmailService, SmtpEmailService>();
+
+        // Verification code service (singleton — codes must persist across requests)
+        services.AddSingleton<IVerificationCodeService, InMemoryVerificationCodeService>();
 
         return services;
     }

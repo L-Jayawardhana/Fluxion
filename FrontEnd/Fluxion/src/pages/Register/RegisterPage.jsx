@@ -19,6 +19,13 @@ export default function RegisterPage() {
     const [logoPreview, setLogoPreview] = useState(null);
     const [dragActive, setDragActive] = useState(false);
     const [createdOrg, setCreatedOrg] = useState(null);
+    // Email verification
+    const [emailVerified, setEmailVerified] = useState(false);
+    const [codeSent, setCodeSent] = useState(false);
+    const [verificationCode, setVerificationCode] = useState('');
+    const [verifying, setVerifying] = useState(false);
+    const [codeError, setCodeError] = useState('');
+    const [codeSending, setCodeSending] = useState(false);
     const navigate = useNavigate();
 
     const dotRef = useRef(null);
@@ -98,6 +105,53 @@ export default function RegisterPage() {
         const { name, value } = e.target;
         setForm(prev => ({ ...prev, [name]: value }));
         setFieldErrors(prev => { const n = { ...prev }; delete n[name]; return n; });
+        // Reset email verification when email changes
+        if (name === 'email') {
+            setEmailVerified(false);
+            setCodeSent(false);
+            setVerificationCode('');
+            setCodeError('');
+        }
+    };
+
+    // Email verification handlers
+    const handleSendCode = async () => {
+        if (!form.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+            setFieldErrors(prev => ({ ...prev, email: 'Enter a valid email first.' }));
+            return;
+        }
+        setCodeSending(true);
+        setCodeError('');
+        try {
+            await authService.sendVerificationCode(form.email);
+            setCodeSent(true);
+        } catch (err) {
+            setCodeError(err.response?.data?.message || 'Failed to send code. Try again.');
+        } finally {
+            setCodeSending(false);
+        }
+    };
+
+    const handleVerifyCode = async () => {
+        if (!verificationCode || verificationCode.length !== 6) {
+            setCodeError('Enter the 6-digit code.');
+            return;
+        }
+        setVerifying(true);
+        setCodeError('');
+        try {
+            const { data } = await authService.verifyCode(form.email, verificationCode);
+            if (data.isValid) {
+                setEmailVerified(true);
+                setCodeError('');
+            } else {
+                setCodeError(data.message || 'Invalid code.');
+            }
+        } catch (err) {
+            setCodeError(err.response?.data?.message || 'Invalid or expired code.');
+        } finally {
+            setVerifying(false);
+        }
     };
 
     const slug = form.orgName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -122,6 +176,7 @@ export default function RegisterPage() {
         if (!form.firstName.trim()) errs.firstName = 'Required';
         if (!form.lastName.trim()) errs.lastName = 'Required';
         if (!form.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = 'Enter a valid email address.';
+        if (!emailVerified) errs.email = errs.email || 'Please verify your email first.';
         if (!form.password || form.password.length < 8) errs.password = 'Password must be at least 8 characters.';
         setFieldErrors(errs);
         return Object.keys(errs).length === 0;
@@ -328,11 +383,44 @@ export default function RegisterPage() {
 
                         <div className="reg-field">
                             <label className="reg-field-label">Work email</label>
-                            <div className="reg-field-wrap">
+                            <div className="reg-field-wrap email-verify-wrap">
                                 <div className="reg-field-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="1" y="3" width="14" height="10" rx="2" /><path d="M1 5l7 5 7-5" /></svg></div>
-                                <input type="email" name="email" className={fieldErrors.email ? 'input-error' : ''} value={form.email} onChange={handleChange} placeholder="jane@company.com" />
+                                <input type="email" name="email" className={fieldErrors.email ? 'input-error' : emailVerified ? 'input-verified' : ''} value={form.email} onChange={handleChange} placeholder="jane@company.com" disabled={emailVerified} />
+                                {!emailVerified && (
+                                    <button type="button" className="btn-verify-email" onClick={handleSendCode} disabled={codeSending || !form.email}>
+                                        {codeSending ? <div className="reg-spinner-sm"></div> : codeSent ? 'Resend' : 'Verify'}
+                                    </button>
+                                )}
+                                {emailVerified && (
+                                    <div className="verified-badge">
+                                        <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0a8 8 0 110 16A8 8 0 018 0zm3.5 5.3a.75.75 0 00-1.06-1.06L7 7.69 5.56 6.25a.75.75 0 00-1.06 1.06l2 2a.75.75 0 001.06 0l4-4z" /></svg>
+                                        Verified
+                                    </div>
+                                )}
                             </div>
                             {fieldErrors.email && <div className="reg-field-error"><ErrorIcon />{fieldErrors.email}</div>}
+
+                            {/* Code input — appears after sending */}
+                            {codeSent && !emailVerified && (
+                                <div className="verify-code-section">
+                                    <p className="verify-code-hint">We sent a 6-digit code to <strong>{form.email}</strong></p>
+                                    <div className="verify-code-row">
+                                        <input
+                                            type="text"
+                                            className={`verify-code-input ${codeError ? 'input-error' : ''}`}
+                                            value={verificationCode}
+                                            onChange={(e) => { setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6)); setCodeError(''); }}
+                                            placeholder="000000"
+                                            maxLength={6}
+                                            autoFocus
+                                        />
+                                        <button type="button" className="btn-verify-code" onClick={handleVerifyCode} disabled={verifying || verificationCode.length !== 6}>
+                                            {verifying ? <div className="reg-spinner-sm"></div> : 'Confirm'}
+                                        </button>
+                                    </div>
+                                    {codeError && <div className="reg-field-error"><ErrorIcon />{codeError}</div>}
+                                </div>
+                            )}
                         </div>
 
                         <div className="reg-field">

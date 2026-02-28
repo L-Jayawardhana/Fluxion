@@ -12,6 +12,12 @@ export const authService = {
     googleLogin: (idToken) =>
         api.post('/Auth/google', { idToken }),
 
+    sendVerificationCode: (email) =>
+        api.post('/Auth/send-verification-code', { email }),
+
+    verifyCode: (email, code) =>
+        api.post('/Auth/verify-code', { email, code }),
+
     createOrganization: (orgName, slug, timezone, ownerId) =>
         api.post('/Organization', { orgName, slug, timezone, ownerId }),
 
