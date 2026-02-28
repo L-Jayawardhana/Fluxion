@@ -119,7 +119,7 @@ export default function RegisterPage() {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [login, navigate]);
 
     useEffect(() => {
         if (window.google && step === 1 && googleBtnRef.current) {
@@ -313,7 +313,10 @@ export default function RegisterPage() {
                 createdOrg?.slug || slug || 'workspace',
                 planLabel
             ).catch(() => { }); // silently ignore email errors
-        } catch (_) { }
+        } catch (e) {
+            // welcome email is non-critical, ignore errors
+            void e;
+        }
 
         setStep(4);
         window.scrollTo({ top: 0, behavior: 'smooth' });
