@@ -143,3 +143,4 @@ f:\Fluxion\Fluxion\BackEnd\src\Fluxion.API\bin\Debug\net8.0\Google.Apis.Core.dll
 f:\Fluxion\Fluxion\BackEnd\src\Fluxion.API\bin\Debug\net8.0\Newtonsoft.Json.dll
 f:\Fluxion\Fluxion\BackEnd\src\Fluxion.API\bin\Debug\net8.0\System.Management.dll
 f:\Fluxion\Fluxion\BackEnd\src\Fluxion.API\bin\Debug\net8.0\runtimes\win\lib\net7.0\System.Management.dll
+f:\Fluxion\Fluxion\BackEnd\src\Fluxion.API\bin\Debug\net8.0\Fluxion.API.staticwebassets.runtime.json

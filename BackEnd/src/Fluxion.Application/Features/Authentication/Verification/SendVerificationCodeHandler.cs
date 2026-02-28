@@ -1,5 +1,6 @@
 using Fluxion.Application.Interfaces;
 using MediatR;
+using Microsoft.Extensions.Configuration;
 
 namespace Fluxion.Application.Features.Authentication.Verification;
 
@@ -7,16 +8,28 @@ public class SendVerificationCodeHandler : IRequestHandler<SendVerificationCodeC
 {
     private readonly IVerificationCodeService _codeService;
     private readonly IEmailService _emailService;
+    private readonly string _logoBase64;
 
-    public SendVerificationCodeHandler(IVerificationCodeService codeService, IEmailService emailService)
+    public SendVerificationCodeHandler(IVerificationCodeService codeService, IEmailService emailService, IConfiguration configuration)
     {
         _codeService = codeService;
         _emailService = emailService;
+
+        // Load logo at construction time
+        var logoPath = configuration["AppSettings:LogoPath"] ?? "wwwroot/images/LOGOwhite.png";
+        if (File.Exists(logoPath))
+            _logoBase64 = Convert.ToBase64String(File.ReadAllBytes(logoPath));
+        else
+            _logoBase64 = "";
     }
 
     public async Task<SendVerificationCodeResponse> Handle(SendVerificationCodeCommand request, CancellationToken cancellationToken)
     {
         var code = _codeService.GenerateCode(request.Email);
+
+        var logoImg = !string.IsNullOrEmpty(_logoBase64)
+            ? $@"<img src=""data:image/png;base64,{_logoBase64}"" alt=""Fluxion"" style=""height:32px;width:auto;vertical-align:middle;"" />"
+            : "";
 
         var html = $@"
 <!DOCTYPE html>
@@ -24,6 +37,7 @@ public class SendVerificationCodeHandler : IRequestHandler<SendVerificationCodeC
 <head>
   <meta charset=""utf-8"">
   <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
+  <link href=""https://fonts.googleapis.com/css2?family=Anton&display=swap"" rel=""stylesheet"">
 </head>
 <body style=""margin:0;padding:0;background:#F2EFE8;font-family:'Segoe UI',Roboto,sans-serif;"">
   <table role=""presentation"" width=""100%"" cellpadding=""0"" cellspacing=""0"" style=""background:#F2EFE8;padding:40px 0;"">
@@ -36,11 +50,11 @@ public class SendVerificationCodeHandler : IRequestHandler<SendVerificationCodeC
             <td style=""background:#0D0D0D;padding:32px 40px;text-align:center;"">
               <table role=""presentation"" cellpadding=""0"" cellspacing=""0"" style=""margin:0 auto;"">
                 <tr>
-                  <td style=""padding-right:10px;vertical-align:middle;"">
-                    <div style=""width:28px;height:28px;background:#C84B2F;border-radius:6px;display:inline-block;""></div>
+                  <td style=""padding-right:12px;vertical-align:middle;"">
+                    {logoImg}
                   </td>
                   <td style=""vertical-align:middle;"">
-                    <span style=""font-family:'Segoe UI',Roboto,sans-serif;font-weight:800;font-size:20px;color:#F2EFE8;letter-spacing:2px;"">FLUXION</span>
+                    <span style=""font-family:'Anton',Impact,'Arial Black',sans-serif;font-weight:400;font-size:22px;color:#F2EFE8;letter-spacing:3px;text-transform:uppercase;"">FLUXION</span>
                   </td>
                 </tr>
               </table>
