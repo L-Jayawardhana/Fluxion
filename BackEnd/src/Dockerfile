@@ -39,9 +39,9 @@ RUN apt-get update \
 # Copy published output from build stage
 COPY --from=build /app/publish ./
 
-# Health check endpoint (adjust path if needed)
+# Health check endpoint
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-  CMD curl --fail http://localhost:80/health || exit 1
+  CMD curl --fail http://localhost:80/api/health || exit 1
 
 # Expose port (change if your app uses a different port)
 EXPOSE 80

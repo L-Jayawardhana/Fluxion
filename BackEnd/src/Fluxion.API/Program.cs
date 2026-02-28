@@ -63,16 +63,23 @@ builder.Services.AddCors(options =>
         }
         else
         {
-            // Production: only allow traffic from the nginx reverse proxy
-            // and the configured frontend origin (set via env var on the VM)
+            // Production: only allow specific origins if configured.
+            // Behind the nginx reverse proxy everything is same-origin,
+            // so CORS headers aren't needed for normal operation.
+            // Set AllowedOrigins__0, __1, … env vars if you ever need
+            // cross-origin access (e.g. mobile app, external SPA).
             var allowedOrigins = builder.Configuration
                 .GetSection("AllowedOrigins")
                 .Get<string[]>() ?? [];
 
-            policy.WithOrigins(allowedOrigins)
-                  .AllowAnyMethod()
-                  .AllowAnyHeader()
-                  .AllowCredentials();
+            if (allowedOrigins.Length > 0)
+            {
+                policy.WithOrigins(allowedOrigins)
+                      .AllowAnyMethod()
+                      .AllowAnyHeader()
+                      .AllowCredentials();
+            }
+            // else: no CORS headers → same-origin only (correct behind nginx)
         }
     });
 });

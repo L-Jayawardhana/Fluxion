@@ -193,8 +193,8 @@ jobs:
             # Pull new images
             docker compose pull
 
-            # Zero-downtime rolling restart
-            docker compose up -d --remove-orphans
+            # Recreate all containers (ensures nginx picks up new backend/frontend IPs)
+            docker compose up -d --force-recreate --remove-orphans
 
             # Remove dangling images to save disk space
             docker image prune -f
