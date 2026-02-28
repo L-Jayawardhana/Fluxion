@@ -39,8 +39,8 @@
               "F:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.Infrastructure\\Fluxion.Infrastructure.csproj": {
                 "projectPath": "F:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.Infrastructure\\Fluxion.Infrastructure.csproj"
               },
-              "F:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.Persistence\\Fluxion.Persistence.csproj": {
-                "projectPath": "F:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.Persistence\\Fluxion.Persistence.csproj"
+              "f:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.Persistence\\Fluxion.Persistence.csproj": {
+                "projectPath": "f:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.Persistence\\Fluxion.Persistence.csproj"
               }
             }
           }
@@ -61,6 +61,16 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "dependencies": {
+            "Microsoft.AspNetCore.Authentication.JwtBearer": {
+              "target": "Package",
+              "version": "[8.0.13, )"
+            },
+            "Microsoft.EntityFrameworkCore.Design": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[8.0.13, )"
+            },
             "Swashbuckle.AspNetCore": {
               "target": "Package",
               "version": "[6.9.0, )"
@@ -148,9 +158,21 @@
               "target": "Package",
               "version": "[11.11.0, )"
             },
+            "Google.Apis.Auth": {
+              "target": "Package",
+              "version": "[1.73.0, )"
+            },
             "MediatR": {
               "target": "Package",
               "version": "[12.4.1, )"
+            },
+            "Microsoft.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[8.0.13, )"
+            },
+            "Microsoft.Extensions.Configuration.Abstractions": {
+              "target": "Package",
+              "version": "[8.0.0, )"
             }
           },
           "imports": [
@@ -290,6 +312,14 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "dependencies": {
+            "BCrypt.Net-Next": {
+              "target": "Package",
+              "version": "[4.1.0, )"
+            },
+            "MailKit": {
+              "target": "Package",
+              "version": "[4.15.0, )"
+            },
             "Microsoft.Extensions.Configuration.Abstractions": {
               "target": "Package",
               "version": "[8.0.0, )"
@@ -297,6 +327,14 @@
             "Microsoft.Extensions.DependencyInjection.Abstractions": {
               "target": "Package",
               "version": "[8.0.2, )"
+            },
+            "Microsoft.Extensions.Options.ConfigurationExtensions": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "System.IdentityModel.Tokens.Jwt": {
+              "target": "Package",
+              "version": "[8.16.0, )"
             }
           },
           "imports": [
@@ -319,14 +357,14 @@
         }
       }
     },
-    "F:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.Persistence\\Fluxion.Persistence.csproj": {
+    "f:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.Persistence\\Fluxion.Persistence.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "F:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.Persistence\\Fluxion.Persistence.csproj",
+        "projectUniqueName": "f:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.Persistence\\Fluxion.Persistence.csproj",
         "projectName": "Fluxion.Persistence",
-        "projectPath": "F:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.Persistence\\Fluxion.Persistence.csproj",
+        "projectPath": "f:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.Persistence\\Fluxion.Persistence.csproj",
         "packagesPath": "C:\\Users\\user\\.nuget\\packages\\",
-        "outputPath": "F:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.Persistence\\obj\\",
+        "outputPath": "f:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.Persistence\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
