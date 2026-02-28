@@ -1025,11 +1025,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "F:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.Application\\Fluxion.Application.csproj",
+      "projectUniqueName": "f:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.Application\\Fluxion.Application.csproj",
       "projectName": "Fluxion.Application",
-      "projectPath": "F:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.Application\\Fluxion.Application.csproj",
+      "projectPath": "f:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.Application\\Fluxion.Application.csproj",
       "packagesPath": "C:\\Users\\user\\.nuget\\packages\\",
-      "outputPath": "F:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.Application\\obj\\",
+      "outputPath": "f:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.Application\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -1051,8 +1051,8 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "F:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.Domain\\Fluxion.Domain.csproj": {
-              "projectPath": "F:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.Domain\\Fluxion.Domain.csproj"
+            "f:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.Domain\\Fluxion.Domain.csproj": {
+              "projectPath": "f:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.Domain\\Fluxion.Domain.csproj"
             }
           }
         }

@@ -3733,11 +3733,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "F:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.API\\Fluxion.API.csproj",
+      "projectUniqueName": "f:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.API\\Fluxion.API.csproj",
       "projectName": "Fluxion.API",
-      "projectPath": "F:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.API\\Fluxion.API.csproj",
+      "projectPath": "f:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.API\\Fluxion.API.csproj",
       "packagesPath": "C:\\Users\\user\\.nuget\\packages\\",
-      "outputPath": "F:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.API\\obj\\",
+      "outputPath": "f:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.API\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -3759,11 +3759,11 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "F:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.Application\\Fluxion.Application.csproj": {
-              "projectPath": "F:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.Application\\Fluxion.Application.csproj"
+            "f:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.Application\\Fluxion.Application.csproj": {
+              "projectPath": "f:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.Application\\Fluxion.Application.csproj"
             },
-            "F:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.Infrastructure\\Fluxion.Infrastructure.csproj": {
-              "projectPath": "F:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.Infrastructure\\Fluxion.Infrastructure.csproj"
+            "f:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.Infrastructure\\Fluxion.Infrastructure.csproj": {
+              "projectPath": "f:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.Infrastructure\\Fluxion.Infrastructure.csproj"
             },
             "f:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.Persistence\\Fluxion.Persistence.csproj": {
               "projectPath": "f:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.Persistence\\Fluxion.Persistence.csproj"
