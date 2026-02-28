@@ -57,9 +57,23 @@ public class AuthController : ControllerBase
             @"<div style='font-family:sans-serif;padding:24px;'>
                 <h2 style='color:#C84B2F;'>Hello from Fluxion! 🚀</h2>
                 <p>If you're reading this, the email service is working correctly.</p>
-                <p style='color:#8A9BAD;font-size:12px;'>Sent via Mailtrap sandbox SMTP</p>
+                <p style='color:#8A9BAD;font-size:12px;'>Sent via Gmail SMTP</p>
               </div>"
         );
         return Ok(new { message = "Test email sent to puliththewmika@gmail.com" });
+    }
+
+    [HttpPost("google")]
+    public async Task<IActionResult> GoogleLogin([FromBody] Application.Features.Authentication.GoogleLogin.GoogleLoginCommand command)
+    {
+        try
+        {
+            var result = await _mediator.Send(command);
+            return Ok(result);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { message = ex.Message });
+        }
     }
 }

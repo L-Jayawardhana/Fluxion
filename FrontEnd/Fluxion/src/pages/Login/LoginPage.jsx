@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { authService } from '../../services/authService';
+import { authService, GOOGLE_CLIENT_ID } from '../../services/authService';
 import { useAuth } from '../../hooks/useAuth';
 import './LoginPage.css';
 
@@ -16,6 +16,7 @@ export default function LoginPage() {
 
     const dotRef = useRef(null);
     const ringRef = useRef(null);
+    const googleBtnRef = useRef(null);
 
     useEffect(() => {
         const dot = dotRef.current;
@@ -65,6 +66,41 @@ export default function LoginPage() {
     const clearFieldError = (field) => {
         setFieldErrors(prev => { const n = { ...prev }; delete n[field]; return n; });
     };
+
+    // Google Sign-In
+    const handleGoogleLogin = useCallback(async (response) => {
+        setError('');
+        setLoading(true);
+        try {
+            const { data } = await authService.googleLogin(response.credential);
+            login(data.token, { userId: data.userId, fullName: data.fullName, email: data.email, role: data.role });
+            navigate('/dashboard');
+        } catch (err) {
+            setError(err.response?.data?.message || 'Google sign-in failed. Please try again.');
+        } finally {
+            setLoading(false);
+        }
+    }, [login, navigate]);
+
+    useEffect(() => {
+        if (window.google && googleBtnRef.current) {
+            window.google.accounts.id.initialize({
+                client_id: GOOGLE_CLIENT_ID,
+                callback: handleGoogleLogin,
+            });
+            window.google.accounts.id.renderButton(
+                googleBtnRef.current,
+                {
+                    type: 'standard',
+                    theme: 'outline',
+                    size: 'large',
+                    text: 'continue_with',
+                    shape: 'rectangular',
+                    width: 376,
+                }
+            );
+        }
+    }, [handleGoogleLogin]);
 
     return (
         <div className="login-page">
@@ -205,6 +241,9 @@ export default function LoginPage() {
                     </form>
 
                     <div className="login-divider">or</div>
+
+                    <div className="google-btn-wrap" ref={googleBtnRef}></div>
+
                     <div className="register-link">
                         Don't have an account? <Link to="/register">Create your organisation →</Link>
                     </div>

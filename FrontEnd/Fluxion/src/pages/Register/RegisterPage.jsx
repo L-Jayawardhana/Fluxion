@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { authService } from '../../services/authService';
+import { authService, GOOGLE_CLIENT_ID } from '../../services/authService';
 import './RegisterPage.css';
 
 export default function RegisterPage() {
@@ -24,6 +24,7 @@ export default function RegisterPage() {
     const dotRef = useRef(null);
     const ringRef = useRef(null);
     const fileInputRef = useRef(null);
+    const googleBtnRef = useRef(null);
 
     // Custom cursor
     useEffect(() => {
@@ -46,6 +47,52 @@ export default function RegisterPage() {
             els.forEach(el => { el.removeEventListener('mouseenter', onEnter); el.removeEventListener('mouseleave', onLeave); });
         };
     }, [step]);
+
+    // Google Sign-In
+    const handleGoogleSignUp = useCallback(async (response) => {
+        setApiError('');
+        setLoading(true);
+        try {
+            const { data } = await authService.googleLogin(response.credential);
+            localStorage.setItem('token', data.token);
+            setRegisteredUser({ userId: data.userId, token: data.token });
+            // Pre-fill name from Google
+            const nameParts = data.fullName?.split(' ') || ['', ''];
+            setForm(prev => ({
+                ...prev,
+                firstName: nameParts[0] || prev.firstName,
+                lastName: nameParts.slice(1).join(' ') || prev.lastName,
+                email: data.email || prev.email,
+            }));
+            // Skip to org setup (step 2)
+            setStep(2);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        } catch (err) {
+            setApiError(err.response?.data?.message || 'Google sign-up failed. Please try again.');
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (window.google && step === 1 && googleBtnRef.current) {
+            window.google.accounts.id.initialize({
+                client_id: GOOGLE_CLIENT_ID,
+                callback: handleGoogleSignUp,
+            });
+            window.google.accounts.id.renderButton(
+                googleBtnRef.current,
+                {
+                    type: 'standard',
+                    theme: 'outline',
+                    size: 'large',
+                    text: 'continue_with',
+                    shape: 'rectangular',
+                    width: 420,
+                }
+            );
+        }
+    }, [handleGoogleSignUp, step]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -317,6 +364,9 @@ export default function RegisterPage() {
                         </button>
 
                         <div className="reg-divider">or</div>
+
+                        <div className="google-btn-wrap" ref={googleBtnRef}></div>
+
                         <div className="reg-login-link">Already have an account? <Link to="/login">Sign in</Link></div>
                     </div>
                 )}

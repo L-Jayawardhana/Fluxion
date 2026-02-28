@@ -798,6 +798,13 @@
     height: 14px;
 }
 
+/* Google Button Container */
+.google-btn-wrap {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 16px;
+}
+
 /* Spinner */
 .reg-spinner {
     width: 16px;
