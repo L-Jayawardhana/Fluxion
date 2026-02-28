@@ -1,7 +1,18 @@
 import axios from 'axios';
 
+// Environment-based API URL configuration
+const getApiBaseUrl = () => {
+  // For containerized environments, use port 8080
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    // Check if we're in a browser accessing containerized apps
+    return 'http://localhost:8080/api';
+  }
+  // For production, this would be your actual API domain
+  return 'http://localhost:5226/api';
+};
+
 const api = axios.create({
-  baseURL: 'http://localhost:5226/api',
+  baseURL: getApiBaseUrl(),
   headers: {
     'Content-Type': 'application/json',
   },

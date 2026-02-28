@@ -3,13 +3,15 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/main/VisualStudio.gitignore
 
-# User-specific files
-*.rsuser
-*.suo
-*.user
-*.userosscache
-*.sln.docstates
+# ── Secret & environment files (NEVER commit these) ──────
 *.env
+.env
+.env.*
+!.env.example
+**/appsettings.Development.json
+**/appsettings.Local.json
+**/appsettings.Secrets.json
+/opt/fluxion/.env
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
@@ -429,13 +431,12 @@ FodyWeavers.xsd
 
 # Custom
 appsettings.Development.json
-.env
+appsettings.Local.json
 
-# Docker
-.dockerignore
-docker-compose*.yml
-docker-compose*.yaml
-Dockerfile*
+# Runtime environment file on the VM (written by CI, never committed)
+.env
+.env.*
+!.env.example
 
 # JetBrains IDEs
 .idea/
