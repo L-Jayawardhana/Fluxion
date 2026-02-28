@@ -91,4 +91,11 @@ public class AuthController : ControllerBase
         if (!result.IsValid) return BadRequest(result);
         return Ok(result);
     }
+
+    [HttpPost("send-welcome-email")]
+    public async Task<IActionResult> SendWelcomeEmail([FromBody] Application.Features.Authentication.Welcome.SendWelcomeEmailCommand command)
+    {
+        await _mediator.Send(command);
+        return Ok(new { message = "Welcome email sent." });
+    }
 }

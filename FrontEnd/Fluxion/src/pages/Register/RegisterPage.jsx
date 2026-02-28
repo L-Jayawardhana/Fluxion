@@ -262,7 +262,19 @@ export default function RegisterPage() {
     const handleSubmit = async () => {
         if (!termsAccepted) { setApiError('Please accept the Terms of Service to continue.'); return; }
         setApiError('');
-        // Plan selection is frontend-only for now — just proceed to success
+
+        // Send welcome email (fire-and-forget — don't block UI)
+        try {
+            const planLabel = plan.charAt(0).toUpperCase() + plan.slice(1) + (billing === 'annual' ? ' (Annual)' : '');
+            authService.sendWelcomeEmail(
+                form.email,
+                form.firstName,
+                createdOrg?.orgName || form.orgName || 'My Organisation',
+                createdOrg?.slug || slug || 'workspace',
+                planLabel
+            ).catch(() => { }); // silently ignore email errors
+        } catch (_) { }
+
         setStep(4);
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };

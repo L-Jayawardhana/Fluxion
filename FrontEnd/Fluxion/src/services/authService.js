@@ -18,6 +18,9 @@ export const authService = {
     verifyCode: (email, code) =>
         api.post('/Auth/verify-code', { email, code }),
 
+    sendWelcomeEmail: (email, firstName, orgName, workspaceSlug, planName) =>
+        api.post('/Auth/send-welcome-email', { email, firstName, orgName, workspaceSlug, planName }),
+
     createOrganization: (orgName, slug, timezone, ownerId) =>
         api.post('/Organization', { orgName, slug, timezone, ownerId }),
 

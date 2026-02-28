@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Fluxion.Domain")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1d51e39c91b64e3bc74a92c41a2e9b8a37a8fa67")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+36a84f933ae548a5c3336a6e2791b894d46d881e")]
 [assembly: System.Reflection.AssemblyProductAttribute("Fluxion.Domain")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Fluxion.Domain")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
