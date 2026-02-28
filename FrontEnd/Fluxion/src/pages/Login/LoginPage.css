@@ -595,11 +595,51 @@
     background: rgba(13, 13, 13, .1);
 }
 
-/* Google Button Container */
-.google-btn-wrap {
-    display: flex;
-    justify-content: center;
+/* Google Button — overlay pattern */
+.google-btn-outer {
+    position: relative;
+    width: 100%;
+    height: 48px;
     margin-bottom: 20px;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.google-btn-visual {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: white;
+    border: 1.5px solid rgba(13, 13, 13, .15);
+    border-radius: 6px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 13px;
+    color: var(--ink);
+    pointer-events: none;
+    transition: border-color .2s, box-shadow .2s, background .2s;
+}
+
+.google-btn-outer:hover .google-btn-visual {
+    border-color: rgba(13, 13, 13, .35);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, .08);
+    background: #FAFAFA;
+}
+
+.google-btn-real {
+    position: absolute;
+    inset: 0;
+    opacity: 0.001;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.google-btn-real iframe,
+.google-btn-real div {
+    width: 100% !important;
+    height: 48px !important;
 }
 
 .register-link {
