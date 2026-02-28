@@ -430,3 +430,48 @@ FodyWeavers.xsd
 # Custom
 appsettings.Development.json
 .env
+
+# Docker
+.dockerignore
+docker-compose*.yml
+docker-compose*.yaml
+Dockerfile*
+
+# JetBrains IDEs
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Additional logs and temporary files
+*.log*
+*.tmp*
+*.temp*
+*~
+
+# Database files
+*.db
+*.sqlite*
+*.mdf
+*.ldf
+
+# Package manager files
+package-lock.json
+yarn.lock
+.pnpm-debug.log*
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
