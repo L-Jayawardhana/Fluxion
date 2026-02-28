@@ -70,6 +70,10 @@ export default function LoginPage() {
     // Google Sign-In
     const handleGoogleLogin = useCallback(async (response) => {
         setError('');
+        if (!response?.credential) {
+            setError('Google did not return a credential token. Please try again.');
+            return;
+        }
         setLoading(true);
         try {
             const { data } = await authService.googleLogin(response.credential);

@@ -1667,11 +1667,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "f:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.Infrastructure\\Fluxion.Infrastructure.csproj",
+      "projectUniqueName": "F:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.Infrastructure\\Fluxion.Infrastructure.csproj",
       "projectName": "Fluxion.Infrastructure",
-      "projectPath": "f:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.Infrastructure\\Fluxion.Infrastructure.csproj",
+      "projectPath": "F:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.Infrastructure\\Fluxion.Infrastructure.csproj",
       "packagesPath": "C:\\Users\\user\\.nuget\\packages\\",
-      "outputPath": "f:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.Infrastructure\\obj\\",
+      "outputPath": "F:\\Fluxion\\Fluxion\\BackEnd\\src\\Fluxion.Infrastructure\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

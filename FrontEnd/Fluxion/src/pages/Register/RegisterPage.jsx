@@ -60,6 +60,10 @@ export default function RegisterPage() {
     // Google Sign-In
     const handleGoogleSignUp = useCallback(async (response) => {
         setApiError('');
+        if (!response?.credential) {
+            setApiError('Google did not return a credential token. Please try again.');
+            return;
+        }
         setLoading(true);
         try {
             const { data } = await authService.googleLogin(response.credential);
