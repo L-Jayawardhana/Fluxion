@@ -20,20 +20,28 @@ RUN dotnet restore "Fluxion.API/Fluxion.API.csproj"
 # Copy everything else and build
 COPY . .
 WORKDIR "/src/Fluxion.API"
+
 # Clean obj and bin folders to remove any Windows-specific cache
 RUN find /src -name "obj" -type d -exec rm -rf {} + || true
 RUN find /src -name "bin" -type d -exec rm -rf {} + || true
+
 RUN dotnet publish "Fluxion.API.csproj" -c Release -o /app/publish
 
 # Runtime stage
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 
+# ✅ Install curl for HEALTHCHECK (runtime image is where healthcheck runs)
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
 # Copy published output from build stage
 COPY --from=build /app/publish ./
 
 # Health check endpoint (adjust path if needed)
-HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 CMD curl --fail http://localhost:80/health || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+  CMD curl --fail http://localhost:80/health || exit 1
 
 # Expose port (change if your app uses a different port)
 EXPOSE 80
