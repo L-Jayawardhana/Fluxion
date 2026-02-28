@@ -7,24 +7,22 @@ namespace Fluxion.Application.Features.Authentication.Welcome;
 public class SendWelcomeEmailHandler : IRequestHandler<SendWelcomeEmailCommand, Unit>
 {
     private readonly IEmailService _emailService;
-    private readonly string _logoBase64;
 
-    public SendWelcomeEmailHandler(IEmailService emailService, IConfiguration configuration)
+    public SendWelcomeEmailHandler(IEmailService emailService)
     {
         _emailService = emailService;
-
-        var logoPath = configuration["AppSettings:LogoPath"] ?? "wwwroot/images/LOGOwhite.png";
-        if (File.Exists(logoPath))
-            _logoBase64 = Convert.ToBase64String(File.ReadAllBytes(logoPath));
-        else
-            _logoBase64 = "";
     }
 
     public async Task<Unit> Handle(SendWelcomeEmailCommand req, CancellationToken ct)
     {
-        var logoImg = !string.IsNullOrEmpty(_logoBase64)
-            ? $@"<img src=""data:image/png;base64,{_logoBase64}"" alt=""Fluxion"" style=""height:32px;width:auto;vertical-align:middle;"" />"
-            : @"<div style=""width:32px;height:32px;background:#C84B2F;border-radius:8px;""></div>";
+        var logoImg = @"
+          <table role=""presentation"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+          <tr>
+            <td style=""width:36px;height:36px;background-color:#C84B2F;border-radius:9px;text-align:center;line-height:36px;"">
+              <span style=""font-size:18px;color:#fff;"">⊞</span>
+            </td>
+          </tr>
+          </table>";
 
         var year = DateTime.UtcNow.Year;
 

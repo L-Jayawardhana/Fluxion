@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth';
 import { authService, GOOGLE_CLIENT_ID } from '../../services/authService';
 import './RegisterPage.css';
 
@@ -27,6 +28,7 @@ export default function RegisterPage() {
     const [codeError, setCodeError] = useState('');
     const [codeSending, setCodeSending] = useState(false);
     const navigate = useNavigate();
+    const { login } = useAuth();
 
     const dotRef = useRef(null);
     const ringRef = useRef(null);
@@ -61,6 +63,14 @@ export default function RegisterPage() {
         setLoading(true);
         try {
             const { data } = await authService.googleLogin(response.credential);
+
+            if (!data.isNewUser) {
+                // User already exists. Log them in and redirect to dashboard.
+                login(data.token, { userId: data.userId, fullName: data.fullName, email: data.email, role: data.role });
+                navigate('/dashboard');
+                return;
+            }
+
             localStorage.setItem('token', data.token);
             setRegisteredUser({ userId: data.userId, token: data.token });
             // Pre-fill name from Google

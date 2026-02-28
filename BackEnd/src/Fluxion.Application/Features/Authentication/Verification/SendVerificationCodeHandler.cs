@@ -8,28 +8,25 @@ public class SendVerificationCodeHandler : IRequestHandler<SendVerificationCodeC
 {
     private readonly IVerificationCodeService _codeService;
     private readonly IEmailService _emailService;
-    private readonly string _logoBase64;
 
-    public SendVerificationCodeHandler(IVerificationCodeService codeService, IEmailService emailService, IConfiguration configuration)
+    public SendVerificationCodeHandler(IVerificationCodeService codeService, IEmailService emailService)
     {
         _codeService = codeService;
         _emailService = emailService;
-
-        // Load logo at construction time
-        var logoPath = configuration["AppSettings:LogoPath"] ?? "wwwroot/images/LOGOwhite.png";
-        if (File.Exists(logoPath))
-            _logoBase64 = Convert.ToBase64String(File.ReadAllBytes(logoPath));
-        else
-            _logoBase64 = "";
     }
 
     public async Task<SendVerificationCodeResponse> Handle(SendVerificationCodeCommand request, CancellationToken cancellationToken)
     {
         var code = _codeService.GenerateCode(request.Email);
 
-        var logoImg = !string.IsNullOrEmpty(_logoBase64)
-            ? $@"<img src=""data:image/png;base64,{_logoBase64}"" alt=""Fluxion"" style=""height:32px;width:auto;vertical-align:middle;"" />"
-            : "";
+        var logoImg = @"
+          <table role=""presentation"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+          <tr>
+            <td style=""width:36px;height:36px;background-color:#C84B2F;border-radius:9px;text-align:center;line-height:36px;"">
+              <span style=""font-size:18px;color:#fff;"">⊞</span>
+            </td>
+          </tr>
+          </table>";
 
         var html = $@"
 <!DOCTYPE html>
