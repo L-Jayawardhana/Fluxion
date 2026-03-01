@@ -17,10 +17,17 @@ public class JwtTokenService : IJwtTokenService
         _settings = settings.Value;
     }
 
-    public string GenerateToken(User user)
+    public long GetTokenExpiryUnixSeconds(bool rememberMe = false)
+    {
+        var minutes = rememberMe ? _settings.RememberMeExpiryMinutes : _settings.ExpiryMinutes;
+        return new DateTimeOffset(DateTime.UtcNow.AddMinutes(minutes)).ToUnixTimeSeconds();
+    }
+
+    public string GenerateToken(User user, bool rememberMe = false)
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.SecretKey));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        var expiryMinutes = rememberMe ? _settings.RememberMeExpiryMinutes : _settings.ExpiryMinutes;
 
         var claims = new[]
         {
@@ -35,7 +42,7 @@ public class JwtTokenService : IJwtTokenService
             issuer: _settings.Issuer,
             audience: _settings.Audience,
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(_settings.ExpiryMinutes),
+            expires: DateTime.UtcNow.AddMinutes(expiryMinutes),
             signingCredentials: credentials
         );
 

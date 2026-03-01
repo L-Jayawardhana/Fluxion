@@ -6,5 +6,6 @@ public record LoginResponse(
     string FullName,
     string Email,
     string Role,
-    bool MustChangePassword
+    bool MustChangePassword,
+    long ExpiresAt
 );
