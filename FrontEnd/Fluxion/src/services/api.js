@@ -1,7 +1,12 @@
 import axios from 'axios';
 
+// VITE_API_URL is injected at build time via .env files or Dockerfile build args:
+//   npm run dev  → .env.development → http://localhost:5226/api
+//   npm run build (Docker) → .env.production → /api  (relative, proxied by nginx)
+const API_BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:5226/api';
+
 const api = axios.create({
-  baseURL: 'http://localhost:5226/api',
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
