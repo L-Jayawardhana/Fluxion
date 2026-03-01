@@ -38,7 +38,8 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, LoginResponse>
         user.LastLoginAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
 
-        var token = _jwtTokenService.GenerateToken(user);
+        var token = _jwtTokenService.GenerateToken(user, request.RememberMe);
+        var expiresAt = _jwtTokenService.GetTokenExpiryUnixSeconds(request.RememberMe);
 
         return new LoginResponse(
             Token: token,
@@ -46,7 +47,8 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, LoginResponse>
             FullName: user.FullName,
             Email: user.Email,
             Role: user.Role.ToString(),
-            MustChangePassword: user.MustChangePassword
+            MustChangePassword: user.MustChangePassword,
+            ExpiresAt: expiresAt
         );
     }
 }

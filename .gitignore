@@ -438,6 +438,8 @@ appsettings.Local.json
 
 # Runtime environment file on the VM (written by CI, never committed)
 .env
+bin/
+obj/
 .env.*
 !.env.example
 # Vite environment files — no secrets, safe to track
