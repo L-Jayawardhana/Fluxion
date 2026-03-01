@@ -7,6 +7,7 @@ import SplashScreen from './components/SplashScreen';
 import LandingPage from './pages/Landing/LandingPage';
 import LoginPage from './pages/Login/LoginPage';
 import RegisterPage from './pages/Register/RegisterPage';
+import ForgotPasswordPage from './pages/ForgotPassword/ForgotPasswordPage';
 import DashboardPage from './pages/Dashboard/DashboardPage';
 import NotFoundPage from './pages/NotFound/NotFoundPage';
 
@@ -31,6 +32,7 @@ function App() {
           {/* Auth routes (standalone — they have their own layout) */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
           {/* Protected routes */}
           <Route element={<ProtectedRoute />}>

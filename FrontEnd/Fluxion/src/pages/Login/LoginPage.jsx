@@ -238,7 +238,7 @@ export default function LoginPage() {
                                 <input type="checkbox" />
                                 <span>Remember me for 7 days</span>
                             </label>
-                            <a href="#" className="forgot-link">Forgot password?</a>
+                            <Link to="/forgot-password" className="forgot-link">Forgot password?</Link>
                         </div>
 
                         <button type="submit" className="btn-submit" disabled={loading}>

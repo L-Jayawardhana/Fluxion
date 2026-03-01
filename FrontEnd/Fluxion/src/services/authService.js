@@ -21,6 +21,12 @@ export const authService = {
     sendWelcomeEmail: (email, firstName, orgName, workspaceSlug, planName) =>
         api.post('/Auth/send-welcome-email', { email, firstName, orgName, workspaceSlug, planName }),
 
+    forgotPassword: (email) =>
+        api.post('/Auth/forgot-password', { email }),
+
+    resetPassword: (email, code, newPassword) =>
+        api.post('/Auth/reset-password', { email, code, newPassword }),
+
     createOrganization: (orgName, slug, timezone, ownerId) =>
         api.post('/Organization', { orgName, slug, timezone, ownerId }),
 

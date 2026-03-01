@@ -430,3 +430,5 @@ FodyWeavers.xsd
 # Custom
 appsettings.Development.json
 .env
+bin/
+obj/

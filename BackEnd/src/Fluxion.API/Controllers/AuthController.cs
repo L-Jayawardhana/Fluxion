@@ -102,4 +102,19 @@ public class AuthController : ControllerBase
         await _mediator.Send(command);
         return Ok(new { message = "Welcome email sent." });
     }
+
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> ForgotPassword([FromBody] Application.Features.Authentication.ForgotPassword.ForgotPasswordCommand command)
+    {
+        var result = await _mediator.Send(command);
+        return Ok(result);
+    }
+
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> ResetPassword([FromBody] Application.Features.Authentication.ForgotPassword.ResetPasswordCommand command)
+    {
+        var result = await _mediator.Send(command);
+        if (!result.Success) return BadRequest(new { message = result.Message });
+        return Ok(result);
+    }
 }
