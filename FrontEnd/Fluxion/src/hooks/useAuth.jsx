@@ -34,31 +34,47 @@ function clearStoredAuth() {
 }
 
 export function AuthProvider({ children }) {
-    const [user, setUser] = useState(null);
+    const [user, setUser] = useState(() => {
+        const stored = getStoredToken();
+        if (stored && isTokenValid(stored)) {
+            const payload = decodeToken(stored);
+            return {
+                userId: payload.sub,
+                email: payload.email,
+                role: payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'],
+                orgId: payload.OrgId,
+            };
+        }
+        return null;
+    });
     const [token, setToken] = useState(() => {
         const stored = getStoredToken();
         if (stored && isTokenValid(stored)) return stored;
         if (stored) clearStoredAuth();
         return null;
     });
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
 
-    // Restore user from token on mount or token change
+    // Sync user when token changes (after login/logout/expiry — not on mount)
     useEffect(() => {
         if (token && isTokenValid(token)) {
             const payload = decodeToken(token);
-            setUser({
-                userId: payload.sub,
-                email: payload.email,
-                role: payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'],
-                orgId: payload.OrgId,
-            });
-        } else if (token) {
-            clearStoredAuth();
-            setToken(null);
-            setUser(null);
+            if (payload) {
+                setUser({
+                    userId: payload.sub,
+                    email: payload.email,
+                    role: payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'],
+                    orgId: payload.OrgId,
+                });
+                return;
+            }
         }
-        setLoading(false);
+        // token is null, invalid, or expired
+        if (token) {
+            clearStoredAuth();
+        }
+        setToken((prev) => prev ? null : prev);
+        setUser((prev) => prev ? null : prev);
     }, [token]);
 
     // Listen for storage changes from other tabs (localStorage only — sessionStorage doesn't fire cross-tab)

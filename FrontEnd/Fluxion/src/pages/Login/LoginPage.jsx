@@ -103,7 +103,7 @@ export default function LoginPage() {
         } finally {
             setLoading(false);
         }
-    }, [login, navigate]);
+    }, [login, navigate, from]);
 
     useEffect(() => {
         if (window.google && googleBtnRef.current) {
