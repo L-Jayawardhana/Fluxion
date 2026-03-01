@@ -479,6 +479,12 @@
     cursor: none;
 }
 
+.login-checkbox-wrap span {
+    font-size: 12px;
+    color: var(--steel);
+    user-select: none;
+}
+
 .login-checkbox-wrap input[type="checkbox"] {
     width: 16px;
     height: 16px;

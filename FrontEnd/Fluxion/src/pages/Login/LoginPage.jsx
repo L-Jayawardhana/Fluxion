@@ -236,7 +236,7 @@ export default function LoginPage() {
                         <div className="login-form-row">
                             <label className="login-checkbox-wrap">
                                 <input type="checkbox" />
-                                <span>Remember me for 7 days</span>
+                                <span>Remember me</span>
                             </label>
                             <Link to="/forgot-password" className="forgot-link">Forgot password?</Link>
                         </div>
