@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 
 const AuthContext = createContext(null);
 
@@ -33,49 +33,29 @@ function clearStoredAuth() {
     sessionStorage.removeItem('expiresAt');
 }
 
+/** Build a user object from a valid token, or return null */
+function userFromToken(token) {
+    if (!token || !isTokenValid(token)) return null;
+    const payload = decodeToken(token);
+    if (!payload) return null;
+    return {
+        userId: payload.sub,
+        email: payload.email,
+        role: payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'],
+        orgId: payload.OrgId,
+    };
+}
+
 export function AuthProvider({ children }) {
-    const [user, setUser] = useState(() => {
-        const stored = getStoredToken();
-        if (stored && isTokenValid(stored)) {
-            const payload = decodeToken(stored);
-            return {
-                userId: payload.sub,
-                email: payload.email,
-                role: payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'],
-                orgId: payload.OrgId,
-            };
-        }
-        return null;
-    });
     const [token, setToken] = useState(() => {
         const stored = getStoredToken();
         if (stored && isTokenValid(stored)) return stored;
         if (stored) clearStoredAuth();
         return null;
     });
-    const [loading, setLoading] = useState(false);
 
-    // Sync user when token changes (after login/logout/expiry — not on mount)
-    useEffect(() => {
-        if (token && isTokenValid(token)) {
-            const payload = decodeToken(token);
-            if (payload) {
-                setUser({
-                    userId: payload.sub,
-                    email: payload.email,
-                    role: payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'],
-                    orgId: payload.OrgId,
-                });
-                return;
-            }
-        }
-        // token is null, invalid, or expired
-        if (token) {
-            clearStoredAuth();
-        }
-        setToken((prev) => prev ? null : prev);
-        setUser((prev) => prev ? null : prev);
-    }, [token]);
+    // Derive user from token — no effect needed, no cascading setState
+    const user = useMemo(() => userFromToken(token), [token]);
 
     // Listen for storage changes from other tabs (localStorage only — sessionStorage doesn't fire cross-tab)
     useEffect(() => {
@@ -86,7 +66,6 @@ export function AuthProvider({ children }) {
                     setToken(newToken);
                 } else {
                     setToken(null);
-                    setUser(null);
                 }
             }
         };
@@ -101,13 +80,12 @@ export function AuthProvider({ children }) {
             if (!isTokenValid(token)) {
                 clearStoredAuth();
                 setToken(null);
-                setUser(null);
             }
         }, 60_000);
         return () => clearInterval(interval);
     }, [token]);
 
-    const login = useCallback((tokenValue, userData, rememberMe = false, expiresAt = null) => {
+    const login = useCallback((tokenValue, _userData, rememberMe = false, expiresAt = null) => {
         // Clear both storages first to avoid stale tokens
         clearStoredAuth();
 
@@ -119,17 +97,15 @@ export function AuthProvider({ children }) {
             storage.setItem('expiresAt', expiresAt.toString());
         }
         setToken(tokenValue);
-        setUser(userData);
     }, []);
 
     const logout = useCallback(() => {
         clearStoredAuth();
         setToken(null);
-        setUser(null);
     }, []);
 
     return (
-        <AuthContext.Provider value={{ user, token, loading, login, logout, isAuthenticated: !!token && !!user }}>
+        <AuthContext.Provider value={{ user, token, loading: false, login, logout, isAuthenticated: !!token && !!user }}>
             {children}
         </AuthContext.Provider>
     );
