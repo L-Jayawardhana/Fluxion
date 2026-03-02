@@ -1,36 +1,69 @@
-﻿import { useState } from 'react';
+﻿import { useState, useEffect } from 'react';
+import { getUsers } from '../../services/api';
 
-const USERS = [
-  { name: 'Sarah Chen', email: 'sarah@acme.com', role: 'Owner', org: 'Acme Corp', status: 'active', lastLogin: '2 min ago', joined: 'Jan 2024', color: '#3B72F6' },
-  { name: 'John Doe', email: 'john@techstart.com', role: 'Admin', org: 'TechStart', status: 'active', lastLogin: '1 hr ago', joined: 'Mar 2024', color: '#16A34A' },
-  { name: 'Mike Wilson', email: 'mike@buildright.com', role: 'Owner', org: 'BuildRight', status: 'active', lastLogin: '5 min ago', joined: 'Dec 2023', color: '#7C3AED' },
-  { name: 'Emily Brown', email: 'emily@dataflow.io', role: 'Technician', org: 'DataFlow', status: 'active', lastLogin: '30 min ago', joined: 'Feb 2024', color: '#D97706' },
-  { name: 'Alex Kim', email: 'alex@cloudnine.co', role: 'User', org: 'CloudNine', status: 'pending', lastLogin: 'Never', joined: 'Jun 2024', color: '#DC2626' },
-  { name: 'Lisa Park', email: 'lisa@greenleaf.bio', role: 'Admin', org: 'GreenLeaf', status: 'inactive', lastLogin: '2 weeks ago', joined: 'Apr 2024', color: '#0D9488' },
-  { name: 'David Kim', email: 'david@quantum.ai', role: 'Owner', org: 'Quantum Labs', status: 'active', lastLogin: '10 min ago', joined: 'Nov 2023', color: '#4F46E5' },
-  { name: 'Mia Zhang', email: 'mia@solaredge.com', role: 'Technician', org: 'SolarEdge', status: 'active', lastLogin: '1 hr ago', joined: 'May 2024', color: '#EA580C' },
-];
-
-const roleFilters = ['All', 'Owner', 'Admin', 'Technician', 'User'];
+const roleFilters = ['All', 'Owner', 'Admin', 'Technician', 'User', 'SystemAdmin'];
 
 const roleBadgeColors = {
   Owner: { bg: '#F5F3FF', color: '#7C3AED' },
   Admin: { bg: '#EFF6FF', color: '#2563EB' },
   Technician: { bg: '#FEF3C7', color: '#D97706' },
   User: { bg: '#F1F5F9', color: '#64748B' },
+  SystemAdmin: { bg: '#FFF1F2', color: '#E11D48' }
 };
 
 export default function UsersPage() {
   const [filter, setFilter] = useState('All');
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const filtered = filter === 'All' ? USERS : USERS.filter((u) => u.role === filter);
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const data = await getUsers();
+      const mapped = data.map(u => ({
+        ...u,
+        name: u.fullName,
+        email: u.email,
+        role: capitalize(u.role),
+        org: u.organizationName || 'No Org',
+        status: u.isActive ? 'active' : 'inactive',
+        lastLogin: u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleString() : 'Never',
+        joined: new Date(u.createdAt).toLocaleDateString(),
+        color: stringToColor(u.fullName)
+      }));
+      setUsers(mapped);
+    } catch (error) {
+      console.error('Failed to fetch users', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+
+  const stringToColor = (str) => {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const c = (hash & 0x00FFFFFF).toString(16).toUpperCase();
+    return '#' + '00000'.substring(0, 6 - c.length) + c;
+  }
+
+  const filtered = filter === 'All' ? users : users.filter((u) => u.role === filter);
+
+  if (loading) return <div style={{ padding: '20px' }}>Loading...</div>;
 
   return (
     <div style={{ padding: '20px 24px 40px' }}>
       <div className="filter-row">
         {roleFilters.map((f) => (
           <button key={f} className={`fpill${filter === f ? ' active' : ''}`} onClick={() => setFilter(f)}>
-            {f}{f !== 'All' && ` (${USERS.filter((u) => u.role === f).length})`}
+            {f}{f !== 'All' && ` (${users.filter((u) => u.role === f).length})`}
           </button>
         ))}
         <div className="fspacer" />
@@ -48,9 +81,9 @@ export default function UsersPage() {
           <tbody>
             {filtered.map((u) => {
               const rb = roleBadgeColors[u.role] || roleBadgeColors.User;
-              const statCls = u.status === 'active' ? 'sp-active' : u.status === 'pending' ? 'sp-trial' : 'sp-inactive';
+              const statCls = u.status === 'active' ? 'sp-active' : 'sp-inactive';
               return (
-                <tr key={u.email}>
+                <tr key={u.userId || u.email}>
                   <td>
                     <div className="org-cell">
                       <div className="org-av" style={{ background: u.color, borderRadius: '50%' }}>{u.name.split(' ').map(w => w[0]).join('')}</div>
