@@ -1,6 +1,0 @@
-com/fluxion/smoke/pages/RegisterPage.class
-com/fluxion/smoke/pages/DashboardPage.class
-com/fluxion/smoke/config/TestConfig.class
-com/fluxion/smoke/tests/AuthSmokeTest.class
-com/fluxion/smoke/support/DriverFactory.class
-com/fluxion/smoke/pages/LoginPage.class

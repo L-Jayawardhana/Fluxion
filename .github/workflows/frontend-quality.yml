@@ -1,0 +1,58 @@
+name: Frontend Quality Checks
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'FrontEnd/Fluxion/**'
+      - 'FluxionAdminDash/**'
+      - '.github/workflows/frontend-quality.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'FrontEnd/Fluxion/**'
+      - 'FluxionAdminDash/**'
+      - '.github/workflows/frontend-quality.yml'
+
+jobs:
+  frontend-lint-and-build:
+    name: Lint & Build Frontends
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+
+      - name: Check & lint FrontEnd/Fluxion
+        working-directory: FrontEnd/Fluxion
+        run: |
+          if [ -f package.json ]; then
+            npm ci
+            npm run lint
+            npm run build
+            echo "✅ FrontEnd/Fluxion build successful"
+          else
+            echo "⚠️  No package.json found in FrontEnd/Fluxion"
+          fi
+
+      - name: Check & lint FluxionAdminDash
+        working-directory: FluxionAdminDash
+        run: |
+          if [ -f package.json ]; then
+            npm ci
+            npm run lint
+            npm run build
+            echo "✅ FluxionAdminDash build successful"
+          else
+            echo "⚠️  No package.json found in FluxionAdminDash"
+          fi
+
+      - name: Summary
+        run: |
+          echo "🎯 Frontend quality checks completed"
+          echo "📦 Both apps are ready for Vercel deployment"
