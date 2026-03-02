@@ -23,8 +23,6 @@
 
 /* ── Shell ──────────────────────────────────────────────── */
 .ml-shell {
-  display: grid;
-  grid-template-columns: var(--ml-sb-w) 1fr;
   min-height: 100vh;
 }
 
@@ -281,6 +279,7 @@
   flex-direction: column;
   min-height: 100vh;
   background: var(--color-bg);
+  width: calc(100% - var(--ml-sb-w));
 }
 
 /* ── Topbar ────────────────────────────────────────────── */
