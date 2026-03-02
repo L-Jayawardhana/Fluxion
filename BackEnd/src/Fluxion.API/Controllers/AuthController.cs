@@ -1,5 +1,6 @@
 using Fluxion.Application.Features.Authentication.Login;
 using Fluxion.Application.Features.Authentication.Register;
+using Fluxion.Application.Features.Authentication.RegisterSystemAdmin;
 using Fluxion.Application.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -40,6 +41,20 @@ public class AuthController : ControllerBase
         {
             var result = await _mediator.Send(command);
             return CreatedAtAction(nameof(Register), new { id = result.UserId }, result);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new { message = ex.Message });
+        }
+    }
+
+    [HttpPost("register-system-admin")]
+    public async Task<IActionResult> RegisterSystemAdmin([FromBody] RegisterSystemAdminCommand command)
+    {
+        try
+        {
+            var result = await _mediator.Send(command);
+            return CreatedAtAction(nameof(RegisterSystemAdmin), new { id = result.UserId }, result);
         }
         catch (InvalidOperationException ex)
         {
