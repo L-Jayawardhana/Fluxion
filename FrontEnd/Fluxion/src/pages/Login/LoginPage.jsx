@@ -16,10 +16,10 @@ export default function LoginPage() {
     const location = useLocation();
     const { login, isAuthenticated, loading: authLoading } = useAuth();
 
-    // Where to go after login (default: /dashboard)
-    const from = location.state?.from?.pathname || '/dashboard';
+    // Where to go after login (default: /welcome)
+    const from = location.state?.from?.pathname || '/welcome';
 
-    // Redirect to dashboard if already authenticated
+    // Redirect to welcome if already authenticated
     useEffect(() => {
         if (!authLoading && isAuthenticated) {
             navigate(from, { replace: true });
