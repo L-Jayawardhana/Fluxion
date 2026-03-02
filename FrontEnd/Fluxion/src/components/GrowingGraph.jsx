@@ -31,14 +31,12 @@ function AnimatedNumber({ target, duration = 1800, suffix = "", decimals = 0 }) 
 export default function GrowingGraph() {
     const [progress, setProgress] = useState(0);
     const [hoveredIdx, setHoveredIdx] = useState(null);
-    const [started, setStarted] = useState(false);
     const animRef = useRef(null);
     const startRef = useRef(null);
 
     const DURATION = 2200;
 
     const startAnimation = () => {
-        setStarted(true);
         setProgress(0);
         startRef.current = null;
         cancelAnimationFrame(animRef.current);
@@ -59,9 +57,6 @@ export default function GrowingGraph() {
     }, []);
 
     const maxVal = Math.max(...TARGET_DATA);
-    const visibleCount = Math.floor(progress * TARGET_DATA.length) + 1;
-    const currentData = TARGET_DATA.slice(0, Math.min(visibleCount, TARGET_DATA.length));
-
     // Build SVG path
     const W = 600, H = 180, PAD = 20;
     const xStep = (W - PAD * 2) / (TARGET_DATA.length - 1);

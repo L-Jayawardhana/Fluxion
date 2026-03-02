@@ -130,19 +130,6 @@ const statCards = [
 
 /* ── Filter + Search ───────────────────────────────────── */
 const roleCount = (r) => users.filter(u => u.role === r).length;
-
-const handleDelete = async () => {
-  try {
-    await deleteUser(deleteId);
-    addToast('User deleted successfully', 'success');
-    fetchData();
-  } catch (error) {
-    console.error('Failed to delete user', error);
-    addToast('Failed to delete user', 'error');
-  } finally {
-    setDeleteId(null);
-  }
-};
   
   const filtered = users.filter(u => {
     const matchRole   = filter === 'All' || u.role === filter;

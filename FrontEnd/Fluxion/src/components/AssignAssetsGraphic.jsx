@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 const ASSETS = [
     { id: 1, name: "MacBook Pro 14\"", type: "💻", code: "AST-4K2PQ" },
@@ -48,15 +48,7 @@ export default function AssignAssetsGraphic() {
     const [form, setForm] = useState({ assetId: "", userId: "", date: "", notes: "" });
     const [assigning, setAssigning] = useState(false);
     const [justAssigned, setJustAssigned] = useState(null);
-    const [animLink, setAnimLink] = useState(false);
-
-    useEffect(() => {
-        if (form.assetId && form.userId) {
-            setAnimLink(true);
-        } else {
-            setAnimLink(false);
-        }
-    }, [form.assetId, form.userId]);
+    const animLink = !!(form.assetId && form.userId);
 
     const handleAssign = () => {
         if (!form.assetId || !form.userId) return;
