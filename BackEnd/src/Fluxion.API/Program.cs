@@ -1,4 +1,5 @@
 using System.Text;
+using Microsoft.AspNetCore.HttpOverrides;
 using Fluxion.Application.Behaviors;
 using Fluxion.Application.Features.Authentication.Login;
 using Fluxion.Infrastructure.JWT;
@@ -50,6 +51,9 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // ── CORS ──────────────────────────────────────────────────
+// Frontends are deployed on Vercel (separate origins).
+// Set AllowedOrigins__0 and AllowedOrigins__1 in the VM .env file
+// (injected via GitHub Secrets ALLOWED_ORIGIN_0 / ALLOWED_ORIGIN_1).
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -63,11 +67,9 @@ builder.Services.AddCors(options =>
         }
         else
         {
-            // Production: only allow specific origins if configured.
-            // Behind the nginx reverse proxy everything is same-origin,
-            // so CORS headers aren't needed for normal operation.
-            // Set AllowedOrigins__0, __1, … env vars if you ever need
-            // cross-origin access (e.g. mobile app, external SPA).
+            // Production: allow the Vercel frontend origins configured via env vars.
+            // AllowedOrigins__0 = https://your-user-app.vercel.app
+            // AllowedOrigins__1 = https://your-admin-app.vercel.app
             var allowedOrigins = builder.Configuration
                 .GetSection("AllowedOrigins")
                 .Get<string[]>() ?? [];
@@ -79,7 +81,13 @@ builder.Services.AddCors(options =>
                       .AllowAnyHeader()
                       .AllowCredentials();
             }
-            // else: no CORS headers → same-origin only (correct behind nginx)
+            else
+            {
+                // Fallback: allow any origin (not recommended for production)
+                policy.AllowAnyOrigin()
+                      .AllowAnyMethod()
+                      .AllowAnyHeader();
+            }
         }
     });
 });
@@ -92,6 +100,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+// Trust X-Forwarded-For / X-Forwarded-Proto from the nginx reverse proxy
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
 
 app.UseCors("AllowAll");
 

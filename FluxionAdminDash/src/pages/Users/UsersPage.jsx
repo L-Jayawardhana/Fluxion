@@ -109,26 +109,41 @@ export default function UsersPage() {
 
   useEffect(() => { fetchData(); }, []);
 
-  /* ── Stats ─────────────────────────────────────────────── */
-  const totalUsers    = users.length;
-  const activeUsers   = users.filter(u => u.isActive).length;
-  const inactiveUsers = users.filter(u => !u.isActive).length;
-  const adminUsers    = users.filter(u => u.role === 'Admin' || u.role === 'Owner').length;
-  const sysAdmins     = users.filter(u => u.role === 'Systemadmin' || u.role === 'SystemAdmin').length;
-  const noOrgUsers    = users.filter(u => !u.org).length;
+useEffect(() => { fetchData(); }, []);
 
-  const statCards = [
-    { icon: 'users',    label: 'Total Users',     val: totalUsers,    sub: 'Across all orgs',       delta: `${totalUsers}`,    cls: 'cd-up',  acc: 'acc-blue'   },
-    { icon: 'check',    label: 'Active',           val: activeUsers,   sub: 'Currently active',      delta: `${activeUsers}`,   cls: 'cd-ok',  acc: 'acc-green'  },
-    { icon: 'pause',    label: 'Inactive',         val: inactiveUsers, sub: 'Deactivated accounts',  delta: `${inactiveUsers}`, cls: inactiveUsers > 0 ? 'cd-warn' : 'cd-ok', acc: 'acc-amber' },
-    { icon: 'shield',   label: 'Admins',           val: adminUsers,    sub: 'Owners & Admins',       delta: `${adminUsers}`,    cls: 'cd-info', acc: 'acc-indigo' },
-    { icon: 'star',     label: 'System Admins',    val: sysAdmins,     sub: 'Super admin access',    delta: `${sysAdmins}`,     cls: 'cd-info', acc: 'acc-violet' },
-    { icon: 'building', label: 'No Organisation',  val: noOrgUsers,    sub: 'Unassigned users',      delta: `${noOrgUsers}`, cls: noOrgUsers > 0 ? 'cd-warn' : 'cd-ok', acc: 'acc-red' },
-  ];
+/* ── Stats ─────────────────────────────────────────────── */
+const totalUsers    = users.length;
+const activeUsers   = users.filter(u => u.isActive).length;
+const inactiveUsers = users.filter(u => !u.isActive).length;
+const adminUsers    = users.filter(u => u.role === 'Admin' || u.role === 'Owner').length;
+const sysAdmins     = users.filter(u => u.role === 'Systemadmin' || u.role === 'SystemAdmin').length;
+const noOrgUsers    = users.filter(u => !u.org).length;
 
-  /* ── Filter + Search ───────────────────────────────────── */
-  const roleCount = (r) => users.filter(u => u.role === r).length;
+const statCards = [
+  { icon: 'users',    label: 'Total Users',     val: totalUsers,    sub: 'Across all orgs',       delta: `${totalUsers}`,    cls: 'cd-up',  acc: 'acc-blue'   },
+  { icon: 'check',    label: 'Active',           val: activeUsers,   sub: 'Currently active',      delta: `${activeUsers}`,   cls: 'cd-ok',  acc: 'acc-green'  },
+  { icon: 'pause',    label: 'Inactive',         val: inactiveUsers, sub: 'Deactivated accounts',  delta: `${inactiveUsers}`, cls: inactiveUsers > 0 ? 'cd-warn' : 'cd-ok', acc: 'acc-amber' },
+  { icon: 'shield',   label: 'Admins',           val: adminUsers,    sub: 'Owners & Admins',       delta: `${adminUsers}`,    cls: 'cd-info', acc: 'acc-indigo' },
+  { icon: 'star',     label: 'System Admins',    val: sysAdmins,     sub: 'Super admin access',    delta: `${sysAdmins}`,     cls: 'cd-info', acc: 'acc-violet' },
+  { icon: 'building', label: 'No Organisation',  val: noOrgUsers,    sub: 'Unassigned users',      delta: `${noOrgUsers}`, cls: noOrgUsers > 0 ? 'cd-warn' : 'cd-ok', acc: 'acc-red' },
+];
 
+/* ── Filter + Search ───────────────────────────────────── */
+const roleCount = (r) => users.filter(u => u.role === r).length;
+
+const handleDelete = async () => {
+  try {
+    await deleteUser(deleteId);
+    addToast('User deleted successfully', 'success');
+    fetchData();
+  } catch (error) {
+    console.error('Failed to delete user', error);
+    addToast('Failed to delete user', 'error');
+  } finally {
+    setDeleteId(null);
+  }
+};
+  
   const filtered = users.filter(u => {
     const matchRole   = filter === 'All' || u.role === filter;
     const matchSearch = !search || [u.name, u.email, u.org].some(

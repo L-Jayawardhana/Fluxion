@@ -39,7 +39,7 @@ public class LoginCommandHandlerTests : IDisposable
         await _dbContext.SaveChangesAsync();
 
         _passwordHasherMock.Setup(p => p.Verify("correct-password", "hashed-password")).Returns(true);
-        _jwtTokenServiceMock.Setup(j => j.GenerateToken(It.IsAny<Domain.Entities.User>())).Returns("jwt-token-123");
+        _jwtTokenServiceMock.Setup(j => j.GenerateToken(It.IsAny<Domain.Entities.User>(), It.IsAny<bool>())).Returns("jwt-token-123");
 
         var command = new LoginCommand("john@fluxion.dev", "correct-password");
 
@@ -105,7 +105,7 @@ public class LoginCommandHandlerTests : IDisposable
         await _dbContext.SaveChangesAsync();
 
         _passwordHasherMock.Setup(p => p.Verify(It.IsAny<string>(), "h")).Returns(true);
-        _jwtTokenServiceMock.Setup(j => j.GenerateToken(It.IsAny<Domain.Entities.User>())).Returns("tok");
+        _jwtTokenServiceMock.Setup(j => j.GenerateToken(It.IsAny<Domain.Entities.User>(), It.IsAny<bool>())).Returns("tok");
 
         var before = DateTime.UtcNow;
         await _handler.Handle(new LoginCommand("john@fluxion.dev", "pass"), CancellationToken.None);
@@ -127,7 +127,7 @@ public class LoginCommandHandlerTests : IDisposable
         await _dbContext.SaveChangesAsync();
 
         _passwordHasherMock.Setup(p => p.Verify(It.IsAny<string>(), "h")).Returns(true);
-        _jwtTokenServiceMock.Setup(j => j.GenerateToken(It.IsAny<Domain.Entities.User>())).Returns("tok");
+        _jwtTokenServiceMock.Setup(j => j.GenerateToken(It.IsAny<Domain.Entities.User>(), It.IsAny<bool>())).Returns("tok");
 
         var result = await _handler.Handle(new LoginCommand("new@fluxion.dev", "pass"), CancellationToken.None);
 

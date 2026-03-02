@@ -31,7 +31,7 @@ public class RegisterCommandHandlerTests : IDisposable
     public async Task Handle_ValidNewUser_CreatesUserAndReturnsToken()
     {
         _passwordHasherMock.Setup(p => p.Hash("StrongP@ss1")).Returns("hashed-value");
-        _jwtTokenServiceMock.Setup(j => j.GenerateToken(It.IsAny<User>())).Returns("new-jwt-token");
+        _jwtTokenServiceMock.Setup(j => j.GenerateToken(It.IsAny<User>(), It.IsAny<bool>())).Returns("new-jwt-token");
 
         var command = new RegisterCommand("Jane Doe", "jane@fluxion.dev", "StrongP@ss1", null);
 
@@ -80,7 +80,7 @@ public class RegisterCommandHandlerTests : IDisposable
         await _dbContext.SaveChangesAsync();
 
         _passwordHasherMock.Setup(p => p.Hash(It.IsAny<string>())).Returns("h");
-        _jwtTokenServiceMock.Setup(j => j.GenerateToken(It.IsAny<User>())).Returns("tok");
+        _jwtTokenServiceMock.Setup(j => j.GenerateToken(It.IsAny<User>(), It.IsAny<bool>())).Returns("tok");
 
         var command = new RegisterCommand("Org User", "org@fluxion.dev", "StrongP@ss1", 1);
 
@@ -108,7 +108,7 @@ public class RegisterCommandHandlerTests : IDisposable
     public async Task Handle_NewUser_IsAssignedUserRole()
     {
         _passwordHasherMock.Setup(p => p.Hash(It.IsAny<string>())).Returns("h");
-        _jwtTokenServiceMock.Setup(j => j.GenerateToken(It.IsAny<User>())).Returns("tok");
+        _jwtTokenServiceMock.Setup(j => j.GenerateToken(It.IsAny<User>(), It.IsAny<bool>())).Returns("tok");
 
         var command = new RegisterCommand("Role User", "role@fluxion.dev", "StrongP@ss1", null);
 
@@ -121,7 +121,7 @@ public class RegisterCommandHandlerTests : IDisposable
     public async Task Handle_NewUser_PasswordIsHashed()
     {
         _passwordHasherMock.Setup(p => p.Hash("MyP@ssw0rd")).Returns("bcrypt-hashed-result");
-        _jwtTokenServiceMock.Setup(j => j.GenerateToken(It.IsAny<User>())).Returns("tok");
+        _jwtTokenServiceMock.Setup(j => j.GenerateToken(It.IsAny<User>(), It.IsAny<bool>())).Returns("tok");
 
         var command = new RegisterCommand("Hash User", "hash@fluxion.dev", "MyP@ssw0rd", null);
 
