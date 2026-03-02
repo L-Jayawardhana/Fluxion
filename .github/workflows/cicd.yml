@@ -116,7 +116,7 @@ jobs:
           host: ${{ secrets.VM_HOST }}
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.VM_SSH_PRIVATE_KEY }}
-          source: "docker-compose.yml,nginx/api.conf"
+          source: "docker-compose.yml,scripts/setup-vm-ssl.sh"
           target: "/opt/fluxion"
           strip_components: 0
 
@@ -172,10 +172,3 @@ jobs:
             # Verify backend container is running
             sleep 15
             docker compose ps
-
-            # Reload nginx with latest config (TLS terminator for the API)
-            if command -v nginx &>/dev/null; then
-              sudo cp /opt/fluxion/nginx/api.conf /etc/nginx/conf.d/fluxion-api.conf
-              sudo nginx -t && sudo systemctl reload nginx
-              echo "✅ nginx reloaded"
-            fi
