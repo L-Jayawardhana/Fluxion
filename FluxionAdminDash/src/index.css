@@ -1,5 +1,5 @@
 /* ------------------------------------------------------
-   EAMMS — System Administration — Global Styles
+   EAMMS ï¿½ System Administration ï¿½ Global Styles
    ------------------------------------------------------ */
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 :root{
@@ -274,21 +274,4 @@ a{text-decoration:none;color:inherit;}
 ::-webkit-scrollbar{width:5px;}
 ::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px;}
 
-/* LOGIN PAGE */
-.login-page{display:flex;height:100vh;background:var(--bg);}
-.login-left{flex:1;display:flex;align-items:center;justify-content:center;padding:2rem;}
-.login-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:40px;width:100%;max-width:400px;box-shadow:0 4px 24px rgba(0,0,0,.06);}
-.login-card h1{font-size:22px;font-weight:800;margin-bottom:6px;color:var(--text);}
-.login-card p{font-size:13px;color:var(--muted);margin-bottom:28px;}
-.login-card label{display:block;font-size:11px;font-weight:600;color:var(--text);margin-bottom:6px;}
-.login-card input{width:100%;padding:10px 14px;font-family:var(--font);font-size:13px;border:1.5px solid var(--border);border-radius:8px;outline:none;background:var(--faint);color:var(--text);transition:border-color .15s,box-shadow .15s;margin-bottom:18px;}
-.login-card input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(59,114,246,.1);}
-.login-card input::placeholder{color:var(--dim);}
-.login-btn{width:100%;padding:11px;font-family:var(--font);font-size:13px;font-weight:700;border:none;border-radius:8px;background:var(--primary);color:#fff;cursor:pointer;transition:background .18s,transform .1s;box-shadow:0 4px 12px rgba(59,114,246,.28);}
-.login-btn:hover{background:#2A5CE0;transform:translateY(-1px);}
-.login-btn:disabled{opacity:.6;cursor:not-allowed;transform:none;}
-.login-error{background:#FEE2E2;color:#DC2626;padding:10px 14px;border-radius:8px;font-size:12px;font-weight:600;margin-bottom:16px;}
-.login-right{flex:1;background:linear-gradient(135deg,#1E2A3A 0%,#2D3B4E 100%);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
-.login-brand{text-align:center;color:#fff;z-index:1;}
-.login-brand h2{font-size:28px;font-weight:800;letter-spacing:1px;}
-.login-brand p{font-size:13px;color:rgba(255,255,255,.6);margin-top:8px;}
+/* LOGIN PAGE â€” styles are in LoginPage.css */
