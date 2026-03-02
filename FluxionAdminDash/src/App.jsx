@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { ToastProvider } from './context/ToastContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminLayout from './layouts/AdminLayout';
 import DashboardPage from './pages/Dashboard/DashboardPage';
@@ -17,26 +18,28 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <Routes>
-          {/* Admin login */}
-          <Route path="/login" element={<LoginPage />} />
+        <ToastProvider>
+          <Routes>
+            {/* Admin login */}
+            <Route path="/login" element={<LoginPage />} />
 
-          {/* Protected routes with sidebar layout */}
-          <Route element={<ProtectedRoute />}>
-             <Route element={<AdminLayout />}>
-                <Route path="/" element={<DashboardPage />} />
-                <Route path="/users" element={<UsersPage />} />
-                <Route path="/organizations" element={<OrganizationsPage />} />
-                <Route path="/plans" element={<PlansPage />} />
-                <Route path="/logs" element={<LogsPage />} />
-                <Route path="/servers" element={<ServersPage />} />
-                <Route path="/settings" element={<SettingsPage />} />
-             </Route>
-          </Route>
+            {/* Protected routes with sidebar layout */}
+            <Route element={<ProtectedRoute />}>
+              <Route element={<AdminLayout />}>
+                  <Route path="/" element={<DashboardPage />} />
+                  <Route path="/users" element={<UsersPage />} />
+                  <Route path="/organizations" element={<OrganizationsPage />} />
+                  <Route path="/plans" element={<PlansPage />} />
+                  <Route path="/logs" element={<LogsPage />} />
+                  <Route path="/servers" element={<ServersPage />} />
+                  <Route path="/settings" element={<SettingsPage />} />
+              </Route>
+            </Route>
 
-          {/* Fallback */}
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
+            {/* Fallback */}
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </ToastProvider>
       </AuthProvider>
     </BrowserRouter>
   );

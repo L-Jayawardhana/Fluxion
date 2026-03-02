@@ -1,5 +1,7 @@
 ﻿import { useState, useEffect } from 'react';
 import { getOrganizations, deleteOrganization, updateOrganization } from '../../services/api';
+import { useToast } from '../../context/ToastContext';
+import ConfirmModal from '../../components/ConfirmModal';
 
 const filters = ['All', 'Active', 'Inactive'];
 
@@ -14,6 +16,8 @@ export default function OrganizationsPage() {
   const [orgs, setOrgs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingOrg, setEditingOrg] = useState(null);
+  const [deleteId, setDeleteId] = useState(null);
+  const { addToast } = useToast();
 
   useEffect(() => {
     fetchData();
@@ -34,19 +38,22 @@ export default function OrganizationsPage() {
       setOrgs(mapped);
     } catch (error) {
       console.error('Failed to fetch orgs', error);
+      addToast('Failed to fetch organizations', 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this organization?')) return;
+  const handleDelete = async () => {
     try {
-      await deleteOrganization(id);
+      await deleteOrganization(deleteId);
+      addToast('Organization deleted successfully', 'success');
       fetchData();
     } catch (error) {
       console.error('Failed to delete org', error);
-      alert('Failed to delete organization');
+      addToast('Failed to delete organization', 'error');
+    } finally {
+      setDeleteId(null);
     }
   };
 
@@ -54,7 +61,8 @@ export default function OrganizationsPage() {
     setEditingOrg({ ...org });
   };
 
-  const handleSaveEdit = async () => {
+  const handleSaveEdit = async (e) => {
+    e.preventDefault();
     try {
       if (!editingOrg) return;
       await updateOrganization(editingOrg.orgId, {
@@ -64,11 +72,12 @@ export default function OrganizationsPage() {
         timezone: editingOrg.timezone,
         isActive: editingOrg.isActive
       });
+      addToast('Organization updated successfully', 'success');
       setEditingOrg(null);
       fetchData();
     } catch (error) {
       console.error('Failed to update org', error);
-      alert('Failed to update organization');
+      addToast('Failed to update organization', 'error');
     }
   };
 
@@ -95,63 +104,68 @@ export default function OrganizationsPage() {
   if (loading) return <div style={{ padding: '20px' }}>Loading...</div>;
 
   return (
-    <div style={{ padding: '20px 24px 40px' }}>
+    <div className="pad">
+      <ConfirmModal 
+        open={!!deleteId} 
+        title="Delete Organization"
+        message="Are you sure you want to delete this organization? This action cannot be undone."
+        onConfirm={handleDelete} 
+        onCancel={() => setDeleteId(null)}
+      />
+
       {editingOrg && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
-        }}>
-          <div style={{
-            background: 'var(--panel)', padding: '24px', borderRadius: '12px',
-            width: '400px', border: '1px solid var(--border)', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-          }}>
-            <h3 style={{ marginTop: 0, marginBottom: '20px', color: 'var(--txt)' }}>Edit Organization</h3>
-            
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', fontSize: '13px', color: 'var(--muted)', marginBottom: '4px' }}>Name</label>
-              <input 
-                type="text" 
-                value={editingOrg.orgName} 
-                onChange={e => setEditingOrg({...editingOrg, orgName: e.target.value})}
-                style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--txt)' }}
-              />
-            </div>
-
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', fontSize: '13px', color: 'var(--muted)', marginBottom: '4px' }}>Slug</label>
-              <input 
-                type="text" 
-                value={editingOrg.slug} 
-                onChange={e => setEditingOrg({...editingOrg, slug: e.target.value})}
-                style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--txt)' }}
-              />
-            </div>
-            
-            <div style={{ marginBottom: '24px' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--txt)', fontSize: '14px', cursor: 'pointer' }}>
-                <input 
-                  type="checkbox" 
-                  checked={editingOrg.isActive} 
-                  onChange={e => setEditingOrg({...editingOrg, isActive: e.target.checked})}
-                />
-                Active Status
-              </label>
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-              <button 
-                onClick={handleCancelEdit}
-                style={{ padding: '8px 16px', borderRadius: '6px', border: '1px solid var(--border)', background: 'transparent', color: 'var(--txt)', cursor: 'pointer' }}
-              >
-                Cancel
-              </button>
-              <button 
-                onClick={handleSaveEdit}
-                style={{ padding: '8px 16px', borderRadius: '6px', border: 'none', background: '#3B82F6', color: 'white', cursor: 'pointer', fontWeight: 500 }}
-              >
-                Save Changes
+        <div className="overlay open" onClick={handleCancelEdit}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-head">
+              <div className="modal-title">Edit Organization</div>
+              <button className="modal-x" onClick={handleCancelEdit}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
               </button>
             </div>
+
+            <form onSubmit={handleSaveEdit}>
+              <div className="modal-body">
+                <div className="mf">
+                  <label className="ml">Name</label>
+                  <input 
+                    className="mi"
+                    type="text" 
+                    value={editingOrg.orgName} 
+                    onChange={e => setEditingOrg({...editingOrg, orgName: e.target.value})}
+                    required
+                  />
+                </div>
+
+                <div className="mf">
+                  <label className="ml">Slug</label>
+                  <input 
+                    className="mi"
+                    type="text" 
+                    value={editingOrg.slug} 
+                    onChange={e => setEditingOrg({...editingOrg, slug: e.target.value})}
+                    required
+                  />
+                </div>
+                
+                <div className="mf">
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--txt)', fontSize: '13px', cursor: 'pointer' }}>
+                    <input 
+                      type="checkbox" 
+                      checked={editingOrg.isActive} 
+                      onChange={e => setEditingOrg({...editingOrg, isActive: e.target.checked})}
+                    />
+                    Active Status
+                  </label>
+                </div>
+              </div>
+              <div className="modal-foot">
+                <button type="button" className="mc" onClick={handleCancelEdit}>Cancel</button>
+                <button type="submit" className="mok">Save Changes</button>
+              </div>
+            </form>
           </div>
         </div>
       )}
@@ -207,10 +221,10 @@ export default function OrganizationsPage() {
                   <td><span className={`spill ${statCls}`}>{statusText}</span></td>
                   <td>
                     <div className="row-acts">
-                      <button className="ract" title="Edit" onClick={() => setEditingOrg(o)}>
+                      <button className="ract" title="Edit" onClick={() => handleEdit(o)}>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                       </button>
-                      <button className="ract del" title="Delete" onClick={() => handleDelete(o.orgId)}>
+                      <button className="ract del" title="Delete" onClick={() => setDeleteId(o.orgId)}>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
                       </button>
                     </div>
