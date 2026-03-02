@@ -1,16 +1,26 @@
-﻿import { useState, useEffect } from 'react';
+﻿import { useState, useEffect, useRef } from 'react';
 import { getUsers, deleteUser, updateUser } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
 import ConfirmModal from '../../components/ConfirmModal';
 
-const roleFilters = ['All', 'Owner', 'Admin', 'Technician', 'User', 'SystemAdmin'];
+/* ── Constants ───────────────────────────────────────────── */
+const ALL_ROLES = ['All', 'Owner', 'Admin', 'Technician', 'User', 'SystemAdmin'];
 
-const roleBadgeColors = {
-  Owner: { bg: '#F5F3FF', color: '#7C3AED' },
-  Admin: { bg: '#EFF6FF', color: '#2563EB' },
-  Technician: { bg: '#FEF3C7', color: '#D97706' },
-  User: { bg: '#F1F5F9', color: '#64748B' },
-  SystemAdmin: { bg: '#FFF1F2', color: '#E11D48' }
+const ROLE_META = {
+  Owner:       { bg: '#F5F3FF', color: '#7C3AED', dot: '#7C3AED' },
+  Admin:       { bg: '#EFF6FF', color: '#2563EB', dot: '#2563EB' },
+  Technician:  { bg: '#FEF3C7', color: '#D97706', dot: '#D97706' },
+  User:        { bg: '#F1F5F9', color: '#64748B', dot: '#94A3B8' },
+  SystemAdmin: { bg: '#FFF1F2', color: '#E11D48', dot: '#E11D48' },
+};
+
+const STAT_ICONS = {
+  users:    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>,
+  check:    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>,
+  pause:    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>,
+  shield:   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
+  star:     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>,
+  building: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22V12h6v10"/><path d="M8 6h.01M16 6h.01M8 10h.01M16 10h.01"/></svg>,
 };
 
 export default function UsersPage() {
