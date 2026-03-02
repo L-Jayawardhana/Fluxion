@@ -1,5 +1,4 @@
-import { createContext, useState, useContext, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { createContext, useState, useContext } from 'react';
 
 const AuthContext = createContext(null);
 
@@ -11,7 +10,7 @@ export const AuthProvider = ({ children }) => {
     });
 
     const [token, setToken] = useState(() => localStorage.getItem('admin_token'));
-    const [loading, setLoading] = useState(false); // Can implement initial load check if needed
+    const loading = false; // Can implement initial load check if needed
 
     // Update axios headers if token changes (if we move axios interceptor logic here or use useEffect)
     // For now we rely on api.js interceptor reading from localStorage directly or we can optimize it.
@@ -39,4 +38,5 @@ export const AuthProvider = ({ children }) => {
     );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => useContext(AuthContext);

@@ -51,10 +51,6 @@ export default function UsersPage() {
 
   const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
-  const confirmDelete = (id) => {
-    setDeleteId(id);
-  };
-
   const handleDelete = async () => {
       try {
         await deleteUser(deleteId);
