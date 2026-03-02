@@ -1,0 +1,6 @@
+/home/lakdinu/projects/dotnet/Fluxion/tests/selenium-smoke/src/test/java/com/fluxion/smoke/config/TestConfig.java
+/home/lakdinu/projects/dotnet/Fluxion/tests/selenium-smoke/src/test/java/com/fluxion/smoke/pages/DashboardPage.java
+/home/lakdinu/projects/dotnet/Fluxion/tests/selenium-smoke/src/test/java/com/fluxion/smoke/pages/LoginPage.java
+/home/lakdinu/projects/dotnet/Fluxion/tests/selenium-smoke/src/test/java/com/fluxion/smoke/pages/RegisterPage.java
+/home/lakdinu/projects/dotnet/Fluxion/tests/selenium-smoke/src/test/java/com/fluxion/smoke/support/DriverFactory.java
+/home/lakdinu/projects/dotnet/Fluxion/tests/selenium-smoke/src/test/java/com/fluxion/smoke/tests/AuthSmokeTest.java
