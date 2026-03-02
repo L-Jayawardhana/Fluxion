@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import axios from 'axios';
+import api from '../../services/api';
 import './LoginPage.css';
 
 export default function LoginPage() {
@@ -67,7 +67,7 @@ export default function LoginPage() {
         setLoading(true);
         try {
             // Updated to use the actual API Endpoint
-            const response = await axios.post('http://20.2.91.234/api/auth/login', {
+            const response = await api.post('/auth/login', {
                 email,
                 password
             });
