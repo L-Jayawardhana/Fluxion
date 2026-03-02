@@ -67,7 +67,7 @@ export default function LoginPage() {
         setLoading(true);
         try {
             // Updated to use the actual API Endpoint
-            const response = await axios.post('http://localhost:5226/api/auth/login', {
+            const response = await axios.post('http://20.2.91.234/api/auth/login', {
                 email,
                 password
             });

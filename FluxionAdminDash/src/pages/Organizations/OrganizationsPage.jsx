@@ -200,7 +200,7 @@ export default function OrganizationsPage() {
                   <td>
                     <div className="org-cell">
                       {o.logoUrl ? (
-                         <img src={`http://localhost:5226${o.logoUrl}`} alt="" className="org-av" style={{objectFit: 'cover'}} />
+                         <img src={`http://20.2.91.234${o.logoUrl}`} alt="" className="org-av" style={{objectFit: 'cover'}} />
                       ) : (
                         <div className="org-av" style={{ background: o.color }}>{o.orgName[0]}</div>
                       )}

@@ -19,6 +19,28 @@
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
+# ======================
+# .NET
+# ======================
+bin/
+obj/
+
+# ======================
+# Node / React / Vite
+# ======================
+node_modules/
+dist/
+.vite/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# VS
+.vs/
 # Mono auto generated files
 mono_crash.*
 
@@ -51,6 +73,7 @@ bld/
 [Oo]ut/
 [Ll]og/
 [Ll]ogs/
+!**/src/pages/[Ll]ogs/
 
 # Build results on 'Bin' directories
 **/[Bb]in/*
