@@ -9,6 +9,7 @@ public record OrganizationDto(
     string OrgName,
     string Slug,
     int? OwnerId,
+    string? OwnerName,
     string? LogoUrl,
     string? Timezone,
     bool IsActive,

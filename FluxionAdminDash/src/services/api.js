@@ -28,4 +28,15 @@ api.interceptors.response.use(
     }
 );
 
+export const getOrganizations = async () => {
+  const response = await api.get('/organization');
+  return response.data;
+};
+
+export const getUsers = async (orgId = null) => {
+  const params = orgId ? { orgId } : {};
+  const response = await api.get('/user', { params });
+  return response.data;
+};
+
 export default api;

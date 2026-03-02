@@ -1,17 +1,7 @@
-﻿import { useState } from 'react';
+﻿import { useState, useEffect } from 'react';
+import { getOrganizations } from '../../services/api';
 
-const ORGS = [
-  { name: 'Acme Corp', slug: 'acme-corp', plan: 'Pro', owner: 'Sarah Chen', users: 45, maxUsers: 50, assets: 1230, tickets: 12, status: 'active', color: '#3B72F6' },
-  { name: 'TechStart Inc', slug: 'techstart', plan: 'Free', owner: 'John Doe', users: 12, maxUsers: 15, assets: 340, tickets: 5, status: 'trial', color: '#16A34A' },
-  { name: 'BuildRight LLC', slug: 'buildright', plan: 'Enterprise', owner: 'Mike Wilson', users: 89, maxUsers: 500, assets: 2100, tickets: 32, status: 'active', color: '#7C3AED' },
-  { name: 'DataFlow Systems', slug: 'dataflow', plan: 'Pro', owner: 'Emily Brown', users: 34, maxUsers: 50, assets: 890, tickets: 8, status: 'active', color: '#D97706' },
-  { name: 'CloudNine Tech', slug: 'cloudnine', plan: 'Pro', owner: 'Alex Kim', users: 28, maxUsers: 50, assets: 650, tickets: 15, status: 'active', color: '#DC2626' },
-  { name: 'GreenLeaf Bio', slug: 'greenleaf', plan: 'Free', owner: 'Lisa Park', users: 8, maxUsers: 15, assets: 156, tickets: 2, status: 'inactive', color: '#0D9488' },
-  { name: 'Quantum Labs', slug: 'quantum-labs', plan: 'Enterprise', owner: 'David Kim', users: 120, maxUsers: 500, assets: 3400, tickets: 45, status: 'active', color: '#4F46E5' },
-  { name: 'SolarEdge Inc', slug: 'solaredge', plan: 'Pro', owner: 'Mia Zhang', users: 42, maxUsers: 50, assets: 980, tickets: 11, status: 'active', color: '#EA580C' },
-];
-
-const filters = ['All', 'Pro', 'Free', 'Enterprise'];
+const filters = ['All', 'Active', 'Inactive'];
 
 function pctColor(pct) {
   if (pct > 90) return '#EF4444';
@@ -21,15 +11,57 @@ function pctColor(pct) {
 
 export default function OrganizationsPage() {
   const [filter, setFilter] = useState('All');
+  const [orgs, setOrgs] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const filtered = filter === 'All' ? ORGS : ORGS.filter((o) => o.plan === filter);
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const data = await getOrganizations();
+      // Map backend data to UI format
+      const mapped = data.map(o => ({
+        ...o,
+        plan: 'Free', // Default plan since backend doesn't have it yet
+        maxUsers: 10,
+        tickets: 0,
+        color: stringToColor(o.orgName)
+      }));
+      setOrgs(mapped);
+    } catch (error) {
+      console.error('Failed to fetch orgs', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Helper to generate consistent color from string
+  const stringToColor = (str) => {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const c = (hash & 0x00FFFFFF).toString(16).toUpperCase();
+    return '#' + '00000'.substring(0, 6 - c.length) + c;
+  }
+
+  const filtered = filter === 'All' 
+    ? orgs 
+    : filter === 'Active' 
+        ? orgs.filter(o => o.isActive) 
+        : orgs.filter(o => !o.isActive);
+
+  if (loading) return <div style={{ padding: '20px' }}>Loading...</div>;
 
   return (
     <div style={{ padding: '20px 24px 40px' }}>
       <div className="filter-row">
         {filters.map((f) => (
           <button key={f} className={`fpill${filter === f ? ' active' : ''}`} onClick={() => setFilter(f)}>
-            {f}{f !== 'All' && ` (${ORGS.filter((o) => o.plan === f).length})`}
+            {f}{f !== 'All' && ` (${filter === 'Active' ? orgs.filter(o => o.isActive).length : orgs.filter(o => !o.isActive).length})`}
           </button>
         ))}
         <div className="fspacer" />
@@ -46,21 +78,27 @@ export default function OrganizationsPage() {
           </thead>
           <tbody>
             {filtered.map((o) => {
-              const planCls = o.plan === 'Pro' ? 'pt-pro' : o.plan === 'Enterprise' ? 'pt-ent' : 'pt-free';
-              const statCls = o.status === 'active' ? 'sp-active' : o.status === 'trial' ? 'sp-trial' : 'sp-inactive';
-              const pct = Math.round((o.users / o.maxUsers) * 100);
+              const planCls = 'pt-free';
+              const statCls = o.isActive ? 'sp-active' : 'sp-inactive';
+              const pct = o.usersCount ? Math.round((o.usersCount / o.maxUsers) * 100) : 0;
+              const statusText = o.isActive ? 'active' : 'inactive';
+              
               return (
-                <tr key={o.slug}>
+                <tr key={o.orgId}>
                   <td>
                     <div className="org-cell">
-                      <div className="org-av" style={{ background: o.color }}>{o.name[0]}</div>
-                      <div><div className="org-name">{o.name}</div><div className="org-slug">{o.slug}</div></div>
+                      {o.logoUrl ? (
+                         <img src={`http://localhost:5226${o.logoUrl}`} alt="" className="org-av" style={{objectFit: 'cover'}} />
+                      ) : (
+                        <div className="org-av" style={{ background: o.color }}>{o.orgName[0]}</div>
+                      )}
+                      <div><div className="org-name">{o.orgName}</div><div className="org-slug">{o.slug}</div></div>
                     </div>
                   </td>
                   <td><span className={`plan-tag ${planCls}`}>{o.plan}</span></td>
-                  <td style={{ fontSize: 12, color: 'var(--muted)' }}>{o.owner}</td>
-                  <td style={{ fontWeight: 600 }}>{o.users}</td>
-                  <td style={{ fontWeight: 600 }}>{o.assets.toLocaleString()}</td>
+                  <td style={{ fontSize: 12, color: 'var(--muted)' }}>{o.ownerName || 'Unknown'}</td>
+                  <td style={{ fontWeight: 600 }}>{o.usersCount}</td>
+                  <td style={{ fontWeight: 600 }}>{o.assetsCount}</td>
                   <td style={{ fontWeight: 600 }}>{o.tickets}</td>
                   <td>
                     <div className="ubar-wrap">
@@ -68,7 +106,7 @@ export default function OrganizationsPage() {
                       <span style={{ fontSize: 10, fontWeight: 700, color: pctColor(pct) }}>{pct}%</span>
                     </div>
                   </td>
-                  <td><span className={`spill ${statCls}`}>{o.status}</span></td>
+                  <td><span className={`spill ${statCls}`}>{statusText}</span></td>
                   <td>
                     <div className="row-acts">
                       <button className="ract" title="Edit">
