@@ -583,26 +583,6 @@
     }
 }
 
-/* Back to site link */
-.back-link {
-    text-align: center;
-    margin-top: 28px;
-    animation: loginFadeUp .5s .7s both;
-}
-
-.back-link a {
-    font-size: 12px;
-    color: var(--steel);
-    text-decoration: none;
-    border-bottom: 1px solid transparent;
-    transition: color .2s, border-color .2s;
-}
-
-.back-link a:hover {
-    color: var(--ink);
-    border-color: var(--ink);
-}
-
 /* Animations */
 @keyframes loginFadeUp {
     from {

@@ -226,10 +226,6 @@ export default function LoginPage() {
                             )}
                         </button>
                     </form>
-
-                    <div className="back-link">
-                        <a href="http://localhost:5173">← Back to Fluxion</a>
-                    </div>
                 </div>
             </div>
         </div>
