@@ -125,7 +125,6 @@ export default function MainLayout() {
 
         {/* Logo */}
         <Link to="/" className="ml-sb-logo" style={{ textDecoration: 'none' }}>
-          <img src="/LOGOwhite.png" alt="FLUXION" className="ml-sb-logo-img" />
           <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: '#FFFFFF', letterSpacing: '1px' }}>FLUXION</span>
         </Link>
 
