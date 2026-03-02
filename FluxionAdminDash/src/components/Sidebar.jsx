@@ -1,6 +1,15 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 export default function Sidebar() {
+    const { logout, user } = useAuth();
+    const navigate = useNavigate();
+
+    const handleLogout = () => {
+        logout();
+        navigate('/login');
+    };
+
     return (
         <aside className="sidebar">
             {/* Brand */}
@@ -33,12 +42,12 @@ export default function Sidebar() {
 
             {/* Footer */}
             <div className="sidebar-footer">
-                <div className="user-avatar">A</div>
+                <div className="user-avatar">{user?.name?.[0] || 'A'}</div>
                 <div className="user-info">
-                    <div className="user-name">Admin</div>
-                    <div className="user-role">Super Admin</div>
+                    <div className="user-name">{user?.name || 'Admin'}</div>
+                    <div className="user-role">{user?.role || 'Super Admin'}</div>
                 </div>
-                <button className="btn-logout">Logout</button>
+                <button className="btn-logout" onClick={handleLogout}>Logout</button>
             </div>
         </aside>
     );

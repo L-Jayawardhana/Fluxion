@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import './LoginPage.css';
 
 export default function LoginPage() {
@@ -11,10 +12,22 @@ export default function LoginPage() {
     const [fieldErrors, setFieldErrors] = useState({});
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    const location = useLocation();
+    const { login, isAuthenticated } = useAuth();
+
+    // Redirect if already logged in
+    useEffect(() => {
+        if (isAuthenticated) {
+            const redirectPath = location.state?.from?.pathname || '/';
+            navigate(redirectPath, { replace: true });
+        }
+    }, [isAuthenticated, navigate, location]);
 
     // Custom cursor
     const dotRef = useRef(null);
     const ringRef = useRef(null);
+    
+    // ...cursor useEffect ...
 
     useEffect(() => {
         const dot = dotRef.current;
@@ -37,6 +50,7 @@ export default function LoginPage() {
         };
     }, []);
 
+
     const validate = () => {
         const errs = {};
         if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errs.email = 'Please enter a valid email address.';
@@ -53,10 +67,19 @@ export default function LoginPage() {
         try {
             // TODO: Replace with real admin auth API call
             // const { data } = await adminAuthService.login(email, password);
-            await new Promise(r => setTimeout(r, 600)); // simulate
-            navigate('/');
+             
+            // Simulate API delay
+            await new Promise(r => setTimeout(r, 600)); 
+            
+            // Hardcoded check for demo
+            if (email === 'admin@fluxion.com' && password === 'admin') {
+                login({ email, role: 'Admin', name: 'Super Admin' }, 'fake-jwt-token');
+                // Navigation will be handled by the useEffect above
+            } else {
+                 throw new Error('Invalid credentials');
+            }
         } catch (err) {
-            setError(err.response?.data?.message || 'Invalid credentials. Please try again.');
+            setError(err.message || 'Invalid credentials. Please try again.');
         } finally {
             setLoading(false);
         }

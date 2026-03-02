@@ -1,4 +1,6 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
 import AdminLayout from './layouts/AdminLayout';
 import DashboardPage from './pages/Dashboard/DashboardPage';
 import UsersPage from './pages/Users/UsersPage';
@@ -11,21 +13,25 @@ import './App.css';
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        {/* Admin login */}
-        <Route path="/login" element={<LoginPage />} />
+      <AuthProvider>
+        <Routes>
+          {/* Admin login */}
+          <Route path="/login" element={<LoginPage />} />
 
-        {/* Admin routes with sidebar layout */}
-        <Route element={<AdminLayout />}>
-          <Route path="/" element={<DashboardPage />} />
-          <Route path="/users" element={<UsersPage />} />
-          <Route path="/organizations" element={<OrganizationsPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-        </Route>
+          {/* Protected routes with sidebar layout */}
+          <Route element={<ProtectedRoute />}>
+             <Route element={<AdminLayout />}>
+                <Route path="/" element={<DashboardPage />} />
+                <Route path="/users" element={<UsersPage />} />
+                <Route path="/organizations" element={<OrganizationsPage />} />
+                <Route path="/settings" element={<SettingsPage />} />
+             </Route>
+          </Route>
 
-        {/* Fallback */}
-        <Route path="*" element={<NotFoundPage />} />
-      </Routes>
+          {/* Fallback */}
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </AuthProvider>
     </BrowserRouter>
   );
 }
