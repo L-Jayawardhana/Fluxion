@@ -1,6 +1,5 @@
 ﻿import { useEffect, useRef } from 'react';
 
-/* ── Mock Data ── */
 const stats = [
   { icon: '\u{1F3E2}', label: 'Total Orgs', val: 48, sub: '12 active this week', delta: '+3', cls: 'cd-up', acc: 'acc-blue' },
   { icon: '\u{1F465}', label: 'Total Users', val: 1284, sub: '89 online now', delta: '+12%', cls: 'cd-up', acc: 'acc-green' },
@@ -22,10 +21,10 @@ const servers = [
 ];
 
 const alerts = [
-  { title: 'Database CPU spike detected', sub: 'db-primary — 2 min ago', sev: 'crit' },
-  { title: 'Storage usage above 75%', sub: 'All regions — 15 min ago', sev: 'warn' },
-  { title: 'SSL certificate renewing', sub: 'api-prod-01 — 1 hr ago', sev: 'info' },
-  { title: '3 failed login attempts', sub: 'IP 203.0.113.42 — 30 min ago', sev: 'warn' },
+  { title: 'Database CPU spike detected', sub: 'db-primary - 2 min ago', sev: 'crit' },
+  { title: 'Storage usage above 75%', sub: 'All regions - 15 min ago', sev: 'warn' },
+  { title: 'SSL certificate renewing', sub: 'api-prod-01 - 1 hr ago', sev: 'info' },
+  { title: '3 failed login attempts', sub: 'IP 203.0.113.42 - 30 min ago', sev: 'warn' },
 ];
 
 const activities = [
@@ -86,16 +85,29 @@ function AnimVal({ val, prefix = '', suffix = '' }) {
   return <span ref={ref}>{prefix}{val}{suffix}</span>;
 }
 
+function srvLedClass(status) {
+  return 'srv-led led-' + (status === 'warn' ? 'warn' : 'up');
+}
+
+function ubadgeClass(status) {
+  return 'ubadge ' + (status === 'warn' ? 'ub-warn' : 'ub-up');
+}
+
+function planTagClass(plan) {
+  if (plan === 'Pro') return 'plan-tag pt-pro';
+  if (plan === 'Enterprise') return 'plan-tag pt-ent';
+  return 'plan-tag pt-free';
+}
+
 export default function DashboardPage() {
   return (
     <>
-      {/* Stats Strip */}
       <div className="stats-strip">
         {stats.map((s, i) => (
-          <div className={strip-cell } key={i}>
+          <div className={'strip-cell ' + s.acc} key={i}>
             <div className="cell-top">
               <span className="cell-icon">{s.icon}</span>
-              <span className={cell-delta }>{s.delta}</span>
+              <span className={'cell-delta ' + s.cls}>{s.delta}</span>
             </div>
             <div className="cell-val">
               <AnimVal val={s.val} prefix={s.prefix || ''} suffix={s.suffix || ''} />
@@ -107,7 +119,6 @@ export default function DashboardPage() {
       </div>
 
       <div className="pad">
-        {/* Server + Alerts */}
         <div className="two-col">
           <div className="panel d1">
             <div className="ph">
@@ -126,7 +137,7 @@ export default function DashboardPage() {
                   <tr key={s.name}>
                     <td>
                       <div className="srv-cell">
-                        <span className={srv-led led-} />
+                        <span className={srvLedClass(s.status)} />
                         <div>
                           <div className="srv-name">{s.name}</div>
                           <div className="srv-ip">{s.ip}</div>
@@ -137,7 +148,7 @@ export default function DashboardPage() {
                     <td><div className="mbar"><div className="mfill" style={{ width: s.cpu + '%', background: mbarColor(s.cpu) }} /></div> <span style={{ fontSize: 10, fontWeight: 600 }}>{s.cpu}%</span></td>
                     <td><div className="mbar"><div className="mfill" style={{ width: s.mem + '%', background: mbarColor(s.mem) }} /></div> <span style={{ fontSize: 10, fontWeight: 600 }}>{s.mem}%</span></td>
                     <td><div className="mbar"><div className="mfill" style={{ width: s.disk + '%', background: mbarColor(s.disk) }} /></div> <span style={{ fontSize: 10, fontWeight: 600 }}>{s.disk}%</span></td>
-                    <td><span className={ubadge }>{s.status === 'warn' ? 'Warning' : 'Healthy'}</span></td>
+                    <td><span className={ubadgeClass(s.status)}>{s.status === 'warn' ? 'Warning' : 'Healthy'}</span></td>
                     <td style={{ fontSize: 11, color: 'var(--muted)' }}>{s.uptime}</td>
                   </tr>
                 ))}
@@ -154,23 +165,21 @@ export default function DashboardPage() {
               <button className="ph-btn">View All</button>
             </div>
             {alerts.map((a, i) => {
-              const sevCls = a.sev === 'crit' ? '#EF4444' : a.sev === 'warn' ? '#F59E0B' : '#3B82F6';
-              const badgeCls = b-;
+              const sevColor = a.sev === 'crit' ? '#EF4444' : a.sev === 'warn' ? '#F59E0B' : '#3B82F6';
               return (
                 <div className="alert-row" key={i}>
-                  <div className="asev" style={{ background: sevCls }} />
+                  <div className="asev" style={{ background: sevColor }} />
                   <div style={{ flex: 1 }}>
                     <div className="alert-title">{a.title}</div>
                     <div className="alert-sub">{a.sub}</div>
                   </div>
-                  <span className={badge }>{a.sev.toUpperCase()}</span>
+                  <span className={'abadge ab-' + a.sev}>{a.sev.toUpperCase()}</span>
                 </div>
               );
             })}
           </div>
         </div>
 
-        {/* Activity + Orgs + Revenue */}
         <div className="three-col">
           <div className="panel d3">
             <div className="ph">
@@ -184,7 +193,7 @@ export default function DashboardPage() {
                   <div className="act-text" dangerouslySetInnerHTML={{ __html: a.text }} />
                   <div className="act-time">
                     {a.time}
-                    <span className={lv lv-}>{a.lv.toUpperCase()}</span>
+                    <span className={'alv lv-' + a.lv}>{a.lv.toUpperCase()}</span>
                   </div>
                 </div>
               </div>
@@ -199,22 +208,19 @@ export default function DashboardPage() {
             <table className="otbl">
               <thead><tr><th>Organisation</th><th>Plan</th><th>Users</th><th>Assets</th></tr></thead>
               <tbody>
-                {orgsOverview.map((o) => {
-                  const planCls = o.plan === 'Pro' ? 'pt-pro' : o.plan === 'Enterprise' ? 'pt-ent' : 'pt-free';
-                  return (
-                    <tr key={o.slug}>
-                      <td>
-                        <div className="org-cell">
-                          <div className="org-av" style={{ background: o.color }}>{o.name[0]}</div>
-                          <div><div className="org-name">{o.name}</div><div className="org-slug">{o.slug}</div></div>
-                        </div>
-                      </td>
-                      <td><span className={plan-tag }>{o.plan}</span></td>
-                      <td style={{ fontWeight: 600, fontSize: 12 }}>{o.users}</td>
-                      <td style={{ fontWeight: 600, fontSize: 12 }}>{o.assets.toLocaleString()}</td>
-                    </tr>
-                  );
-                })}
+                {orgsOverview.map((o) => (
+                  <tr key={o.slug}>
+                    <td>
+                      <div className="org-cell">
+                        <div className="org-av" style={{ background: o.color }}>{o.name[0]}</div>
+                        <div><div className="org-name">{o.name}</div><div className="org-slug">{o.slug}</div></div>
+                      </div>
+                    </td>
+                    <td><span className={planTagClass(o.plan)}>{o.plan}</span></td>
+                    <td style={{ fontWeight: 600, fontSize: 12 }}>{o.users}</td>
+                    <td style={{ fontWeight: 600, fontSize: 12 }}>{o.assets.toLocaleString()}</td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
@@ -242,7 +248,7 @@ export default function DashboardPage() {
                   <div className="rev-dot" style={{ background: r.color }} />
                   <div className="rev-name">{r.name}</div>
                   <div className="rev-track"><div className="rev-fill" style={{ width: r.pct + '%', background: r.color }} /></div>
-                  <div className="rev-val">${r.val.toLocaleString()}</div>
+                  <div className="rev-val">{'$' + r.val.toLocaleString()}</div>
                 </div>
               ))}
             </div>
