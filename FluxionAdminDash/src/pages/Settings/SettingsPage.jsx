@@ -1,35 +1,48 @@
 export default function SettingsPage() {
     return (
-        <div className="page">
-            <div className="topbar">
-                <h1>Settings</h1>
-            </div>
-
-            <div className="table-container" style={{ padding: '1.5rem' }}>
-                <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1.5rem' }}>General</h2>
-
-                <div className="form-group">
-                    <label>Application Name</label>
-                    <input type="text" defaultValue="Fluxion" />
+        <div style={{ padding: '20px 24px 40px' }}>
+            <div className="panel">
+                <div className="ph">
+                    <div>
+                        <div className="ph-title">General Settings</div>
+                        <div className="ph-sub">System-wide configuration</div>
+                    </div>
                 </div>
-
-                <div className="form-group">
-                    <label>Support Email</label>
-                    <input type="email" defaultValue="support@fluxion.com" />
+                <div style={{ padding: '20px 24px' }}>
+                    <div className="mf">
+                        <label className="ml">Application Name</label>
+                        <input className="mi" type="text" defaultValue="EAMMS" />
+                    </div>
+                    <div className="mf">
+                        <label className="ml">Support Email</label>
+                        <input className="mi" type="email" defaultValue="support@eamms.com" />
+                    </div>
+                    <div className="m2">
+                        <div className="mf">
+                            <label className="ml">Default User Role</label>
+                            <select className="ms" defaultValue="user">
+                                <option value="user">User</option>
+                                <option value="technician">Technician</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+                        <div className="mf">
+                            <label className="ml">Default Plan</label>
+                            <select className="ms" defaultValue="free">
+                                <option value="free">Free</option>
+                                <option value="pro">Pro</option>
+                                <option value="enterprise">Enterprise</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div className="mf">
+                        <label className="ml">Session Timeout (minutes)</label>
+                        <input className="mi" type="number" defaultValue={30} />
+                    </div>
+                    <div style={{ marginTop: 8 }}>
+                        <button className="mok">Save Changes</button>
+                    </div>
                 </div>
-
-                <div className="form-group">
-                    <label>Default User Role</label>
-                    <select defaultValue="user">
-                        <option value="user">User</option>
-                        <option value="manager">Manager</option>
-                        <option value="admin">Admin</option>
-                    </select>
-                </div>
-
-                <button className="btn btn-primary" style={{ marginTop: '0.5rem' }}>
-                    Save Changes
-                </button>
             </div>
         </div>
     );

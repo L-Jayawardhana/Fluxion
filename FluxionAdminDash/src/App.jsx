@@ -6,6 +6,9 @@ import DashboardPage from './pages/Dashboard/DashboardPage';
 import UsersPage from './pages/Users/UsersPage';
 import OrganizationsPage from './pages/Organizations/OrganizationsPage';
 import SettingsPage from './pages/Settings/SettingsPage';
+import PlansPage from './pages/Plans/PlansPage';
+import LogsPage from './pages/Logs/LogsPage';
+import ServersPage from './pages/Servers/ServersPage';
 import LoginPage from './pages/Login/LoginPage';
 import NotFoundPage from './pages/NotFound/NotFoundPage';
 import './App.css';
@@ -24,6 +27,9 @@ function App() {
                 <Route path="/" element={<DashboardPage />} />
                 <Route path="/users" element={<UsersPage />} />
                 <Route path="/organizations" element={<OrganizationsPage />} />
+                <Route path="/plans" element={<PlansPage />} />
+                <Route path="/logs" element={<LogsPage />} />
+                <Route path="/servers" element={<ServersPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
              </Route>
           </Route>
