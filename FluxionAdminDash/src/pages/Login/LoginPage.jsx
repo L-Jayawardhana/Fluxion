@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import axios from 'axios';
 import './LoginPage.css';
 
 export default function LoginPage() {
@@ -65,21 +66,27 @@ export default function LoginPage() {
         if (!validate()) return;
         setLoading(true);
         try {
-            // TODO: Replace with real admin auth API call
-            // const { data } = await adminAuthService.login(email, password);
-             
-            // Simulate API delay
-            await new Promise(r => setTimeout(r, 600)); 
-            
-            // Hardcoded check for demo
-            if (email === 'admin@fluxion.com' && password === 'admin') {
-                login({ email, role: 'Admin', name: 'Super Admin' }, 'fake-jwt-token');
-                // Navigation will be handled by the useEffect above
-            } else {
-                 throw new Error('Invalid credentials');
+            // Updated to use the actual API Endpoint
+            const response = await axios.post('http://localhost:5226/api/auth/login', {
+                email,
+                password
+            });
+
+            const { token, role, fullName, userId } = response.data;
+
+            // Check if user is System Admin
+            if (role !== 'systemadmin' && role !== 'SystemAdmin') {
+                throw new Error('Access Denied: You do not have system administrator privileges.');
             }
+
+            // Login successful
+            login({ email, role, name: fullName, id: userId }, token);
+            // Navigation handled by useEffect
+            
         } catch (err) {
-            setError(err.message || 'Invalid credentials. Please try again.');
+            console.error('Login error:', err);
+            const msg = err.response?.data?.message || err.message || 'Invalid credentials. Please try again.';
+            setError(msg);
         } finally {
             setLoading(false);
         }
