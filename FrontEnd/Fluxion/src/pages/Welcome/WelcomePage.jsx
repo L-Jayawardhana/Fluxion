@@ -1,12 +1,32 @@
 import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import GrowingGraph from '../../components/GrowingGraph';
+import RegisterAssetsGraphic from '../../components/RegisterAssetsGraphic';
+import InviteTeamGraphic from '../../components/InviteTeamGraphic';
+import AssignAssetsGraphic from '../../components/AssignAssetsGraphic';
 import './WelcomePage.css';
+
+/* ── SVG icon helpers ─────────────────────────────────────── */
+const IC = {
+  department: <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.4"><rect x="2" y="9" width="5" height="8" rx="1" /><rect x="7.5" y="5" width="5" height="12" rx="1" /><rect x="13" y="2" width="5" height="15" rx="1" /></svg>,
+  asset: <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.4"><rect x="3" y="4" width="14" height="10" rx="1.5" /><path d="M6 14v2M14 14v2M4 18h12" /></svg>,
+  users: <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.4"><circle cx="7" cy="6" r="3" /><path d="M1 17c0-3.3 2.7-6 6-6s6 2.7 6 6" /><circle cx="14" cy="6" r="2.2" /><path d="M14 11c2.5 0 4.5 1.8 5 4" /></svg>,
+  assign: <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M7 4h10l-1 10H8L7 4zM9 4V2h6v2" /><path d="M10 9h4" /></svg>,
+  lightbulb: <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M10 2a5 5 0 013 9v2H7v-2a5 5 0 013-9z" /><path d="M8 15h4M8.5 17h3" /></svg>,
+  tag: <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M2 3h7l8 8-7 7-8-8V3z" /><circle cx="6" cy="7" r="1.5" fill="currentColor" /></svg>,
+  wrench: <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M14.5 2.5a4.5 4.5 0 00-5.2 7.2L4 15l1 1 5.3-5.3a4.5 4.5 0 007.2-5.2l-3 3-2-2 3-3z" /></svg>,
+  clipboard: <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.4"><rect x="4" y="3" width="12" height="15" rx="1.5" /><path d="M7 3V2a1 1 0 011-1h4a1 1 0 011 1v1M7 8h6M7 11h6M7 14h3" /></svg>,
+  shield: <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M10 1l7 3v5c0 4.4-3 8-7 9.5C6 17.4 3 13.4 3 9V4l7-3z" /><path d="M7 10l2 2 4-4" /></svg>,
+  chart: <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.4"><rect x="2" y="2" width="16" height="16" rx="2" /><path d="M5 14l3-4 3 2 4-6" /></svg>,
+  chat: <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M3 4h14a1 1 0 011 1v8a1 1 0 01-1 1h-4l-3 3v-3H3a1 1 0 01-1-1V5a1 1 0 011-1z" /><path d="M6 8h8M6 11h5" /></svg>,
+  keyboard: <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.4"><rect x="1" y="4" width="18" height="12" rx="2" /><path d="M5 8h1M9 8h2M14 8h1M5 11h1M8 11h4M14 11h1M7 14h6" /></svg>,
+};
 
 /* ── Data ────────────────────────────────────────────────── */
 const WORKFLOWS = [
   {
-    num: '01', emoji: '🏬', accent: '#3B82F6',
+    num: '01', icon: IC.department, graphic: <GrowingGraph />, accent: '#3B82F6',
     title: 'Set Up Departments',
     desc: 'Create your org\'s structure. Departments group your assets and users so everything stays organised by team or location.',
     steps: [
@@ -19,7 +39,7 @@ const WORKFLOWS = [
     btn: 'Add first department',
   },
   {
-    num: '02', emoji: '💻', accent: '#22C55E',
+    num: '02', icon: IC.asset, graphic: <RegisterAssetsGraphic />, accent: '#22C55E',
     title: 'Register Your Assets',
     desc: 'Add every physical item your company owns — laptops, vehicles, printers, furniture. Each gets a unique QR code automatically.',
     steps: [
@@ -32,22 +52,22 @@ const WORKFLOWS = [
     btn: 'Register first asset',
   },
   {
-    num: '03', emoji: '👥', accent: '#F59E0B',
+    num: '03', icon: IC.users, graphic: <InviteTeamGraphic />, accent: '#F59E0B',
     title: 'Invite Your Team',
-    desc: 'Add Admins, Technicians, and Users. Each person gets an email with their temp password and is guided to change it on first login.',
+    desc: 'Add Admins, Technicians, and Users. Each gets an email with their temp password and is guided to change it on first login.',
     steps: [
-      'Go to <strong>Users → Invite Users</strong>',
-      'Enter their name, email, set a role',
-      'Set a temporary password',
-      'They\'ll receive a login email instantly',
+      'Go to <strong>Users → Invite User</strong>',
+      'Enter email and select a role',
+      'They receive secure login details',
+      'You see their accept status live',
     ],
     status: 'todo', statusLabel: 'Pending',
     btn: 'Invite first user',
   },
   {
-    num: '04', emoji: '🔄', accent: '#7C3AED',
+    num: '04', icon: IC.assign, graphic: <AssignAssetsGraphic />, accent: '#8B5CF6',
     title: 'Assign Assets to Users',
-    desc: 'Once assets and users are in the system, assign specific assets to the people using them. Full assignment history is kept automatically.',
+    desc: 'Once assets and users are in the system, assign assets to the people using them. Full assignment history is kept automatically.',
     steps: [
       'Go to <strong>Assets → Asset Assignments</strong>',
       'Select an asset and a user',
@@ -60,12 +80,12 @@ const WORKFLOWS = [
 ];
 
 const SUGGESTIONS = [
-  { emoji: '💡', bg: 'rgba(59,130,246,.1)', label: 'Quick win', title: 'Add your IT department first', desc: 'IT typically owns the most trackable assets (laptops, monitors, peripherals). Start there for the biggest immediate impact on visibility.' },
-  { emoji: '🏷️', bg: 'rgba(34,197,94,.1)', label: 'Asset tip', title: 'Print QR labels immediately', desc: 'After registering assets, print QR labels and attach them physically. This makes scanning-based lookups and ticket-raising instant in the field.' },
-  { emoji: '🔧', bg: 'rgba(245,158,11,.1)', label: 'Team tip', title: 'Add a Technician early', desc: 'Invite at least one Technician before registering assets. When you raise your first maintenance ticket, you\'ll need someone to assign it to.' },
-  { emoji: '📋', bg: 'rgba(99,102,241,.1)', label: 'Organisation tip', title: 'Record purchase dates & costs', desc: 'Filling in purchase date, warranty end date, and cost when registering assets unlocks the maintenance cost and warranty expiry reports later.' },
-  { emoji: '🛡️', bg: 'rgba(124,58,237,.1)', label: 'Security tip', title: 'Add an Admin before you travel', desc: 'As Owner, you\'re the only one who can manage the subscription. Add at least one Admin so the org can keep running if you\'re unavailable.' },
-  { emoji: '📊', bg: 'rgba(255,255,255,.05)', label: 'Reporting tip', title: 'Run your first report after 30 days', desc: 'Once you\'ve logged maintenance for a month, the Maintenance Cost report gives you a breakdown of repair spend by asset, department, and technician.' },
+  { icon: IC.lightbulb, bg: 'rgba(59,130,246,.1)', label: 'Quick win', title: 'Add your IT department first', desc: 'IT typically owns the most trackable assets (laptops, monitors, peripherals). Start there for the biggest immediate impact on visibility.' },
+  { icon: IC.tag, bg: 'rgba(34,197,94,.1)', label: 'Asset tip', title: 'Print QR labels immediately', desc: 'After registering assets, print QR labels and attach them physically. This makes scanning-based lookups and ticket-raising instant in the field.' },
+  { icon: IC.wrench, bg: 'rgba(245,158,11,.1)', label: 'Team tip', title: 'Add a Technician early', desc: 'Invite at least one Technician before registering assets. When you raise your first maintenance ticket, you\'ll need someone to assign it to.' },
+  { icon: IC.clipboard, bg: 'rgba(99,102,241,.1)', label: 'Organisation tip', title: 'Record purchase dates & costs', desc: 'Filling in purchase date, warranty end date, and cost when registering assets unlocks the maintenance cost and warranty expiry reports later.' },
+  { icon: IC.shield, bg: 'rgba(124,58,237,.1)', label: 'Security tip', title: 'Add an Admin before you travel', desc: 'As Owner, you\'re the only one who can manage the subscription. Add at least one Admin so the org can keep running if you\'re unavailable.' },
+  { icon: IC.chart, bg: 'rgba(255,255,255,.05)', label: 'Reporting tip', title: 'Run your first report after 30 days', desc: 'Once you\'ve logged maintenance for a month, the Maintenance Cost report gives you a breakdown of repair spend by asset, department, and technician.' },
 ];
 
 const TIPS = [
@@ -191,9 +211,18 @@ export default function WelcomePage() {
         {WORKFLOWS.map((w, i) => (
           <div className={`wl-wf-card wl-wf-c${i + 1}`} key={i} style={{ '--wf-accent': w.accent, animationDelay: `${0.08 + i * 0.06}s` }}>
             <div className="wl-wf-num"><span className="wl-wf-numline" />Step {w.num}</div>
-            <div className="wl-wf-emoji">{w.emoji}</div>
+            <div className="wl-wf-emoji">{w.icon}</div>
             <div className="wl-wf-title">{w.title}</div>
             <div className="wl-wf-desc">{w.desc}</div>
+            {w.graphic && (
+              <div className="wl-wf-graphic" style={{
+                width: '100%',
+                aspectRatio: '1',
+                overflow: 'hidden'
+              }}>
+                {w.graphic}
+              </div>
+            )}
             <ul className="wl-wf-steps">
               {w.steps.map((s, j) => (
                 <li key={j} dangerouslySetInnerHTML={{ __html: s }} />
@@ -221,7 +250,7 @@ export default function WelcomePage() {
       <div className="wl-suggest-grid">
         {SUGGESTIONS.map((s, i) => (
           <div className="wl-sug-card" key={i} style={{ animationDelay: `${0.1 + i * 0.05}s` }}>
-            <div className="wl-sug-icon" style={{ background: s.bg }}>{s.emoji}</div>
+            <div className="wl-sug-icon" style={{ background: s.bg }}>{s.icon}</div>
             <div className="wl-sug-body">
               <div className="wl-sug-label">{s.label}</div>
               <div className="wl-sug-title">{s.title}</div>
@@ -247,7 +276,7 @@ export default function WelcomePage() {
         {/* Tips panel */}
         <div className="wl-tips-panel">
           <div className="wl-tips-head">
-            <span className="wl-tips-head-emoji">💬</span>
+            <span className="wl-tips-head-emoji">{IC.chat}</span>
             <span className="wl-tips-head-title">Tips for You</span>
             <span className="wl-tips-head-count">{TIPS.length} tips</span>
           </div>
@@ -268,7 +297,7 @@ export default function WelcomePage() {
         {/* Keyboard shortcuts */}
         <div className="wl-keys-panel">
           <div className="wl-keys-head">
-            <span className="wl-keys-head-emoji">⌨️</span>
+            <span className="wl-keys-head-emoji">{IC.keyboard}</span>
             <span className="wl-keys-head-title">Keyboard Shortcuts</span>
           </div>
           <div className="wl-keys-list">

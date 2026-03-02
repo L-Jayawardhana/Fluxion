@@ -35,6 +35,9 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
+          {/* Temporary test route */}
+          <Route path="/test-welcome" element={<WelcomePage />} />
+
           {/* Protected routes */}
           <Route element={<ProtectedRoute />}>
             <Route element={<MainLayout />}>
