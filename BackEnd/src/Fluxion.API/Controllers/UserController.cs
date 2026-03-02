@@ -21,4 +21,19 @@ public class UserController : ControllerBase
         var result = await _mediator.Send(new GetAllUsersQuery(orgId));
         return Ok(result);
     }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(int id, [FromBody] UpdateUserCommand command)
+    {
+        if (id != command.UserId) return BadRequest("ID mismatch");
+        await _mediator.Send(command);
+        return NoContent();
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        await _mediator.Send(new DeleteUserCommand(id));
+        return NoContent();
+    }
 }

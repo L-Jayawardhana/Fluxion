@@ -1,5 +1,5 @@
 ﻿import { useState, useEffect } from 'react';
-import { getUsers } from '../../services/api';
+import { getUsers, deleteUser, updateUser } from '../../services/api';
 
 const roleFilters = ['All', 'Owner', 'Admin', 'Technician', 'User', 'SystemAdmin'];
 
@@ -15,6 +15,7 @@ export default function UsersPage() {
   const [filter, setFilter] = useState('All');
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [editingUser, setEditingUser] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -45,6 +46,46 @@ export default function UsersPage() {
 
   const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
+  const handleDelete = async (id) => {
+      if (!window.confirm('Are you sure you want to delete this user?')) return;
+      try {
+        await deleteUser(id);
+        fetchData();
+      } catch (error) {
+        console.error('Failed to delete user', error);
+        alert('Failed to delete user');
+      }
+  };
+
+  const handleEdit = (user) => {
+    setEditingUser({ ...user });
+  };
+
+  const handleSaveEdit = async () => {
+    try {
+      if (!editingUser) return;
+      // We need to map role back to lowercase for backend, but update command handles case-insensitive enum parsing usually.
+      // But let's send what we have.
+      await updateUser(editingUser.userId, {
+        userId: editingUser.userId,
+        fullName: editingUser.name, // mapped property
+        email: editingUser.email,
+        role: editingUser.role,
+        isActive: editingUser.isActive,
+        orgId: editingUser.orgId
+      });
+      setEditingUser(null);
+      fetchData();
+    } catch (error) {
+      console.error('Failed to update user', error);
+      alert('Failed to update user');
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingUser(null);
+  };
+
   const stringToColor = (str) => {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
@@ -60,6 +101,77 @@ export default function UsersPage() {
 
   return (
     <div style={{ padding: '20px 24px 40px' }}>
+      {editingUser && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+        }}>
+          <div style={{
+            background: 'var(--panel)', padding: '24px', borderRadius: '12px',
+            width: '400px', border: '1px solid var(--border)', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+          }}>
+            <h3 style={{ marginTop: 0, marginBottom: '20px', color: 'var(--txt)' }}>Edit User</h3>
+            
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontSize: '13px', color: 'var(--muted)', marginBottom: '4px' }}>Name</label>
+              <input 
+                type="text" 
+                value={editingUser.name} 
+                onChange={e => setEditingUser({...editingUser, name: e.target.value})}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--txt)' }}
+              />
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontSize: '13px', color: 'var(--muted)', marginBottom: '4px' }}>Email</label>
+              <input 
+                type="email" 
+                value={editingUser.email} 
+                onChange={e => setEditingUser({...editingUser, email: e.target.value})}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--txt)' }}
+              />
+            </div>
+            
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontSize: '13px', color: 'var(--muted)', marginBottom: '4px' }}>Role</label>
+              <select 
+                value={editingUser.role} 
+                onChange={e => setEditingUser({...editingUser, role: e.target.value})}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--txt)' }}
+              >
+                  {roleFilters.filter(r => r !== 'All').map(r => <option key={r} value={r}>{r}</option>)}
+              </select>
+            </div>
+
+            <div style={{ marginBottom: '24px' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--txt)', fontSize: '14px', cursor: 'pointer' }}>
+                <input 
+                  type="checkbox" 
+                  checked={editingUser.isActive} 
+                  onChange={e => setEditingUser({...editingUser, isActive: e.target.checked})}
+                />
+                Active Status
+              </label>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+              <button 
+                onClick={handleCancelEdit}
+                style={{ padding: '8px 16px', borderRadius: '6px', border: '1px solid var(--border)', background: 'transparent', color: 'var(--txt)', cursor: 'pointer' }}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleSaveEdit}
+                style={{ padding: '8px 16px', borderRadius: '6px', border: 'none', background: '#3B82F6', color: 'white', cursor: 'pointer', fontWeight: 500 }}
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="filter-row">
         {roleFilters.map((f) => (
           <button key={f} className={`fpill${filter === f ? ' active' : ''}`} onClick={() => setFilter(f)}>
@@ -100,10 +212,10 @@ export default function UsersPage() {
                   <td style={{ fontSize: 11, color: 'var(--dim)' }}>{u.joined}</td>
                   <td>
                     <div className="row-acts">
-                      <button className="ract" title="Edit">
+                      <button className="ract" title="Edit" onClick={() => handleEdit(u)}>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                       </button>
-                      <button className="ract del" title="Delete">
+                      <button className="ract del" title="Delete" onClick={() => handleDelete(u.userId)}>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
                       </button>
                     </div>

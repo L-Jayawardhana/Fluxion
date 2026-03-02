@@ -39,4 +39,20 @@ export const getUsers = async (orgId = null) => {
   return response.data;
 };
 
+export const updateOrganization = async (id, data) => {
+  await api.put(`/organization/${id}`, data);
+};
+
+export const deleteOrganization = async (id) => {
+  await api.delete(`/organization/${id}`);
+};
+
+export const updateUser = async (id, data) => {
+  await api.put(`/user/${id}`, data);
+};
+
+export const deleteUser = async (id) => {
+  await api.delete(`/user/${id}`);
+};
+
 export default api;
