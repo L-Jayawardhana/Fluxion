@@ -1,4 +1,5 @@
-﻿import { useEffect, useRef } from 'react';
+﻿import { useEffect, useRef, useState } from 'react';
+import { getOrganizations, getUsers } from '../../services/api';
 
 const statIcons = {
   building: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22V12h6v10"/><path d="M8 6h.01M16 6h.01M8 10h.01M16 10h.01"/></svg>,
@@ -12,10 +13,10 @@ const statIcons = {
   lock: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>,
 };
 
-const stats = [
-  { icon: 'building', label: 'Total Orgs', val: 48, sub: '12 active this week', delta: '+3', cls: 'cd-up', acc: 'acc-blue' },
-  { icon: 'users', label: 'Total Users', val: 1284, sub: '89 online now', delta: '+12%', cls: 'cd-up', acc: 'acc-green' },
-  { icon: 'box', label: 'Assets', val: 5721, sub: '340 added today', delta: '+8%', cls: 'cd-up', acc: 'acc-amber' },
+const defaultStats = [
+  { icon: 'building', label: 'Total Orgs', val: 0, sub: '12 active this week', delta: '+3', cls: 'cd-up', acc: 'acc-blue' },
+  { icon: 'users', label: 'Total Users', val: 0, sub: '89 online now', delta: '+12%', cls: 'cd-up', acc: 'acc-green' },
+  { icon: 'box', label: 'Assets', val: 0, sub: '340 added today', delta: '+8%', cls: 'cd-up', acc: 'acc-amber' },
   { icon: 'ticket', label: 'Open Tickets', val: 23, sub: '5 critical', delta: '-5%', cls: 'cd-dn', acc: 'acc-red' },
   { icon: 'dollar', label: 'MRR', val: 12480, sub: 'vs $11,200 prev', delta: '+11%', cls: 'cd-up', acc: 'acc-indigo', prefix: '$' },
   { icon: 'check', label: 'Uptime', val: 99.97, sub: 'Last 30 days', delta: 'OK', cls: 'cd-ok', acc: 'acc-teal', suffix: '%' },
@@ -55,7 +56,7 @@ const activities = [
   { icon: 'checkCircle', bg: '#F0FDF4', color: '#16A34A', text: 'SSL certificate auto-renewed for <strong>api-prod-01</strong>', time: '1 hr ago', lv: 'ok' },
 ];
 
-const orgsOverview = [
+const defaultRecentOrgs = [
   { name: 'Acme Corp', slug: 'acme-corp', plan: 'Pro', users: 45, assets: 1230, color: '#3B72F6' },
   { name: 'TechStart', slug: 'techstart', plan: 'Free', users: 12, assets: 340, color: '#16A34A' },
   { name: 'BuildRight', slug: 'buildright', plan: 'Enterprise', users: 89, assets: 2100, color: '#7C3AED' },
@@ -120,6 +121,38 @@ function planTagClass(plan) {
 }
 
 export default function DashboardPage() {
+  const [stats, setStats] = useState(defaultStats);
+  const [recentOrgs, setRecentOrgs] = useState(defaultRecentOrgs);
+
+  useEffect(() => {
+    async function loadData() {
+        try {
+            const orgsData = await getOrganizations();
+            const usersData = await getUsers();
+            
+            const totalAssets = orgsData.reduce((acc, o) => acc + (o.assetsCount || 0), 0);
+            
+            setStats(prev => prev.map(s => {
+                if (s.label === 'Total Orgs') return { ...s, val: orgsData.length, sub: `${orgsData.filter(o => o.isActive).length} active` };
+                if (s.label === 'Total Users') return { ...s, val: usersData.length, sub: `${usersData.filter(u => u.isActive).length} active` };
+                if (s.label === 'Assets') return { ...s, val: totalAssets };
+                return s;
+            }));
+
+            const mapped = orgsData.slice(0, 5).map(o => ({
+                name: o.orgName,
+                slug: o.slug,
+                plan: 'Free', // Default
+                users: o.usersCount,
+                assets: o.assetsCount,
+                color: '#3B72F6'
+            }));
+            if (mapped.length > 0) setRecentOrgs(mapped);
+        } catch (e) { console.error(e); }
+    }
+    loadData();
+  }, []);
+
   return (
     <>
       <div className="stats-strip">
@@ -228,7 +261,7 @@ export default function DashboardPage() {
             <table className="otbl">
               <thead><tr><th>Organisation</th><th>Plan</th><th>Users</th><th>Assets</th></tr></thead>
               <tbody>
-                {orgsOverview.map((o) => (
+                {recentOrgs.map((o) => (
                   <tr key={o.slug}>
                     <td>
                       <div className="org-cell">
