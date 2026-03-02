@@ -10,6 +10,7 @@ env:
   REGISTRY: docker.io
   BACKEND_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/fluxion-api
   FRONTEND_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/fluxion-frontend
+  JAVA_VERSION: "21"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # JOB 1 — Build & test backend
@@ -72,12 +73,109 @@ jobs:
         run: npm run build
 
   # ─────────────────────────────────────────────────────────────────────────
-  # JOB 3 — Build Docker images and push to Docker Hub (main branch only)
+  # JOB 3 — Selenium Smoke Tests (Java) — gate before Docker push
+  # ─────────────────────────────────────────────────────────────────────────
+  selenium-smoke:
+    name: "🌐 Selenium Smoke Tests (Java)"
+    runs-on: ubuntu-latest
+    needs: [build-backend, build-frontend]
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: testpassword
+          MYSQL_DATABASE: fluxion_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: temurin
+          cache: maven
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: FrontEnd/Fluxion/package.json
+
+      - name: Install Chrome
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+
+      - name: Install & serve frontend
+        working-directory: FrontEnd/Fluxion
+        run: |
+          npm ci
+          npm run build
+          npx serve -s dist -l 5173 &
+
+      - name: Build & start backend
+        run: |
+          dotnet build BackEnd/src/Fluxion.API/Fluxion.API.csproj --configuration Release
+          dotnet run --project BackEnd/src/Fluxion.API/Fluxion.API.csproj \
+            --configuration Release --no-build &
+        env:
+          ASPNETCORE_URLS: "http://+:5226"
+          ConnectionStrings__DefaultConnection: "Server=localhost;Port=3306;Database=fluxion_test;User=root;Password=testpassword;"
+          JwtSettings__SecretKey: "GitHubActionsTestSecretKeyThatIs256BitsLong!!"
+          JwtSettings__Issuer: "FluxionTest"
+          JwtSettings__Audience: "FluxionTestUsers"
+
+      - name: Wait for services
+        run: |
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:5226/api/health && break
+            echo "Waiting for backend... ($i/30)"
+            sleep 2
+          done
+
+      - name: Run Selenium Smoke Tests
+        run: |
+          mvn test \
+            -Dselenium.baseUrl=http://localhost:5173 \
+            -Dselenium.apiBaseUrl=http://localhost:5226/api \
+            -Dselenium.headless=true \
+            -Dselenium.screenshotDir=target/screenshots \
+            --batch-mode
+        working-directory: tests/selenium-smoke
+
+      - name: Upload Smoke Test Artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: selenium-smoke-results
+          path: |
+            tests/selenium-smoke/target/surefire-reports/
+            tests/selenium-smoke/target/screenshots/
+          retention-days: 14
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # JOB 4 — Build Docker images and push to Docker Hub (Dev branch push only)
   # ─────────────────────────────────────────────────────────────────────────
   docker-push:
     name: Build & Push Docker Images
     runs-on: ubuntu-latest
-    needs: [build-backend, build-frontend]
+    needs: [selenium-smoke]
     if: github.ref == 'refs/heads/Dev' && github.event_name == 'push'
 
     permissions:

@@ -1,0 +1,13 @@
+-------------------------------------------------------------------------------
+Test set: com.fluxion.smoke.tests.AuthSmokeTest
+-------------------------------------------------------------------------------
+Tests run: 5, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 22.31 s <<< FAILURE! -- in com.fluxion.smoke.tests.AuthSmokeTest
+com.fluxion.smoke.tests.AuthSmokeTest.login_WrongPassword_ShowsError -- Time elapsed: 11.12 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[Wrong password should display an error banner] 
+Expecting value to be true but was false
+	at com.fluxion.smoke.tests.AuthSmokeTest.login_WrongPassword_ShowsError(AuthSmokeTest.java:120)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+

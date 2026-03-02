@@ -102,3 +102,6 @@ app.MapControllers();
 
 app.Run();
 
+// Expose the auto-generated Program class for WebApplicationFactory<Program> in integration tests
+public partial class Program { }
+
