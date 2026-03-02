@@ -21,8 +21,8 @@ public class DeleteUserHandler : IRequestHandler<DeleteUserCommand>
         if (user == null)
             throw new Exception("User not found");
 
-        // Soft delete
-        user.IsActive = false;
+        // Hard delete
+        _context.Users.Remove(user);
         
         await _context.SaveChangesAsync(cancellationToken);
     }

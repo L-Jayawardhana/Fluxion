@@ -21,8 +21,8 @@ public class DeleteOrganizationHandler : IRequestHandler<DeleteOrganizationComma
         if (org == null)
             throw new Exception("Organization not found"); // Simple exception for now
 
-        // Soft delete
-        org.IsActive = false;
+        // Hard delete
+        _context.Organizations.Remove(org);
         
         await _context.SaveChangesAsync(cancellationToken);
     }
