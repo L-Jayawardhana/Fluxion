@@ -8,16 +8,19 @@
 }
 
 :root {
-  --color-bg: #0f1117;
-  --color-surface: #1a1d27;
-  --color-surface-hover: #22263a;
-  --color-border: #2a2e3f;
-  --color-text: #e4e6ed;
-  --color-text-muted: #8b8fa3;
-  --color-primary: #6366f1;
-  --color-primary-hover: #818cf8;
-  --color-danger: #ef4444;
-  --color-success: #22c55e;
+  --color-bg: #0D0D0D;
+  --color-surface: #151515;
+  --color-surface-hover: #1C1C1C;
+  --color-border: rgba(242,239,232,.08);
+  --color-text: #F2EFE8;
+  --color-text-muted: #8A9BAD;
+  --color-primary: #C84B2F;
+  --color-primary-hover: #E05A3C;
+  --color-danger: #C84B2F;
+  --color-success: #2A7A4B;
+  --color-accent: #F0A500;
+  --color-steel: #3A4A5C;
+  --color-warm: #E8E2D6;
   --radius: 8px;
   --radius-lg: 12px;
   --font: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -29,6 +32,7 @@ body {
   color: var(--color-text);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 a {
@@ -108,7 +112,7 @@ a:hover {
 .form-group input:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+  box-shadow: 0 0 0 3px rgba(200, 75, 47, 0.15);
 }
 
 .form-group input::placeholder {

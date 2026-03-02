@@ -5,15 +5,15 @@
 /* ── Variables (extend root) ────────────────────────────── */
 :root {
   --ml-sb-w: 220px;
-  --ml-accent: var(--color-primary);
-  --ml-accent-lo: rgba(99,102,241,.12);
-  --ml-dim: rgba(255,255,255,.18);
-  --ml-mist: rgba(255,255,255,.38);
-  --ml-border2: rgba(255,255,255,.04);
+  --ml-accent: #C84B2F;
+  --ml-accent-lo: rgba(200,75,47,.10);
+  --ml-dim: rgba(242,239,232,.18);
+  --ml-mist: rgba(242,239,232,.42);
+  --ml-border2: rgba(242,239,232,.06);
   --ml-paper: #F2EFE8;
-  --ml-amber: #E8960A;
-  --ml-green: #2D9456;
-  --ml-blue: #2A6FC8;
+  --ml-amber: #F0A500;
+  --ml-green: #2A7A4B;
+  --ml-blue: #3A4A5C;
 }
 
 @keyframes mlPulse {
@@ -28,8 +28,8 @@
 
 /* ═══════════════════ SIDEBAR ═══════════════════ */
 .ml-sidebar {
-  background: var(--color-surface);
-  border-right: 1px solid var(--color-border);
+  background: #0D0D0D;
+  border-right: 1px solid rgba(242,239,232,.06);
   display: flex;
   flex-direction: column;
   position: fixed;
@@ -44,7 +44,7 @@
   position: absolute;
   top: 0; right: 0; bottom: 0;
   width: 1px;
-  background: linear-gradient(to bottom, transparent, rgba(99,102,241,.35) 35%, rgba(99,102,241,.35) 65%, transparent);
+  background: linear-gradient(to bottom, transparent, rgba(200,75,47,.30) 35%, rgba(200,75,47,.30) 65%, transparent);
   pointer-events: none;
 }
 
@@ -79,7 +79,7 @@
 .ml-sb-org {
   margin: 10px 10px 4px;
   background: var(--ml-accent-lo);
-  border: 1px solid rgba(99,102,241,.22);
+  border: 1px solid rgba(200,75,47,.18);
   border-radius: 7px;
   padding: 9px 11px;
   display: flex;
@@ -213,7 +213,7 @@
   color: var(--ml-accent);
   background: none;
   padding: 6px;
-  border: 1px solid rgba(99,102,241,.28);
+  border: 1px solid rgba(200,75,47,.22);
   border-radius: 4px;
   margin-top: 8px;
   cursor: pointer;

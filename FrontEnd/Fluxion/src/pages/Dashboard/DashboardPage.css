@@ -106,7 +106,7 @@
 .dash-refresh-btn:hover {
   border-color: var(--color-primary);
   color: var(--color-primary);
-  background: rgba(99,102,241,.06);
+  background: rgba(200,75,47,.08);
 }
 .dash-last-refresh {
   font-size: .7rem;
