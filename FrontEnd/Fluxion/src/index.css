@@ -182,68 +182,7 @@ a:hover {
    Moved to layouts/MainLayout.css
    ──────────────────────────────────────────────────────── */
 
-.sidebar-brand {
-  padding: 0 1.5rem 1.5rem;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.sidebar-brand h2 {
-  font-size: 1.25rem;
-  font-weight: 700;
-  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.sidebar-nav {
-  flex: 1;
-  padding: 1rem 0.75rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.nav-link {
-  display: block;
-  padding: 0.625rem 0.75rem;
-  border-radius: var(--radius);
-  color: var(--color-text-muted);
-  font-size: 0.875rem;
-  font-weight: 500;
-  transition: all 0.15s;
-}
-
-.nav-link:hover {
-  background: var(--color-surface-hover);
-  color: var(--color-text);
-}
-
-.nav-link.active {
-  background: rgba(99, 102, 241, 0.1);
-  color: var(--color-primary);
-}
-
-.sidebar-footer {
-  padding: 1rem 1.5rem;
-  border-top: 1px solid var(--color-border);
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.user-name {
-  font-size: 0.8125rem;
-  color: var(--color-text-muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.main-content {
-  flex: 1;
-  margin-left: 250px;
-  padding: 2rem;
-}
+/* Old sidebar styles removed — now in MainLayout.css */
 
 /* ── Page ─────────────────────────────────────────── */
 .page h1 {
