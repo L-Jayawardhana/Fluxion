@@ -7,7 +7,7 @@
   --border:#E4E9F0;--border2:#EEF2F7;
   --primary:#3B72F6;--green:#16A34A;--amber:#D97706;--red:#DC2626;--purple:#7C3AED;
   --text:#0F172A;--muted:#64748B;--dim:#94A3B8;
-  --sb:#1E2A3A;--sb-w:248px;
+  --sb:#0D0D0D;--sb-w:248px;
   --font:'Poppins',sans-serif;
 }
 html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--text);overflow:hidden;}
