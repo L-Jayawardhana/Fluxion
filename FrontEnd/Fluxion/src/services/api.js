@@ -1,7 +1,11 @@
 import axios from 'axios';
 
-// VITE_API_URL is injected at build time via .env files or Dockerfile build args
-const API_BASE_URL = import.meta.env.VITE_API_URL ?? 'http://20.2.91.234/api';
+// VITE_API_URL is injected at build time via .env files or Vercel environment variables
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
+if (!API_BASE_URL) {
+  console.error('VITE_API_URL is not set! API calls will fail.');
+}
 
 const api = axios.create({
   baseURL: API_BASE_URL,
