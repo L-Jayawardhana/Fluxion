@@ -80,11 +80,9 @@ export default function Sidebar() {
     <aside className="sidebar">
       {/* Brand */}
       <div className="sb-logo">
-        <div className="sb-icon">
-          <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-        </div>
+        <img src="/LOGOwhite.png" alt="Fluxion" className="sb-logo-img" />
         <div>
-          <div className="sb-brand">EAMMS</div>
+          <div className="sb-brand">FLUXION</div>
           <div className="sb-brand-sub">System Admin</div>
         </div>
       </div>

@@ -19,8 +19,7 @@ a{text-decoration:none;color:inherit;}
 /* SIDEBAR */
 .sidebar{background:var(--sb);display:flex;flex-direction:column;overflow:hidden;box-shadow:2px 0 12px rgba(0,0,0,.12);}
 .sb-logo{padding:18px 18px 14px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:10px;flex-shrink:0;}
-.sb-icon{width:32px;height:32px;border-radius:8px;background:var(--primary);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 14px rgba(59,114,246,.45);}
-.sb-icon svg{width:14px;height:14px;fill:#fff;}
+.sb-logo-img{width:32px;height:32px;flex-shrink:0;object-fit:contain;}
 .sb-brand{font-size:15px;font-weight:700;color:#fff;}
 .sb-brand-sub{font-size:9px;font-weight:600;letter-spacing:.9px;text-transform:uppercase;color:rgba(99,140,255,.9);margin-top:1px;}
 .sb-status{margin:10px 14px 4px;background:rgba(22,163,74,.1);border:1px solid rgba(22,163,74,.22);border-radius:8px;padding:8px 12px;display:flex;align-items:center;gap:8px;flex-shrink:0;}
