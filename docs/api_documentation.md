@@ -83,3 +83,64 @@ Authenticates a user using a Google OAuth JWT Token (`credential`).
 }
 ```
 *Note: The `isNewUser` flag is critical for frontend routing. It allows the frontend to determine whether to drop the user into the Dashboard (`isNewUser=false`) or the Organisation Setup Flow (`isNewUser=true`).*
+
+## 5. POST `/api/Auth/register-system-admin`
+Registers a new System Administrator (super-admin) user with full access across the platform.
+
+**Request Body:**
+```json
+{
+  "fullName": "System Administrator",
+  "email": "sysadmin@fluxion.com",
+  "password": "SecurePassword123!"
+}
+```
+
+**Response (201 Created):**
+```json
+{
+  "userId": 1,
+  "fullName": "System Administrator",
+  "email": "sysadmin@fluxion.com",
+  "role": "systemadmin",
+  "token": "eyJhbGciOi..."
+}
+```
+
+## 6. POST `/api/Auth/forgot-password`
+Initiates the password reset process by sending a verification code to the user's email.
+
+**Request Body:**
+```json
+{
+  "email": "user@example.com"
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Password reset code sent."
+}
+```
+
+## 7. POST `/api/Auth/reset-password`
+Resets the user's password using the verification code received via email.
+
+**Request Body:**
+```json
+{
+  "email": "user@example.com",
+  "code": "123456",
+  "newPassword": "NewSecurePassword123!"
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Password has been reset successfully."
+}
+```
