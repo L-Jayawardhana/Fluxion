@@ -1,13 +1,22 @@
-import { Outlet, NavLink } from 'react-router-dom';
+import { useState } from 'react';
+import { Outlet } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
+import Topbar from '../components/Topbar';
+import NewOrgModal from '../components/NewOrgModal';
 
 export default function AdminLayout() {
+    const [showNewOrg, setShowNewOrg] = useState(false);
+
     return (
-        <div className="admin-layout">
+        <div className="shell">
             <Sidebar />
-            <main className="main-content">
-                <Outlet />
-            </main>
+            <div className="main">
+                <Topbar onNewOrg={() => setShowNewOrg(true)} />
+                <div className="content">
+                    <Outlet />
+                </div>
+            </div>
+            <NewOrgModal open={showNewOrg} onClose={() => setShowNewOrg(false)} />
         </div>
     );
 }
