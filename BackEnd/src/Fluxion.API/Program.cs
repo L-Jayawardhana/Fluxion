@@ -54,9 +54,33 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader();
+        if (builder.Environment.IsDevelopment())
+        {
+            // Local development: allow all origins
+            policy.AllowAnyOrigin()
+                  .AllowAnyMethod()
+                  .AllowAnyHeader();
+        }
+        else
+        {
+            // Production: only allow specific origins if configured.
+            // Behind the nginx reverse proxy everything is same-origin,
+            // so CORS headers aren't needed for normal operation.
+            // Set AllowedOrigins__0, __1, … env vars if you ever need
+            // cross-origin access (e.g. mobile app, external SPA).
+            var allowedOrigins = builder.Configuration
+                .GetSection("AllowedOrigins")
+                .Get<string[]>() ?? [];
+
+            if (allowedOrigins.Length > 0)
+            {
+                policy.WithOrigins(allowedOrigins)
+                      .AllowAnyMethod()
+                      .AllowAnyHeader()
+                      .AllowCredentials();
+            }
+            // else: no CORS headers → same-origin only (correct behind nginx)
+        }
     });
 });
 

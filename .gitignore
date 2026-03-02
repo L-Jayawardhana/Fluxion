@@ -3,13 +3,18 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/main/VisualStudio.gitignore
 
-# User-specific files
-*.rsuser
-*.suo
-*.user
-*.userosscache
-*.sln.docstates
+# ── Secret & environment files (NEVER commit these) ──────
 *.env
+.env
+.env.*
+!.env.example
+# Vite environment files — no secrets, safe to track
+!.env.development
+!.env.production
+**/appsettings.Development.json
+**/appsettings.Local.json
+**/appsettings.Secrets.json
+/opt/fluxion/.env
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
@@ -451,6 +456,53 @@ FodyWeavers.xsd
 
 # Custom
 appsettings.Development.json
+appsettings.Local.json
+
+# Runtime environment file on the VM (written by CI, never committed)
 .env
 bin/
 obj/
+.env.*
+!.env.example
+# Vite environment files — no secrets, safe to track
+!.env.development
+!.env.production
+
+# JetBrains IDEs
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Additional logs and temporary files
+*.log*
+*.tmp*
+*.temp*
+*~
+
+# Database files
+*.db
+*.sqlite*
+*.mdf
+*.ldf
+
+# Package manager files — lock files ARE committed for reproducible CI/CD builds
+# package-lock.json  ← do NOT ignore
+# yarn.lock          ← do NOT ignore
+.pnpm-debug.log*
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini

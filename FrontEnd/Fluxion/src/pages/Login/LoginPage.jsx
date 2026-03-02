@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { authService, GOOGLE_CLIENT_ID } from '../../services/authService';
 import { useAuth } from '../../hooks/useAuth';
 import './LoginPage.css';
@@ -8,11 +8,23 @@ export default function LoginPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPw, setShowPw] = useState(false);
+    const [rememberMe, setRememberMe] = useState(false);
     const [error, setError] = useState('');
     const [fieldErrors, setFieldErrors] = useState({});
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
-    const { login } = useAuth();
+    const location = useLocation();
+    const { login, isAuthenticated, loading: authLoading } = useAuth();
+
+    // Where to go after login (default: /dashboard)
+    const from = location.state?.from?.pathname || '/dashboard';
+
+    // Redirect to dashboard if already authenticated
+    useEffect(() => {
+        if (!authLoading && isAuthenticated) {
+            navigate(from, { replace: true });
+        }
+    }, [isAuthenticated, authLoading, navigate, from]);
 
     const dotRef = useRef(null);
     const ringRef = useRef(null);
@@ -53,9 +65,9 @@ export default function LoginPage() {
         if (!validate()) return;
         setLoading(true);
         try {
-            const { data } = await authService.login(email, password);
-            login(data.token, { userId: data.userId, fullName: data.fullName, email: data.email, role: data.role });
-            navigate('/dashboard');
+            const { data } = await authService.login(email, password, rememberMe);
+            login(data.token, { userId: data.userId, fullName: data.fullName, email: data.email, role: data.role }, rememberMe, data.expiresAt);
+            navigate(from, { replace: true });
         } catch (err) {
             setError(err.response?.data?.message || 'Invalid email or password. Please try again.');
         } finally {
@@ -85,13 +97,13 @@ export default function LoginPage() {
             }
 
             login(data.token, { userId: data.userId, fullName: data.fullName, email: data.email, role: data.role });
-            navigate('/dashboard');
+            navigate(from, { replace: true });
         } catch (err) {
             setError(err.response?.data?.message || 'Google sign-in failed. Please try again.');
         } finally {
             setLoading(false);
         }
-    }, [login, navigate]);
+    }, [login, navigate, from]);
 
     useEffect(() => {
         if (window.google && googleBtnRef.current) {
@@ -235,7 +247,7 @@ export default function LoginPage() {
 
                         <div className="login-form-row">
                             <label className="login-checkbox-wrap">
-                                <input type="checkbox" />
+                                <input type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} />
                                 <span>Remember me</span>
                             </label>
                             <Link to="/forgot-password" className="forgot-link">Forgot password?</Link>
