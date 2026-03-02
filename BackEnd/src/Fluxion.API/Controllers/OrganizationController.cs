@@ -17,6 +17,13 @@ public class OrganizationController : ControllerBase
         _env = env;
     }
 
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+    {
+        var result = await _mediator.Send(new GetAllOrganizationsQuery());
+        return Ok(result);
+    }
+
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateOrganizationCommand command)
     {
