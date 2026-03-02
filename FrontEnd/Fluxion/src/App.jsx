@@ -9,6 +9,7 @@ import LoginPage from './pages/Login/LoginPage';
 import RegisterPage from './pages/Register/RegisterPage';
 import ForgotPasswordPage from './pages/ForgotPassword/ForgotPasswordPage';
 import DashboardPage from './pages/Dashboard/DashboardPage';
+import WelcomePage from './pages/Welcome/WelcomePage';
 import NotFoundPage from './pages/NotFound/NotFoundPage';
 
 function App() {
@@ -37,6 +38,7 @@ function App() {
           {/* Protected routes */}
           <Route element={<ProtectedRoute />}>
             <Route element={<MainLayout />}>
+              <Route path="/welcome" element={<WelcomePage />} />
               <Route path="/dashboard" element={<DashboardPage />} />
               {/* Add more protected routes here */}
             </Route>

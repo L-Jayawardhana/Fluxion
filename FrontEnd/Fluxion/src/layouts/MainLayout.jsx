@@ -11,6 +11,7 @@ export default function MainLayout() {
                     <h2>Fluxion</h2>
                 </div>
                 <nav className="sidebar-nav">
+                    <NavLink to="/welcome" className="nav-link">Welcome</NavLink>
                     <NavLink to="/dashboard" className="nav-link">Dashboard</NavLink>
                     <NavLink to="/assets" className="nav-link">Assets</NavLink>
                     <NavLink to="/maintenance" className="nav-link">Maintenance</NavLink>
