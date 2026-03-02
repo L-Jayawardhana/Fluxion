@@ -109,13 +109,13 @@ export default function Sidebar() {
                 to={item.to}
                 end={item.to === '/'}
                 className={({ isActive }) =>
-                  sb-item
+                  `sb-item${isActive ? ' active' : ''}`
                 }
               >
                 {icons[item.icon]}
                 {item.label}
                 {item.chip && (
-                  <span className={chip }>{item.chip.text}</span>
+                  <span className={`chip ${item.chip.cls}`}>{item.chip.text}</span>
                 )}
               </NavLink>
             ))}

@@ -60,7 +60,7 @@ export default function Topbar({ onNewOrg }) {
               key={t.to}
               to={t.to}
               end={t.to === '/'}
-              className={({ isActive }) => 	ab-btn}
+              className={({ isActive }) => `tab-btn${isActive ? ' active' : ''}`}
             >
               {tabIcons[t.icon]}
               {t.label}
