@@ -5,5 +5,6 @@ public enum UserRole
     owner,
     admin,
     technician,
-    user
+    user,
+    systemadmin
 }

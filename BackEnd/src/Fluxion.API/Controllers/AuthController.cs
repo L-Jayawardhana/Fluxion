@@ -1,5 +1,6 @@
 using Fluxion.Application.Features.Authentication.Login;
 using Fluxion.Application.Features.Authentication.Register;
+using Fluxion.Application.Features.Authentication.RegisterSystemAdmin;
 using Fluxion.Application.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -47,21 +48,20 @@ public class AuthController : ControllerBase
         }
     }
 
-    // ── Temporary test endpoint — remove after testing ──
-    [HttpGet("test-email")]
-    public async Task<IActionResult> TestEmail()
+    [HttpPost("register-system-admin")]
+    public async Task<IActionResult> RegisterSystemAdmin([FromBody] RegisterSystemAdminCommand command)
     {
-        await _emailService.SendEmailAsync(
-            "puliththewmika@gmail.com",
-            "Fluxion — Test Email ✅",
-            @"<div style='font-family:sans-serif;padding:24px;'>
-                <h2 style='color:#C84B2F;'>Hello from Fluxion! 🚀</h2>
-                <p>If you're reading this, the email service is working correctly.</p>
-                <p style='color:#8A9BAD;font-size:12px;'>Sent via Gmail SMTP</p>
-              </div>"
-        );
-        return Ok(new { message = "Test email sent to puliththewmika@gmail.com" });
+        try
+        {
+            var result = await _mediator.Send(command);
+            return CreatedAtAction(nameof(RegisterSystemAdmin), new { id = result.UserId }, result);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new { message = ex.Message });
+        }
     }
+
 
     [HttpPost("google")]
     public async Task<IActionResult> GoogleLogin([FromBody] Application.Features.Authentication.GoogleLogin.GoogleLoginCommand command)

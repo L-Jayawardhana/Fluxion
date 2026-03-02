@@ -17,6 +17,13 @@ public class OrganizationController : ControllerBase
         _env = env;
     }
 
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+    {
+        var result = await _mediator.Send(new GetAllOrganizationsQuery());
+        return Ok(result);
+    }
+
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateOrganizationCommand command)
     {
@@ -62,5 +69,20 @@ public class OrganizationController : ControllerBase
         var org = await _mediator.Send(new UpdateOrgLogoCommand(id, logoUrl));
 
         return Ok(new { logoUrl });
+    }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(int id, [FromBody] UpdateOrganizationCommand command)
+    {
+        if (id != command.OrgId) return BadRequest("ID mismatch");
+        await _mediator.Send(command);
+        return NoContent();
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        await _mediator.Send(new DeleteOrganizationCommand(id));
+        return NoContent();
     }
 }
