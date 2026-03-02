@@ -1,4 +1,5 @@
 using System.Text;
+using Microsoft.AspNetCore.HttpOverrides;
 using Fluxion.Application.Behaviors;
 using Fluxion.Application.Features.Authentication.Login;
 using Fluxion.Infrastructure.JWT;
@@ -99,6 +100,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+// Trust X-Forwarded-For / X-Forwarded-Proto from the nginx reverse proxy
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
 
 app.UseCors("AllowAll");
 

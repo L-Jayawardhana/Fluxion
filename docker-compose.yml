@@ -1,11 +1,11 @@
 services:
-  # ── Backend .NET API (publicly accessible — no reverse proxy) ────────────
+  # ── Backend .NET API (internal — nginx proxies HTTPS to it) ────────────────
   backend:
     image: ${DOCKER_REGISTRY}/fluxion-api:${IMAGE_TAG:-latest}
     container_name: fluxion-backend
     restart: unless-stopped
     ports:
-      - "80:80"   # API reachable at http://<VM_IP>/api
+      - "127.0.0.1:5000:80"   # Only accessible from localhost; nginx handles public HTTPS
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:80

@@ -31,14 +31,24 @@ jobs:
           dotnet-version: "8.0.x"
 
       - name: Restore dependencies
-        run: dotnet restore Fluxion.API/Fluxion.API.csproj
+        run: |
+          dotnet restore Fluxion.API/Fluxion.API.csproj
+          dotnet restore ../../tests/Fluxion.UnitTests/Fluxion.UnitTests.csproj
+          dotnet restore ../../tests/Fluxion.IntegrationTests/Fluxion.IntegrationTests.csproj
 
       - name: Build
-        run: dotnet build Fluxion.API/Fluxion.API.csproj --configuration Release --no-restore
+        run: |
+          dotnet build Fluxion.API/Fluxion.API.csproj --configuration Release --no-restore
+          dotnet build ../../tests/Fluxion.UnitTests/Fluxion.UnitTests.csproj --configuration Release --no-restore
+          dotnet build ../../tests/Fluxion.IntegrationTests/Fluxion.IntegrationTests.csproj --configuration Release --no-restore
 
       - name: Run unit tests
-        run: dotnet test ../tests/Fluxion.UnitTests/Fluxion.UnitTests.csproj --configuration Release --no-build --verbosity normal
-        continue-on-error: true  # remove this line once tests are written
+        run: dotnet test ../../tests/Fluxion.UnitTests/Fluxion.UnitTests.csproj --configuration Release --no-build --verbosity normal
+        continue-on-error: true  # remove once tests are fully written
+
+      - name: Run integration tests
+        run: dotnet test ../../tests/Fluxion.IntegrationTests/Fluxion.IntegrationTests.csproj --configuration Release --no-build --verbosity normal
+        continue-on-error: true  # remove once tests are fully written
 
   # ─────────────────────────────────────────────────────────────────────────
   # JOB 2 — Build backend Docker image and push to Docker Hub
@@ -100,13 +110,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Copy docker-compose.yml to VM
+      - name: Copy config files to VM
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.VM_HOST }}
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.VM_SSH_PRIVATE_KEY }}
-          source: "docker-compose.yml"
+          source: "docker-compose.yml,nginx/api.conf"
           target: "/opt/fluxion"
           strip_components: 0
 
@@ -162,3 +172,10 @@ jobs:
             # Verify backend container is running
             sleep 15
             docker compose ps
+
+            # Reload nginx with latest config (TLS terminator for the API)
+            if command -v nginx &>/dev/null; then
+              sudo cp /opt/fluxion/nginx/api.conf /etc/nginx/conf.d/fluxion-api.conf
+              sudo nginx -t && sudo systemctl reload nginx
+              echo "✅ nginx reloaded"
+            fi
