@@ -55,25 +55,12 @@
   border-bottom: 1px solid var(--ml-border2);
   display: flex;
   align-items: center;
-  gap: 9px;
-  flex-shrink: 0;
-}
-.ml-sb-mark {
-  width: 28px; height: 28px;
-  background: var(--ml-accent);
-  border-radius: 7px;
-  display: flex;
-  align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
-.ml-sb-mark svg { width: 13px; height: 13px; }
-.ml-sb-wordmark {
-  font-family: var(--font);
-  font-weight: 800;
-  font-size: 15px;
-  color: var(--ml-paper);
-  letter-spacing: -.02em;
+.ml-sb-logo-img {
+  height: 32px;
+  object-fit: contain;
 }
 
 /* ── Org pill ──────────────────────────────────────────── */

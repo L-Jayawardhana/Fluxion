@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import './WelcomePage.css';
 
@@ -114,6 +115,14 @@ export default function WelcomePage() {
 
   return (
     <div className="page wl-page">
+
+      {/* ═══════════ HEADER LOGO ═══════════ */}
+      <div className="wl-header">
+        <Link to="/" className="wl-logo">
+          <img src="/LOGOblack.png" alt="FLUXION" className="wl-logo-img" />
+          FLUXION
+        </Link>
+      </div>
 
       {/* ═══════════ WELCOME HERO ═══════════ */}
       <section className="wl-hero">
