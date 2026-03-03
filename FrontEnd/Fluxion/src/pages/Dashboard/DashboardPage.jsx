@@ -105,10 +105,6 @@ const WARRANTIES = [
 ];
 
 /* ── SVG Icons ───────────────────────────────────────────── */
-const SearchIcon = () => <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="6.5" cy="6.5" r="4.5"/><path d="M11 11l3 3"/></svg>;
-const ExportIcon = () => <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M14 10H2l2-6h8l2 6zM8 13a1 1 0 100-2 1 1 0 000 2z"/></svg>;
-const PlusIcon = () => <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2"><path d="M8 1v14M1 8h14"/></svg>;
-const BellIcon = () => <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M8 1a5 5 0 015 5v3l1.5 2.5H.5L2 9V6a6 6 0 016-5z"/><path d="M6 13a2 2 0 004 0"/></svg>;
 const ArrowIcon = () => <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 8h10M9 4l4 4-4 4"/></svg>;
 
 /* ████████████████████████████████████████████████████████████ */
@@ -121,9 +117,6 @@ export default function DashboardPage() {
 
   const rawName = user?.email?.split('@')[0] || 'User';
   const userName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
-
-  /* ── Format date ───────────────────────────────────────── */
-  const today = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
   /* ── Fetch data ────────────────────────────────────────── */
   const fetchAll = useCallback(async () => {
@@ -199,23 +192,6 @@ export default function DashboardPage() {
   /* ── Render ────────────────────────────────────────────── */
   return (
     <div className="page db-page">
-
-      {/* ── Topbar ───────────────────────────────────────── */}
-      <header className="db-topbar">
-        <div className="db-topbar-left">
-          <h1 className="db-topbar-title">Owner Dashboard</h1>
-          <p className="db-topbar-date">{today} · Acme Corporation</p>
-        </div>
-        <div className="db-topbar-right">
-          <button className="db-tb-btn db-tb-ghost"><SearchIcon /> Search</button>
-          <button className="db-tb-btn db-tb-ghost"><ExportIcon /> Export</button>
-          <button className="db-tb-btn db-tb-primary"><PlusIcon /> Add Asset</button>
-          <button className="db-tb-notif">
-            <BellIcon />
-            <span className="db-tb-notif-dot" />
-          </button>
-        </div>
-      </header>
 
       {/* ── Greeting ─────────────────────────────────────── */}
       <div className="db-greeting">
