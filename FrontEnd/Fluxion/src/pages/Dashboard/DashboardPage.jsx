@@ -3,369 +3,488 @@ import { useAuth } from '../../hooks/useAuth';
 import api from '../../services/api';
 import './DashboardPage.css';
 
-/* ── SVG icon map ────────────────────────────────────────── */
-const IC = {
-  box:      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>,
-  ticket:   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></svg>,
-  users:    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>,
-  check:    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>,
-  zap:      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,
-  shield:   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
-  clock:    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
-  wrench:   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>,
-  plus:     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
-  bell:     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>,
-  building: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22V12h6v10"/><path d="M8 6h.01M16 6h.01M8 10h.01M16 10h.01"/></svg>,
-  heart:    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.42 4.58a5.4 5.4 0 00-7.65 0L12 5.36l-.77-.78a5.4 5.4 0 00-7.65 7.65l.78.77L12 20.64l7.64-7.64.78-.77a5.4 5.4 0 000-7.65z"/></svg>,
-  refresh:  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>,
-};
-
 /* ── Animated counter ────────────────────────────────────── */
-function AnimVal({ val, prefix = '', suffix = '' }) {
+function AnimVal({ val, suffix = '' }) {
   const ref = useRef(null);
   useEffect(() => {
     let frame;
-    const dur = 1000;
+    const dur = 1200;
     const t0 = performance.now();
     const end = val;
-    const isFloat = !Number.isInteger(end);
     function step(now) {
       const p = Math.min((now - t0) / dur, 1);
       const ease = 1 - Math.pow(1 - p, 3);
-      const cur = ease * end;
-      if (ref.current) {
-        ref.current.textContent = prefix + (isFloat ? cur.toFixed(1) : Math.round(cur).toLocaleString()) + suffix;
-      }
+      if (ref.current) ref.current.textContent = Math.round(ease * end) + suffix;
       if (p < 1) frame = requestAnimationFrame(step);
     }
-    frame = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(frame);
-  }, [val, prefix, suffix]);
-  return <span ref={ref}>{prefix}{val}{suffix}</span>;
+    const timer = setTimeout(() => { frame = requestAnimationFrame(step); }, 300);
+    return () => { clearTimeout(timer); cancelAnimationFrame(frame); };
+  }, [val, suffix]);
+  return <span ref={ref}>0{suffix}</span>;
 }
 
 /* ── Helpers ──────────────────────────────────────────────── */
-function greeting() {
+function greetingText() {
   const h = new Date().getHours();
   if (h < 12) return 'Good morning';
   if (h < 17) return 'Good afternoon';
   return 'Good evening';
 }
 
-function relTime(iso) {
-  if (!iso) return 'Never';
-  const ms = Date.now() - new Date(iso).getTime();
-  const m = Math.floor(ms / 60000);
-  const h = Math.floor(ms / 3600000);
-  const d = Math.floor(ms / 86400000);
-  if (m < 2) return 'Just now';
-  if (m < 60) return `${m}m ago`;
-  if (h < 24) return `${h}h ago`;
-  if (d < 7) return `${d}d ago`;
-  return new Date(iso).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' });
-}
-
-function initials(name) {
-  return (name || '?').split(' ').filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('');
-}
-
-function stringToColor(str) {
-  let hash = 0;
-  for (let i = 0; i < (str || '').length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
-  const c = (hash & 0x00ffffff).toString(16).toUpperCase();
-  return '#' + '000000'.substring(c.length) + c;
-}
-
-/* ── Quick-action data ───────────────────────────────────── */
-const QUICK_ACTIONS = [
-  { icon: 'plus',   label: 'New Asset',     desc: 'Register a new asset',      color: '#6366F1' },
-  { icon: 'ticket', label: 'Raise Ticket',  desc: 'Create maintenance ticket', color: '#F59E0B' },
-  { icon: 'wrench', label: 'Maintenance',   desc: 'View active repairs',       color: '#22C55E' },
-  { icon: 'users',  label: 'Team',          desc: 'View team members',         color: '#3B82F6' },
+/* ── Bar chart data (static placeholder) ─────────────────── */
+const MONTHS_COST = [
+  { month: 'Aug', pct: 52 },
+  { month: 'Sep', pct: 68 },
+  { month: 'Oct', pct: 44 },
+  { month: 'Nov', pct: 78 },
+  { month: 'Dec', pct: 55 },
+  { month: 'Jan', pct: 40 },
+  { month: 'Feb', pct: 88, current: true },
 ];
+
+/* ── Donut segments (static placeholder) ─────────────────── */
+const DONUT_DATA = [
+  { name: 'Laptops', pct: 46, count: 114, color: 'var(--db-blue)' },
+  { name: 'Printers', pct: 19, count: 47, color: 'var(--db-green)' },
+  { name: 'Vehicles', pct: 15, count: 37, color: 'var(--db-rust)' },
+  { name: 'Other', pct: 20, count: 50, color: 'var(--db-amber)' },
+];
+
+/* ── Tickets placeholder ─────────────────────────────────── */
+const TICKETS = [
+  { asset: 'MacBook Pro M3', dept: 'IT Dept', issue: 'Screen flicker on startup', status: 'open', statusLabel: 'Open', priority: 'crit', priorityLabel: 'Critical', age: '2d' },
+  { asset: 'Canon iR2625', dept: 'Finance', issue: 'Paper jam — tray 2', status: 'prog', statusLabel: 'In Progress', priority: 'med', priorityLabel: 'Medium', age: '1d' },
+  { asset: 'Toyota Hilux GR', dept: 'Logistics', issue: 'Scheduled oil change due', status: 'wait', statusLabel: 'Waiting Parts', priority: 'high', priorityLabel: 'High', age: '4d' },
+  { asset: 'Dell UltraSharp 27"', dept: 'Design', issue: 'Dead pixels — centre area', status: 'open', statusLabel: 'Open', priority: 'med', priorityLabel: 'Medium', age: '6h' },
+  { asset: 'Cisco IP Phone', dept: 'Reception', issue: 'No dial tone intermittent', status: 'prog', statusLabel: 'In Progress', priority: 'low', priorityLabel: 'Low', age: '3d' },
+];
+
+/* ── Recent assets placeholder ───────────────────────────── */
+const RECENT_ASSETS = [
+  { emoji: '💻', name: 'MacBook Air M2', meta: 'IT · SN: C02XF8K5JGH5', badge: 'done', badgeLabel: 'Active' },
+  { emoji: '🖨️', name: 'HP LaserJet Pro', meta: 'Finance · SN: CNBKC27943', badge: 'done', badgeLabel: 'Active' },
+  { emoji: '🚗', name: 'Toyota Prius 2024', meta: 'Logistics · LPR: WP-4821', badge: 'prog', badgeLabel: 'Assigned' },
+  { emoji: '📱', name: 'iPad Pro 12.9"', meta: 'Sales · SN: DMPXK84LQ1GN', badge: 'done', badgeLabel: 'Active' },
+  { emoji: '🖥️', name: 'Dell XPS 15 9530', meta: 'Engineering · SN: 8FGT9X3', badge: 'open', badgeLabel: 'Maintenance' },
+];
+
+/* ── Team placeholder ────────────────────────────────────── */
+const TEAM_MEMBERS = [
+  { initials: 'AK', name: 'Ali Khan', role: 'Admin', color: '#2A6FC8', online: true },
+  { initials: 'SR', name: 'Sara Ramos', role: 'Technician', color: '#2D9456', online: true },
+  { initials: 'TN', name: 'Tom Ng', role: 'Admin', color: '#7B5EA7', online: false },
+  { initials: 'MW', name: 'Maya W.', role: 'Technician', color: '#C84B2F', online: true },
+  { initials: 'PL', name: 'Paul Lee', role: 'User', color: '#E8960A', online: false },
+  { initials: 'EF', name: 'Eva F.', role: 'User', color: '#546E7A', online: true },
+];
+
+/* ── Department bars ─────────────────────────────────────── */
+const DEPARTMENTS = [
+  { name: 'Information Technology', used: 84, total: 100, color: 'var(--db-blue)' },
+  { name: 'Logistics', used: 56, total: 80, color: 'var(--db-amber)' },
+  { name: 'Finance', used: 38, total: 60, color: 'var(--db-green)' },
+  { name: 'Human Resources', used: 22, total: 40, color: 'var(--db-rust)' },
+  { name: 'Design & Creative', used: 28, total: 40, color: '#7B5EA7' },
+  { name: 'Unassigned', used: 20, total: null, color: 'rgba(255,255,255,.2)' },
+];
+
+/* ── Activity feed placeholder ───────────────────────────── */
+const ACTIVITY = [
+  { icon: '✅', bg: 'rgba(45,148,86,.15)', text: <>Ticket <strong>#T-0042</strong> closed by Sara Ramos</>, time: '14 min ago' },
+  { icon: '👤', bg: 'rgba(42,111,200,.15)', text: <><strong>Kai Patel</strong> was added as a Technician</>, time: '1h ago' },
+  { icon: '🎫', bg: 'rgba(200,75,47,.15)', text: <>New ticket <strong>#T-0047</strong> raised by Paul Lee</>, time: '2h ago' },
+  { icon: '🔄', bg: 'rgba(232,150,10,.15)', text: <><strong>MacBook Air M2</strong> assigned to Eva F.</>, time: '3h ago' },
+];
+
+/* ── Warranty alerts placeholder ─────────────────────────── */
+const WARRANTIES = [
+  { icon: '🚨', name: 'HP ProBook 450', days: 7, cls: 'crit' },
+  { icon: '⚠️', name: 'Canon iR2625', days: 23, cls: 'warn' },
+  { icon: '⚠️', name: 'Toyota Hilux', days: 31, cls: 'warn' },
+  { icon: '✅', name: 'MacBook Pro M3', days: 142, cls: 'ok' },
+];
+
+/* ── SVG Icons ───────────────────────────────────────────── */
+const SearchIcon = () => <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="6.5" cy="6.5" r="4.5"/><path d="M11 11l3 3"/></svg>;
+const ExportIcon = () => <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M14 10H2l2-6h8l2 6zM8 13a1 1 0 100-2 1 1 0 000 2z"/></svg>;
+const PlusIcon = () => <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2"><path d="M8 1v14M1 8h14"/></svg>;
+const BellIcon = () => <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M8 1a5 5 0 015 5v3l1.5 2.5H.5L2 9V6a6 6 0 016-5z"/><path d="M6 13a2 2 0 004 0"/></svg>;
+const ArrowIcon = () => <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 8h10M9 4l4 4-4 4"/></svg>;
 
 /* ████████████████████████████████████████████████████████████ */
 export default function DashboardPage() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [health, setHealth] = useState(null);
   const [orgData, setOrgData] = useState(null);
-  const [teamMembers, setTeamMembers] = useState([]);
-  const [lastRefresh, setLastRefresh] = useState(null);
+  const barRefs = useRef([]);
+  const deptRefs = useRef([]);
 
-  const userName = user?.email?.split('@')[0] || 'User';
-  const userRole = user?.role || 'User';
+  const rawName = user?.email?.split('@')[0] || 'User';
+  const userName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
 
-  /* ── Fetch ─────────────────────────────────────────────── */
+  /* ── Format date ───────────────────────────────────────── */
+  const today = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+  /* ── Fetch data ────────────────────────────────────────── */
   const fetchAll = useCallback(async () => {
     try {
       setLoading(true);
-      const [healthRes, usersRes] = await Promise.allSettled([
-        api.get('/Health'),
-        api.get('/User'),
-      ]);
-
-      if (healthRes.status === 'fulfilled') setHealth(healthRes.value.data);
+      const [usersRes] = await Promise.allSettled([api.get('/User')]);
       if (usersRes.status === 'fulfilled') {
         const all = usersRes.value.data;
-        setTeamMembers(all);
-
-        // Derive org info from users list
-        const orgUsers = user?.orgId ? all.filter(u => u.orgId === parseInt(user.orgId)) : all;
         setOrgData({
           totalUsers: all.length,
           activeUsers: all.filter(u => u.isActive).length,
-          orgUsers: orgUsers.length,
-          admins: all.filter(u => ['admin', 'owner', 'Admin', 'Owner'].includes(u.role)).length,
-          recentLogins: all.filter(u => {
-            if (!u.lastLoginAt) return false;
-            return (Date.now() - new Date(u.lastLoginAt).getTime()) < 86400000;
-          }).length,
         });
       }
-      setLastRefresh(new Date());
     } catch {
       /* silent */
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, []);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
-  /* ── Stats ─────────────────────────────────────────────── */
-  const stats = [
-    { icon: 'users',    accent: '#6366F1', label: 'Total Users',     val: orgData?.totalUsers  ?? 0, sub: `${orgData?.activeUsers ?? 0} active`,         delta: `${orgData?.activeUsers ?? 0}`, cls: 'up'   },
-    { icon: 'check',    accent: '#22C55E', label: 'Active Now',      val: orgData?.recentLogins ?? 0, sub: 'Logged in today',                             delta: `${orgData?.recentLogins ?? 0}`, cls: 'up'   },
-    { icon: 'shield',   accent: '#F59E0B', label: 'Admins',          val: orgData?.admins ?? 0,       sub: 'Owners & Admins',                             delta: `${orgData?.admins ?? 0}`, cls: 'info' },
-    { icon: 'heart',    accent: '#EF4444', label: 'System Health',   val: health?.database === 'Connected' ? 100 : 0, sub: health?.database || 'Checking…', delta: health?.database === 'Connected' ? 'OK' : '!', cls: health?.database === 'Connected' ? 'ok' : 'warn' },
-  ];
+  /* ── Animate bars on mount ─────────────────────────────── */
+  useEffect(() => {
+    if (loading) return;
+    const timers = [];
+    barRefs.current.forEach((bar, i) => {
+      if (!bar) return;
+      const h = bar.dataset.h;
+      bar.style.height = '0%';
+      timers.push(setTimeout(() => {
+        bar.style.transition = 'height .7s cubic-bezier(.34,1,.64,1)';
+        bar.style.height = h + '%';
+      }, 400 + i * 80));
+    });
+    return () => timers.forEach(clearTimeout);
+  }, [loading]);
 
-  /* ── Recent team activity (from user data) ─────────────── */
-  const recentTeam = [...teamMembers]
-    .filter(u => u.lastLoginAt)
-    .sort((a, b) => new Date(b.lastLoginAt) - new Date(a.lastLoginAt))
-    .slice(0, 6);
+  useEffect(() => {
+    if (loading) return;
+    const timers = [];
+    deptRefs.current.forEach((fill, i) => {
+      if (!fill) return;
+      const w = fill.dataset.w;
+      fill.style.width = '0%';
+      timers.push(setTimeout(() => {
+        fill.style.transition = 'width .8s cubic-bezier(.34,1,.64,1)';
+        fill.style.width = w + '%';
+      }, 600 + i * 100));
+    });
+    return () => timers.forEach(clearTimeout);
+  }, [loading]);
+
+  /* ── KPI data ──────────────────────────────────────────── */
+  const kpis = [
+    { color: 'blue', emoji: '💻', label: 'Total Assets', val: 248, delta: '↑ 12', deltaCls: 'up', sub: 'this month' },
+    { color: 'rust', emoji: '🎫', label: 'Open Tickets', val: 12, delta: '↑ 3', deltaCls: 'down', sub: 'vs last week' },
+    { color: 'amber', emoji: '🔧', label: 'Under Maintenance', val: 7, delta: '↓ 2', deltaCls: 'up', sub: 'resolved today' },
+    { color: 'green', emoji: '👥', label: 'Active Users', val: orgData?.activeUsers ?? 17, delta: '↑ 2', deltaCls: 'up', sub: 'added this week' },
+  ];
 
   /* ── Loading ───────────────────────────────────────────── */
   if (loading) return (
-    <div className="dash-loading">
-      <div className="dash-spinner" />
+    <div className="db-loading">
+      <div className="db-spinner" />
       <span>Loading dashboard…</span>
     </div>
   );
 
+  /* ── Donut gradient ────────────────────────────────────── */
+  const donutGradient = `conic-gradient(var(--db-blue) 0% 46%, var(--db-green) 46% 65%, var(--db-rust) 65% 80%, var(--db-amber) 80% 100%)`;
+
   /* ── Render ────────────────────────────────────────────── */
   return (
-    <div className="page dash-page">
+    <div className="page db-page">
 
-      {/* ── Welcome Header ─────────────────────────────── */}
-      <header className="dash-header">
-        <div className="dash-header-left">
-          <h1 className="dash-greeting">
-            {greeting()}, <span className="dash-name">{userName}</span>
-          </h1>
-          <p className="dash-subtitle">
-            Here's an overview of your workspace. Role: <strong>{userRole}</strong>
-          </p>
+      {/* ── Topbar ───────────────────────────────────────── */}
+      <header className="db-topbar">
+        <div className="db-topbar-left">
+          <h1 className="db-topbar-title">Owner Dashboard</h1>
+          <p className="db-topbar-date">{today} · Acme Corporation</p>
         </div>
-        <div className="dash-header-right">
-          <button className="dash-refresh-btn" onClick={fetchAll} title="Refresh data">
-            {IC.refresh}
-            <span>Refresh</span>
+        <div className="db-topbar-right">
+          <button className="db-tb-btn db-tb-ghost"><SearchIcon /> Search</button>
+          <button className="db-tb-btn db-tb-ghost"><ExportIcon /> Export</button>
+          <button className="db-tb-btn db-tb-primary"><PlusIcon /> Add Asset</button>
+          <button className="db-tb-notif">
+            <BellIcon />
+            <span className="db-tb-notif-dot" />
           </button>
-          {lastRefresh && (
-            <span className="dash-last-refresh">Updated {relTime(lastRefresh.toISOString())}</span>
-          )}
         </div>
       </header>
 
-      {/* ── Stats Strip ────────────────────────────────── */}
-      <div className="dash-stats">
-        {stats.map((s, i) => (
-          <div className="dash-stat-card" key={i} style={{ '--accent': s.accent, animationDelay: `${i * 0.07}s` }}>
-            <div className="dsc-top">
-              <div className="dsc-icon" style={{ background: s.accent + '18', color: s.accent }}>
-                {IC[s.icon]}
-              </div>
-              <span className={`dsc-delta dsc-${s.cls}`}>{s.delta}</span>
+      {/* ── Greeting ─────────────────────────────────────── */}
+      <div className="db-greeting">
+        <div className="db-greeting-text">
+          <h2>{greetingText()}, <em>{userName}.</em></h2>
+          <p>Here's what's happening across your organisation today.</p>
+        </div>
+        <div className="db-greeting-meta">
+          <div className="db-gm-item">
+            <div className="db-gm-label">Open Tickets</div>
+            <div className="db-gm-value" style={{ color: 'var(--db-rust)' }}>12</div>
+          </div>
+          <div className="db-gm-item">
+            <div className="db-gm-label">Overdue</div>
+            <div className="db-gm-value" style={{ color: 'var(--db-amber)' }}>3</div>
+          </div>
+          <div className="db-gm-item">
+            <div className="db-gm-label">Expiring Soon</div>
+            <div className="db-gm-value" style={{ color: 'var(--db-mist)' }}>5</div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── KPIs ─────────────────────────────────────────── */}
+      <div className="db-kpi-grid">
+        {kpis.map((k, i) => (
+          <div className={`db-kpi db-kpi-${k.color}`} key={i} style={{ animationDelay: `${0.05 + i * 0.05}s` }}>
+            <div className="db-kpi-icon">{k.emoji}</div>
+            <div className="db-kpi-label">{k.label}</div>
+            <div className="db-kpi-value"><AnimVal val={k.val} /></div>
+            <div className="db-kpi-sub">
+              <span className={`db-kpi-delta db-delta-${k.deltaCls}`}>{k.delta}</span> {k.sub}
             </div>
-            <div className="dsc-val"><AnimVal val={s.val} /></div>
-            <div className="dsc-label">{s.label}</div>
-            <div className="dsc-sub">{s.sub}</div>
           </div>
         ))}
       </div>
 
-      {/* ── Quick Actions ──────────────────────────────── */}
-      <section className="dash-section">
-        <h2 className="dash-section-title">Quick Actions</h2>
-        <div className="dash-actions">
-          {QUICK_ACTIONS.map((a, i) => (
-            <button className="dash-action-card" key={i} style={{ '--qa-color': a.color, animationDelay: `${i * 0.06}s` }}>
-              <div className="dac-icon" style={{ background: a.color + '18', color: a.color }}>
-                {IC[a.icon]}
-              </div>
-              <div className="dac-text">
-                <div className="dac-label">{a.label}</div>
-                <div className="dac-desc">{a.desc}</div>
-              </div>
-              <svg className="dac-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
-            </button>
-          ))}
-        </div>
-      </section>
-
-      {/* ── Two-column: Recent Team + System ─────────── */}
-      <div className="dash-grid-2">
-
-        {/* Recent Team Activity */}
-        <section className="dash-panel">
-          <div className="dp-header">
-            <div>
-              <h3 className="dp-title">Recent Activity</h3>
-              <p className="dp-sub">{recentTeam.length} team members active recently</p>
-            </div>
+      {/* ── Row 1: Bar Chart + Donut ─────────────────────── */}
+      <div className="db-row db-row-3-2 db-d5">
+        {/* Monthly Maintenance Cost */}
+        <div className="db-panel">
+          <div className="db-panel-head">
+            <span className="db-panel-title">Monthly Maintenance Cost</span>
+            <button className="db-panel-action">View report →</button>
           </div>
-
-          {recentTeam.length === 0 ? (
-            <div className="dp-empty">
-              <div className="dp-empty-icon">{IC.users}</div>
-              <p>No recent activity yet</p>
+          <div className="db-panel-body">
+            <div className="db-cost-header">
+              <div>
+                <div className="db-cost-label">YTD Total</div>
+                <div className="db-cost-big">$14,820</div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div className="db-cost-label">This month</div>
+                <div className="db-cost-month">$2,340</div>
+              </div>
             </div>
-          ) : (
-            <div className="dp-list">
-              {recentTeam.map((u, i) => {
-                const name = u.fullName || u.email;
-                const color = stringToColor(name);
-                return (
-                  <div className="dp-list-item" key={u.userId || i} style={{ animationDelay: `${i * 0.04}s` }}>
-                    <div className="dp-avatar" style={{ background: color }}>{initials(name)}</div>
-                    <div className="dp-item-body">
-                      <div className="dp-item-name">{name}</div>
-                      <div className="dp-item-meta">
-                        <span className={`dp-role-badge dp-role-${(u.role || 'user').toLowerCase()}`}>{u.role || 'User'}</span>
-                        <span className="dp-item-time">{relTime(u.lastLoginAt)}</span>
-                      </div>
-                    </div>
-                    <span className={`dp-status-dot ${u.isActive ? 'active' : 'inactive'}`} title={u.isActive ? 'Active' : 'Inactive'} />
+            <div className="db-bar-chart">
+              {MONTHS_COST.map((m, i) => (
+                <div className="db-bar-col" key={i}>
+                  <div className="db-bar-wrap">
+                    <div
+                      className={`db-bar-fill ${m.current ? 'current' : 'dim'}`}
+                      ref={el => barRefs.current[i] = el}
+                      data-h={m.pct}
+                    />
                   </div>
-                );
-              })}
-            </div>
-          )}
-        </section>
-
-        {/* System Health */}
-        <section className="dash-panel">
-          <div className="dp-header">
-            <div>
-              <h3 className="dp-title">System Status</h3>
-              <p className="dp-sub">Infrastructure overview</p>
-            </div>
-            <span className={`dp-health-badge ${health?.database === 'Connected' ? 'healthy' : 'unhealthy'}`}>
-              {health?.database === 'Connected' ? 'All Systems Operational' : 'Issues Detected'}
-            </span>
-          </div>
-
-          <div className="sys-checks">
-            {/* API */}
-            <div className="sys-row">
-              <div className="sys-led on" />
-              <div className="sys-info">
-                <div className="sys-name">API Server</div>
-                <div className="sys-detail">{health?.status || 'Unknown'}</div>
-              </div>
-              <span className="sys-badge good">Operational</span>
-            </div>
-            {/* Database */}
-            <div className="sys-row">
-              <div className={`sys-led ${health?.database === 'Connected' ? 'on' : 'off'}`} />
-              <div className="sys-info">
-                <div className="sys-name">Database</div>
-                <div className="sys-detail">{health?.database || 'Checking…'}</div>
-              </div>
-              <span className={`sys-badge ${health?.database === 'Connected' ? 'good' : 'bad'}`}>
-                {health?.database === 'Connected' ? 'Connected' : 'Disconnected'}
-              </span>
-            </div>
-            {/* Auth */}
-            <div className="sys-row">
-              <div className="sys-led on" />
-              <div className="sys-info">
-                <div className="sys-name">Authentication</div>
-                <div className="sys-detail">JWT Token Active</div>
-              </div>
-              <span className="sys-badge good">Active</span>
-            </div>
-            {/* Timestamp */}
-            <div className="sys-row">
-              <div className="sys-led on" />
-              <div className="sys-info">
-                <div className="sys-name">Server Time</div>
-                <div className="sys-detail">{health?.timestamp ? new Date(health.timestamp).toLocaleString() : '—'}</div>
-              </div>
-              <span className="sys-badge neutral">UTC</span>
+                  <div className={`db-bar-month ${m.current ? 'active' : ''}`}>{m.month}</div>
+                </div>
+              ))}
             </div>
           </div>
+        </div>
 
-          {/* Mini uptime bar */}
-          <div className="sys-uptime">
-            <div className="sys-uptime-label">
-              <span>Uptime</span>
-              <span className="sys-uptime-pct">{health?.database === 'Connected' ? '99.9%' : '0%'}</span>
-            </div>
-            <div className="sys-uptime-track">
-              <div className="sys-uptime-fill" style={{ width: health?.database === 'Connected' ? '99.9%' : '0%' }} />
+        {/* Asset Breakdown Donut */}
+        <div className="db-panel">
+          <div className="db-panel-head">
+            <span className="db-panel-title">Asset Breakdown</span>
+            <button className="db-panel-action">All assets →</button>
+          </div>
+          <div className="db-panel-body">
+            <div className="db-donut-wrap">
+              <div className="db-donut" style={{ background: donutGradient }}>
+                <div className="db-donut-centre">
+                  <div className="db-donut-num">248</div>
+                  <div className="db-donut-lbl">Total</div>
+                </div>
+              </div>
+              <div className="db-donut-legend">
+                {DONUT_DATA.map((d, i) => (
+                  <div className="db-legend-item" key={i}>
+                    <div className="db-legend-dot" style={{ background: d.color }} />
+                    <div className="db-legend-name">{d.name}</div>
+                    <div className="db-legend-pct">{d.pct}%</div>
+                    <div className="db-legend-count">{d.count}</div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
-        </section>
+        </div>
       </div>
 
-      {/* ── Workspace Summary ──────────────────────────── */}
-      <section className="dash-panel dash-summary">
-        <div className="dp-header">
-          <div>
-            <h3 className="dp-title">Workspace Summary</h3>
-            <p className="dp-sub">Overview of your organisation's resources</p>
+      {/* ── Row 2: Tickets + Recent Assets ───────────────── */}
+      <div className="db-row db-row-3-2 db-d6">
+        {/* Tickets table */}
+        <div className="db-panel">
+          <div className="db-panel-head">
+            <span className="db-panel-title">Open Maintenance Tickets</span>
+            <button className="db-panel-action">All tickets →</button>
+          </div>
+          <div className="db-panel-body" style={{ paddingTop: 8 }}>
+            <table className="db-ticket-table">
+              <thead>
+                <tr>
+                  <th>Asset / Dept</th>
+                  <th>Issue</th>
+                  <th>Status</th>
+                  <th>Priority</th>
+                  <th>Age</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {TICKETS.map((t, i) => (
+                  <tr key={i}>
+                    <td>
+                      <div className="db-t-asset">{t.asset}</div>
+                      <div className="db-t-dept">{t.dept}</div>
+                    </td>
+                    <td><div className="db-t-issue">{t.issue}</div></td>
+                    <td><span className={`db-badge db-badge-${t.status}`}>{t.statusLabel}</span></td>
+                    <td><span className={`db-priority db-priority-${t.priority}`}>{t.priorityLabel}</span></td>
+                    <td className="db-t-age">{t.age}</td>
+                    <td><button className="db-t-action"><ArrowIcon /></button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
 
-        <div className="dash-summary-grid">
-          <div className="dsg-item">
-            <div className="dsg-icon" style={{ background: 'rgba(99,102,241,.12)', color: '#6366F1' }}>{IC.box}</div>
-            <div className="dsg-body">
-              <div className="dsg-val">—</div>
-              <div className="dsg-label">Total Assets</div>
-              <div className="dsg-hint">Asset tracking coming soon</div>
-            </div>
+        {/* Recently Added Assets */}
+        <div className="db-panel">
+          <div className="db-panel-head">
+            <span className="db-panel-title">Recently Added Assets</span>
+            <button className="db-panel-action">All assets →</button>
           </div>
-          <div className="dsg-item">
-            <div className="dsg-icon" style={{ background: 'rgba(245,158,11,.12)', color: '#F59E0B' }}>{IC.ticket}</div>
-            <div className="dsg-body">
-              <div className="dsg-val">—</div>
-              <div className="dsg-label">Open Tickets</div>
-              <div className="dsg-hint">Maintenance tickets coming soon</div>
-            </div>
-          </div>
-          <div className="dsg-item">
-            <div className="dsg-icon" style={{ background: 'rgba(34,197,94,.12)', color: '#22C55E' }}>{IC.wrench}</div>
-            <div className="dsg-body">
-              <div className="dsg-val">—</div>
-              <div className="dsg-label">Under Maintenance</div>
-              <div className="dsg-hint">Maintenance logs coming soon</div>
-            </div>
-          </div>
-          <div className="dsg-item">
-            <div className="dsg-icon" style={{ background: 'rgba(239,68,68,.12)', color: '#EF4444' }}>{IC.bell}</div>
-            <div className="dsg-body">
-              <div className="dsg-val">—</div>
-              <div className="dsg-label">Alerts</div>
-              <div className="dsg-hint">Notifications coming soon</div>
+          <div className="db-panel-body" style={{ paddingTop: 8 }}>
+            <div className="db-asset-list">
+              {RECENT_ASSETS.map((a, i) => (
+                <div className="db-asset-item" key={i}>
+                  <div className="db-asset-thumb">{a.emoji}</div>
+                  <div className="db-asset-info">
+                    <div className="db-asset-name">{a.name}</div>
+                    <div className="db-asset-meta">{a.meta}</div>
+                  </div>
+                  <span className={`db-badge db-badge-${a.badge}`}>{a.badgeLabel}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
-      </section>
+      </div>
+
+      {/* ── Row 3: Team + Departments + Activity/Warranty ── */}
+      <div className="db-row db-row-3 db-d7">
+        {/* Team */}
+        <div className="db-panel">
+          <div className="db-panel-head">
+            <span className="db-panel-title">Team</span>
+            <button className="db-panel-action">Manage users →</button>
+          </div>
+          <div className="db-panel-body" style={{ paddingTop: 12 }}>
+            <div className="db-team-grid">
+              {TEAM_MEMBERS.map((m, i) => (
+                <div className="db-member" key={i}>
+                  <div className="db-m-avatar" style={{ background: m.color }}>{m.initials}</div>
+                  <div>
+                    <div className="db-m-name">{m.name}</div>
+                    <div className="db-m-role">{m.role}</div>
+                  </div>
+                  <div className={`db-m-status ${m.online ? 'on' : 'off'}`} />
+                </div>
+              ))}
+            </div>
+            <div className="db-plan-usage">
+              <div className="db-plan-label">Plan usage</div>
+              <div className="db-plan-track">
+                <div className="db-plan-fill" style={{ width: '68%' }} />
+              </div>
+              <div className="db-plan-nums">
+                <span>{orgData?.totalUsers ?? 17} of 25 seats used</span>
+                <span style={{ color: 'var(--db-text)' }}>68%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Department Usage */}
+        <div className="db-panel">
+          <div className="db-panel-head">
+            <span className="db-panel-title">Assets by Department</span>
+            <button className="db-panel-action">Departments →</button>
+          </div>
+          <div className="db-panel-body" style={{ paddingTop: 14 }}>
+            <div className="db-dept-bars">
+              {DEPARTMENTS.map((d, i) => (
+                <div className="db-dept-row" key={i}>
+                  <div className="db-dept-meta">
+                    <span className="db-dept-name">{d.name}</span>
+                    <span className="db-dept-nums">{d.used} / {d.total ?? '—'}</span>
+                  </div>
+                  <div className="db-dept-track">
+                    <div
+                      className="db-dept-fill"
+                      ref={el => deptRefs.current[i] = el}
+                      data-w={d.total ? Math.round((d.used / d.total) * 100) : 20}
+                      style={{ background: d.color }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Activity + Warranty col */}
+        <div className="db-stacked-col">
+          {/* Activity Feed */}
+          <div className="db-panel db-panel-flex">
+            <div className="db-panel-head">
+              <span className="db-panel-title">Recent Activity</span>
+              <button className="db-panel-action">View all →</button>
+            </div>
+            <div className="db-panel-body" style={{ paddingTop: 8 }}>
+              <div className="db-activity">
+                {ACTIVITY.map((a, i) => (
+                  <div className="db-act-item" key={i}>
+                    <div className="db-act-icon" style={{ background: a.bg }}>{a.icon}</div>
+                    <div className="db-act-body">
+                      <div className="db-act-text">{a.text}</div>
+                      <div className="db-act-time">{a.time}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Warranty Alerts */}
+          <div className="db-panel">
+            <div className="db-panel-head">
+              <span className="db-panel-title">Warranty Expiry</span>
+              <button className="db-panel-action">Full report →</button>
+            </div>
+            <div className="db-panel-body" style={{ paddingTop: 8 }}>
+              <div className="db-warranty-list">
+                {WARRANTIES.map((w, i) => (
+                  <div className="db-w-item" key={i}>
+                    <div className="db-w-icon">{w.icon}</div>
+                    <div className="db-w-name">{w.name}</div>
+                    <span className={`db-w-days db-w-${w.cls}`}>{w.days} days</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
