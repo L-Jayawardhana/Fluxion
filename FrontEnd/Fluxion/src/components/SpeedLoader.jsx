@@ -1,8 +1,8 @@
 import './SpeedLoader.css';
 
-export default function SpeedLoader({ label }) {
+export default function SpeedLoader({ label, className = '' }) {
   return (
-    <div className="speed-overlay">
+    <div className={`speed-overlay ${className}`.trim()}>
       <div className="speed-loader">
         <span>
           <span></span><span></span><span></span><span></span>

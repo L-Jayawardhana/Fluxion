@@ -5,6 +5,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import MainLayout from './layouts/MainLayout';
 import SplashScreen from './components/SplashScreen';
 import SpeedLoader from './components/SpeedLoader';
+import RouteTransitionLoader from './components/RouteTransitionLoader';
 
 /* Lazy-loaded pages — shows SpeedLoader while chunks download */
 const LandingPage = lazy(() => import('./pages/Landing/LandingPage'));
@@ -29,31 +30,32 @@ function App() {
     <AuthProvider>
       {!splashDone && <SplashScreen onComplete={handleSplashComplete} />}
       <BrowserRouter>
+        <RouteTransitionLoader />
         <Suspense fallback={<SpeedLoader label="Loading page…" />}>
-        <Routes>
-          {/* Landing page */}
-          <Route path="/" element={<LandingPage />} />
+          <Routes>
+            {/* Landing page */}
+            <Route path="/" element={<LandingPage />} />
 
-          {/* Auth routes (standalone — they have their own layout) */}
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            {/* Auth routes (standalone — they have their own layout) */}
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
-          {/* Temporary test route */}
-          <Route path="/test-welcome" element={<WelcomePage />} />
+            {/* Temporary test route */}
+            <Route path="/test-welcome" element={<WelcomePage />} />
 
-          {/* Protected routes */}
-          <Route element={<ProtectedRoute />}>
-            <Route element={<MainLayout />}>
-              <Route path="/welcome" element={<WelcomePage />} />
-              <Route path="/dashboard" element={<DashboardPage />} />
-              {/* Add more protected routes here */}
+            {/* Protected routes */}
+            <Route element={<ProtectedRoute />}>
+              <Route element={<MainLayout />}>
+                <Route path="/welcome" element={<WelcomePage />} />
+                <Route path="/dashboard" element={<DashboardPage />} />
+                {/* Add more protected routes here */}
+              </Route>
             </Route>
-          </Route>
 
-          {/* Fallback */}
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
+            {/* Fallback */}
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
         </Suspense>
       </BrowserRouter>
     </AuthProvider>
