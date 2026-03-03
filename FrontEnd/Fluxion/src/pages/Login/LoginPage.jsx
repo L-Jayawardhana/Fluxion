@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { authService, GOOGLE_CLIENT_ID } from '../../services/authService';
 import { useAuth } from '../../hooks/useAuth';
 import './LoginPage.css';
@@ -13,11 +13,10 @@ export default function LoginPage() {
     const [fieldErrors, setFieldErrors] = useState({});
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
-    const location = useLocation();
     const { login, isAuthenticated, loading: authLoading } = useAuth();
 
-    // Where to go after login (default: /welcome)
-    const from = location.state?.from?.pathname || '/welcome';
+    // Always go to welcome page after login
+    const from = '/welcome';
 
     // Redirect to welcome if already authenticated
     useEffect(() => {
