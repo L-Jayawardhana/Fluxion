@@ -85,7 +85,7 @@ const DEPARTMENTS = [
   { name: 'Finance', used: 38, total: 60, color: 'var(--db-green)' },
   { name: 'Human Resources', used: 22, total: 40, color: 'var(--db-rust)' },
   { name: 'Design & Creative', used: 28, total: 40, color: '#7B5EA7' },
-  { name: 'Unassigned', used: 20, total: null, color: 'rgba(255,255,255,.2)' },
+  { name: 'Unassigned', used: 20, total: null, color: 'rgba(13,13,13,.18)' },
 ];
 
 /* ── Activity feed placeholder ───────────────────────────── */
