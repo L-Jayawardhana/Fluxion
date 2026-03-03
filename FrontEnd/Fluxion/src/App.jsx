@@ -1,16 +1,19 @@
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './hooks/useAuth';
 import ProtectedRoute from './components/ProtectedRoute';
 import MainLayout from './layouts/MainLayout';
 import SplashScreen from './components/SplashScreen';
-import LandingPage from './pages/Landing/LandingPage';
-import LoginPage from './pages/Login/LoginPage';
-import RegisterPage from './pages/Register/RegisterPage';
-import ForgotPasswordPage from './pages/ForgotPassword/ForgotPasswordPage';
-import DashboardPage from './pages/Dashboard/DashboardPage';
-import WelcomePage from './pages/Welcome/WelcomePage';
-import NotFoundPage from './pages/NotFound/NotFoundPage';
+import SpeedLoader from './components/SpeedLoader';
+
+/* Lazy-loaded pages — shows SpeedLoader while chunks download */
+const LandingPage = lazy(() => import('./pages/Landing/LandingPage'));
+const LoginPage = lazy(() => import('./pages/Login/LoginPage'));
+const RegisterPage = lazy(() => import('./pages/Register/RegisterPage'));
+const ForgotPasswordPage = lazy(() => import('./pages/ForgotPassword/ForgotPasswordPage'));
+const DashboardPage = lazy(() => import('./pages/Dashboard/DashboardPage'));
+const WelcomePage = lazy(() => import('./pages/Welcome/WelcomePage'));
+const NotFoundPage = lazy(() => import('./pages/NotFound/NotFoundPage'));
 
 function App() {
   const [splashDone, setSplashDone] = useState(
@@ -26,6 +29,7 @@ function App() {
     <AuthProvider>
       {!splashDone && <SplashScreen onComplete={handleSplashComplete} />}
       <BrowserRouter>
+        <Suspense fallback={<SpeedLoader label="Loading page…" />}>
         <Routes>
           {/* Landing page */}
           <Route path="/" element={<LandingPage />} />
@@ -50,6 +54,7 @@ function App() {
           {/* Fallback */}
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
+        </Suspense>
       </BrowserRouter>
     </AuthProvider>
   );
