@@ -95,9 +95,9 @@ export default function RegisterPage() {
             const { data } = await authService.googleLogin(response.credential);
 
             if (!data.isNewUser) {
-                // User already exists. Log them in and redirect to dashboard.
+                // User already exists. Log them in and redirect to welcome.
                 login(data.token, { userId: data.userId, fullName: data.fullName, email: data.email, role: data.role });
-                navigate('/dashboard');
+                navigate('/welcome');
                 return;
             }
 
