@@ -18,7 +18,8 @@ export default function RouteTransitionLoader() {
             return;
         }
 
-        setPhase('visible');
+        /* Delay phase state transition to avoid React setState execution directly in effect cycle block */
+        const startTimer = setTimeout(() => setPhase('visible'), 0);
 
         /* Show for 600ms, then start fade-out */
         const showTimer = setTimeout(() => setPhase('fading'), 600);
@@ -27,6 +28,7 @@ export default function RouteTransitionLoader() {
         const hideTimer = setTimeout(() => setPhase('idle'), 1000);
 
         return () => {
+            clearTimeout(startTimer);
             clearTimeout(showTimer);
             clearTimeout(hideTimer);
         };
