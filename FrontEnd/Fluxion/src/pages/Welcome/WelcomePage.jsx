@@ -120,7 +120,6 @@ export default function WelcomePage() {
   const rawName = user?.email?.split('@')[0] || 'there';
   const userName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
   const userRole = user?.role || 'User';
-  const userInitials = userName.slice(0, 2).toUpperCase();
 
   /* Progress ring animation (1 of 4 = 25% done) */
   useEffect(() => {

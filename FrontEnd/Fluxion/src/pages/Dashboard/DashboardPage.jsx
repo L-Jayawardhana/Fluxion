@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
+import { useState, useEffect, useRef, useMemo, memo } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import api from '../../services/api';
 import './DashboardPage.css';

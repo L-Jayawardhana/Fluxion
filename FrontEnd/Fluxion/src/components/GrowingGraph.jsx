@@ -23,7 +23,7 @@ function AnimatedNumber({ target, duration = 1800, suffix = "", decimals = 0 }) 
             if (progress < 1) requestAnimationFrame(animate);
         };
         requestAnimationFrame(animate);
-    }, [target]);
+    }, [target, duration, decimals]);
 
     return <span>{decimals > 0 ? current.toFixed(1) : Math.round(current)}{suffix}</span>;
 }
