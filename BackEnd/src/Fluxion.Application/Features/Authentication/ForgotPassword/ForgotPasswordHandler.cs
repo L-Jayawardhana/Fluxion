@@ -48,7 +48,7 @@ public class ForgotPasswordHandler : IRequestHandler<ForgotPasswordCommand, Forg
 <head>
   <meta charset=""utf-8"">
   <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
-  <link href=""https://fonts.googleapis.com/css2?family=Anton&display=swap"" rel=""stylesheet"">
+  <link href=""https://fonts.googleapis.com/css2?family=Syne:wght@800&display=swap"" rel=""stylesheet"">
 </head>
 <body style=""margin:0;padding:0;background:#F2EFE8;font-family:'Segoe UI',Roboto,sans-serif;"">
   <table role=""presentation"" width=""100%"" cellpadding=""0"" cellspacing=""0"" style=""background:#F2EFE8;padding:40px 0;"">
@@ -65,7 +65,7 @@ public class ForgotPasswordHandler : IRequestHandler<ForgotPasswordCommand, Forg
                     {logoImg}
                   </td>
                   <td style=""vertical-align:middle;"">
-                    <span style=""font-family:'Anton',Impact,'Arial Black',sans-serif;font-weight:400;font-size:22px;color:#F2EFE8;letter-spacing:3px;text-transform:uppercase;"">FLUXION</span>
+                    <span style=""font-family:'Syne',sans-serif;font-weight:800;font-size:22px;color:#F2EFE8;letter-spacing:1px;text-transform:uppercase;"">FLUXION</span>
                   </td>
                 </tr>
               </table>
