@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import api from '../../services/api';
 import './DashboardPage.css';
@@ -107,41 +107,79 @@ const WARRANTIES = [
 /* ── SVG Icons ───────────────────────────────────────────── */
 const ArrowIcon = () => <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 8h10M9 4l4 4-4 4"/></svg>;
 
+/* ── Memoised heavy sub-components ────────────────────────── */
+const TicketTable = memo(function TicketTable() {
+  return (
+    <table className="db-ticket-table">
+      <thead>
+        <tr>
+          <th>Asset / Dept</th><th>Issue</th><th>Status</th><th>Priority</th><th>Age</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {TICKETS.map((t, i) => (
+          <tr key={i}>
+            <td><div className="db-t-asset">{t.asset}</div><div className="db-t-dept">{t.dept}</div></td>
+            <td><div className="db-t-issue">{t.issue}</div></td>
+            <td><span className={`db-badge db-badge-${t.status}`}>{t.statusLabel}</span></td>
+            <td><span className={`db-priority db-priority-${t.priority}`}>{t.priorityLabel}</span></td>
+            <td className="db-t-age">{t.age}</td>
+            <td><button className="db-t-action"><ArrowIcon /></button></td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+});
+
+const AssetList = memo(function AssetList() {
+  return (
+    <div className="db-asset-list">
+      {RECENT_ASSETS.map((a, i) => (
+        <div className="db-asset-item" key={i}>
+          <div className="db-asset-thumb">{a.emoji}</div>
+          <div className="db-asset-info">
+            <div className="db-asset-name">{a.name}</div>
+            <div className="db-asset-meta">{a.meta}</div>
+          </div>
+          <span className={`db-badge db-badge-${a.badge}`}>{a.badgeLabel}</span>
+        </div>
+      ))}
+    </div>
+  );
+});
+
 /* ████████████████████████████████████████████████████████████ */
 export default function DashboardPage() {
   const { user } = useAuth();
-  const [loading, setLoading] = useState(true);
-  const [orgData, setOrgData] = useState(null);
+  const [orgData, setOrgData] = useState({ totalUsers: 17, activeUsers: 17 });
   const barRefs = useRef([]);
   const deptRefs = useRef([]);
+  const mounted = useRef(false);
 
   const rawName = user?.email?.split('@')[0] || 'User';
   const userName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
 
-  /* ── Fetch data ────────────────────────────────────────── */
-  const fetchAll = useCallback(async () => {
-    try {
-      setLoading(true);
-      const [usersRes] = await Promise.allSettled([api.get('/User')]);
-      if (usersRes.status === 'fulfilled') {
-        const all = usersRes.value.data;
+  /* ── Fetch data (non-blocking — page renders instantly) ── */
+  useEffect(() => {
+    let cancelled = false;
+    api.get('/User')
+      .then(res => {
+        if (cancelled) return;
+        const all = res.data;
         setOrgData({
           totalUsers: all.length,
           activeUsers: all.filter(u => u.isActive).length,
         });
-      }
-    } catch {
-      /* silent */
-    } finally {
-      setLoading(false);
-    }
+      })
+      .catch(() => { /* keep defaults */ });
+    return () => { cancelled = true; };
   }, []);
 
-  useEffect(() => { fetchAll(); }, [fetchAll]);
-
-  /* ── Animate bars on mount ─────────────────────────────── */
+  /* ── Animate bars on mount (runs once immediately) ── */
   useEffect(() => {
-    if (loading) return;
+    if (mounted.current) return;
+    mounted.current = true;
     const timers = [];
     barRefs.current.forEach((bar, i) => {
       if (!bar) return;
@@ -150,14 +188,8 @@ export default function DashboardPage() {
       timers.push(setTimeout(() => {
         bar.style.transition = 'height .7s cubic-bezier(.34,1,.64,1)';
         bar.style.height = h + '%';
-      }, 400 + i * 80));
+      }, 200 + i * 60));
     });
-    return () => timers.forEach(clearTimeout);
-  }, [loading]);
-
-  useEffect(() => {
-    if (loading) return;
-    const timers = [];
     deptRefs.current.forEach((fill, i) => {
       if (!fill) return;
       const w = fill.dataset.w;
@@ -165,26 +197,18 @@ export default function DashboardPage() {
       timers.push(setTimeout(() => {
         fill.style.transition = 'width .8s cubic-bezier(.34,1,.64,1)';
         fill.style.width = w + '%';
-      }, 600 + i * 100));
+      }, 300 + i * 80));
     });
     return () => timers.forEach(clearTimeout);
-  }, [loading]);
+  });
 
-  /* ── KPI data ──────────────────────────────────────────── */
-  const kpis = [
+  /* ── KPI data (updates reactively when orgData arrives) ── */
+  const kpis = useMemo(() => [
     { color: 'blue', emoji: '💻', label: 'Total Assets', val: 248, delta: '↑ 12', deltaCls: 'up', sub: 'this month' },
     { color: 'rust', emoji: '🎫', label: 'Open Tickets', val: 12, delta: '↑ 3', deltaCls: 'down', sub: 'vs last week' },
     { color: 'amber', emoji: '🔧', label: 'Under Maintenance', val: 7, delta: '↓ 2', deltaCls: 'up', sub: 'resolved today' },
-    { color: 'green', emoji: '👥', label: 'Active Users', val: orgData?.activeUsers ?? 17, delta: '↑ 2', deltaCls: 'up', sub: 'added this week' },
-  ];
-
-  /* ── Loading ───────────────────────────────────────────── */
-  if (loading) return (
-    <div className="db-loading">
-      <div className="db-spinner" />
-      <span>Loading dashboard…</span>
-    </div>
-  );
+    { color: 'green', emoji: '👥', label: 'Active Users', val: orgData.activeUsers, delta: '↑ 2', deltaCls: 'up', sub: 'added this week' },
+  ], [orgData.activeUsers]);
 
   /* ── Donut gradient ────────────────────────────────────── */
   const donutGradient = `conic-gradient(var(--db-blue) 0% 46%, var(--db-green) 46% 65%, var(--db-rust) 65% 80%, var(--db-amber) 80% 100%)`;
@@ -303,33 +327,7 @@ export default function DashboardPage() {
             <button className="db-panel-action">All tickets →</button>
           </div>
           <div className="db-panel-body" style={{ paddingTop: 8 }}>
-            <table className="db-ticket-table">
-              <thead>
-                <tr>
-                  <th>Asset / Dept</th>
-                  <th>Issue</th>
-                  <th>Status</th>
-                  <th>Priority</th>
-                  <th>Age</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {TICKETS.map((t, i) => (
-                  <tr key={i}>
-                    <td>
-                      <div className="db-t-asset">{t.asset}</div>
-                      <div className="db-t-dept">{t.dept}</div>
-                    </td>
-                    <td><div className="db-t-issue">{t.issue}</div></td>
-                    <td><span className={`db-badge db-badge-${t.status}`}>{t.statusLabel}</span></td>
-                    <td><span className={`db-priority db-priority-${t.priority}`}>{t.priorityLabel}</span></td>
-                    <td className="db-t-age">{t.age}</td>
-                    <td><button className="db-t-action"><ArrowIcon /></button></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <TicketTable />
           </div>
         </div>
 
@@ -340,18 +338,7 @@ export default function DashboardPage() {
             <button className="db-panel-action">All assets →</button>
           </div>
           <div className="db-panel-body" style={{ paddingTop: 8 }}>
-            <div className="db-asset-list">
-              {RECENT_ASSETS.map((a, i) => (
-                <div className="db-asset-item" key={i}>
-                  <div className="db-asset-thumb">{a.emoji}</div>
-                  <div className="db-asset-info">
-                    <div className="db-asset-name">{a.name}</div>
-                    <div className="db-asset-meta">{a.meta}</div>
-                  </div>
-                  <span className={`db-badge db-badge-${a.badge}`}>{a.badgeLabel}</span>
-                </div>
-              ))}
-            </div>
+            <AssetList />
           </div>
         </div>
       </div>
@@ -383,7 +370,7 @@ export default function DashboardPage() {
                 <div className="db-plan-fill" style={{ width: '68%' }} />
               </div>
               <div className="db-plan-nums">
-                <span>{orgData?.totalUsers ?? 17} of 25 seats used</span>
+                <span>{orgData.totalUsers} of 25 seats used</span>
                 <span style={{ color: 'var(--db-text)' }}>68%</span>
               </div>
             </div>
