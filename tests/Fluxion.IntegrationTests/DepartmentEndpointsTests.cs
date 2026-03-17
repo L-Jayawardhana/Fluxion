@@ -79,26 +79,33 @@ public class DepartmentEndpointsTests : IClassFixture<FluxionWebApplicationFacto
     // ── Forbidden for unprivileged role ────────────────────────────────
 
     [Fact]
-    public async Task CreateDepartment_UserRole_Returns403()
+    public async Task CreateDepartment_UserRole_Returns201WithDto()
     {
-        var token = GenerateToken(UserRole.user);
+        var token = GenerateToken(UserRole.user, orgId: 11);
+        var deptName = $"UserDept-{Guid.NewGuid():N}";
+
         var req = WithAuth(HttpMethod.Post, "/api/department", token,
-            new { orgId = 1, name = "Blocked" });
+            new { orgId = 11, name = deptName, description = "Created by user role" });
 
         var response = await _client.SendAsync(req);
 
-        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var body = await response.Content.ReadFromJsonAsync<DepartmentResponseDto>(_jsonOpts);
+        body.Should().NotBeNull();
+        body!.DepartmentName.Should().Be(deptName);
+        body.OrgId.Should().Be(11);
     }
 
     [Fact]
-    public async Task GetDepartments_UserRole_Returns403()
+    public async Task GetDepartments_UserRole_Returns200()
     {
         var token = GenerateToken(UserRole.user);
         var req = WithAuth(HttpMethod.Get, "/api/department?orgId=1", token);
 
         var response = await _client.SendAsync(req);
 
-        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     // ── Admin / Owner CRUD ─────────────────────────────────────────────
