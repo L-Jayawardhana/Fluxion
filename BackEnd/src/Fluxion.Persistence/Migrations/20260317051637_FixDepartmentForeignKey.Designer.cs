@@ -4,6 +4,7 @@ using Fluxion.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Fluxion.Persistence.Migrations
 {
     [DbContext(typeof(FluxionDbContext))]
-    partial class FluxionDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260317051637_FixDepartmentForeignKey")]
+    partial class FixDepartmentForeignKey
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -167,12 +170,15 @@ namespace Fluxion.Persistence.Migrations
                     b.Property<int>("OrgId")
                         .HasColumnType("int");
 
+                    b.Property<int>("OrganizationOrgId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime(6)");
 
                     b.HasKey("DepartmentId");
 
-                    b.HasIndex("OrgId");
+                    b.HasIndex("OrganizationOrgId");
 
                     b.ToTable("Departments");
                 });
@@ -517,7 +523,7 @@ namespace Fluxion.Persistence.Migrations
                 {
                     b.HasOne("Fluxion.Domain.Entities.Organization", "Organization")
                         .WithMany("Departments")
-                        .HasForeignKey("OrgId")
+                        .HasForeignKey("OrganizationOrgId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

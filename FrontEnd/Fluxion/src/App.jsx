@@ -13,6 +13,8 @@ const LoginPage = lazy(() => import('./pages/Login/LoginPage'));
 const RegisterPage = lazy(() => import('./pages/Register/RegisterPage'));
 const ForgotPasswordPage = lazy(() => import('./pages/ForgotPassword/ForgotPasswordPage'));
 const DashboardPage = lazy(() => import('./pages/Dashboard/DashboardPage'));
+const DepartmentsPage = lazy(() => import('./pages/Departments/DepartmentsPage'));
+const AddDepartmentPage = lazy(() => import('./pages/Departments/AddDepartmentPage'));
 const WelcomePage = lazy(() => import('./pages/Welcome/WelcomePage'));
 const NotFoundPage = lazy(() => import('./pages/NotFound/NotFoundPage'));
 
@@ -49,6 +51,8 @@ function App() {
               <Route element={<MainLayout />}>
                 <Route path="/welcome" element={<WelcomePage />} />
                 <Route path="/dashboard" element={<DashboardPage />} />
+                <Route path="/departments" element={<DepartmentsPage />} />
+                <Route path="/add-department" element={<AddDepartmentPage />} />
                 {/* Add more protected routes here */}
               </Route>
             </Route>

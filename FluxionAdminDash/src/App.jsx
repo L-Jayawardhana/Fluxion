@@ -6,6 +6,7 @@ import AdminLayout from './layouts/AdminLayout';
 import DashboardPage from './pages/Dashboard/DashboardPage';
 import UsersPage from './pages/Users/UsersPage';
 import OrganizationsPage from './pages/Organizations/OrganizationsPage';
+import DepartmentsPage from './pages/Departments/DepartmentsPage';
 import SettingsPage from './pages/Settings/SettingsPage';
 import PlansPage from './pages/Plans/PlansPage';
 import LogsPage from './pages/Logs/LogsPage';
@@ -29,6 +30,7 @@ function App() {
                   <Route path="/" element={<DashboardPage />} />
                   <Route path="/users" element={<UsersPage />} />
                   <Route path="/organizations" element={<OrganizationsPage />} />
+                  <Route path="/departments" element={<DepartmentsPage />} />
                   <Route path="/plans" element={<PlansPage />} />
                   <Route path="/logs" element={<LogsPage />} />
                   <Route path="/servers" element={<ServersPage />} />
