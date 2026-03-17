@@ -1,0 +1,256 @@
+/* ══════════════════════════════════════════════════════════
+   Add Department Page — Owner Dashboard · Fluxion
+   Renders inside MainLayout (not standalone full-page)
+   ══════════════════════════════════════════════════════════ */
+
+.adp-page {
+  --adp-bg:      #F2EFE8;
+  --adp-card:    #FFFFFF;
+  --adp-border:  rgba(13,13,13,.10);
+  --adp-border2: rgba(13,13,13,.06);
+  --adp-paper:   #0D0D0D;
+  --adp-rust:    #C84B2F;
+  --adp-amber:   #D48A08;
+  --adp-green:   #2D9456;
+  --adp-blue:    #2A6FC8;
+  --adp-mist:    #6B7A8D;
+  --adp-dim:     #8A9BAD;
+  --adp-text:    #1A1A1A;
+
+  padding-bottom: 40px;
+  font-family: 'DM Mono', 'Poppins', monospace;
+  color: var(--adp-text);
+  background: var(--adp-bg);
+}
+
+/* ── Keyframes ── */
+@keyframes adpFadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Page header ── */
+.adp-header {
+  margin-bottom: 24px;
+  animation: adpFadeUp .4s .05s both;
+}
+.adp-title {
+  font-family: 'Syne', 'Poppins', sans-serif;
+  font-weight: 800;
+  font-size: 26px;
+  letter-spacing: -.03em;
+  color: var(--adp-paper);
+  margin: 0 0 4px;
+}
+.adp-subtitle {
+  font-size: 12px;
+  color: var(--adp-mist);
+  margin: 0;
+}
+
+/* ── Breadcrumb back link ── */
+.adp-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--adp-mist);
+  text-decoration: none;
+  margin-bottom: 12px;
+  font-family: 'DM Mono', monospace;
+  transition: color .15s;
+}
+.adp-back:hover { color: var(--adp-rust); }
+.adp-back svg { width: 12px; height: 12px; }
+
+/* ── Card container ── */
+.adp-card {
+  background: var(--adp-card);
+  border: 1px solid var(--adp-border);
+  border-radius: 10px;
+  overflow: hidden;
+  max-width: 620px;
+  animation: adpFadeUp .4s .1s both;
+}
+
+/* ── Card header strip ── */
+.adp-card-head {
+  padding: 24px 28px;
+  position: relative;
+  overflow: hidden;
+  background: var(--adp-card);
+  border-bottom: 1px solid var(--adp-border2);
+}
+.adp-card-head::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--adp-rust), var(--adp-amber), transparent);
+}
+.adp-card-head-title {
+  font-family: 'Syne', 'Poppins', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--adp-paper);
+  margin: 0 0 4px;
+}
+.adp-card-head-sub {
+  font-size: 11px;
+  color: var(--adp-mist);
+  margin: 0;
+}
+
+/* ── Card body ── */
+.adp-card-body { padding: 24px 28px; }
+
+/* ── Messages ── */
+.adp-msg {
+  padding: 11px 14px;
+  border-radius: 7px;
+  font-size: 12px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: adpFadeUp .3s both;
+}
+.adp-msg-success { background: rgba(45,148,86,.1); color: #1E7A3C; border: 1px solid rgba(45,148,86,.2); }
+.adp-msg-error   { background: rgba(200,75,47,.08); color: var(--adp-rust); border: 1px solid rgba(200,75,47,.2); }
+
+/* ── Loading / org missing ── */
+.adp-loading,
+.adp-org-missing {
+  padding: 40px 28px;
+  text-align: center;
+  color: var(--adp-mist);
+  font-size: 13px;
+}
+.adp-spinner {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  border: 3px solid var(--adp-border);
+  border-top-color: var(--adp-rust);
+  animation: adpSpin .7s linear infinite;
+  margin: 0 auto 10px;
+}
+@keyframes adpSpin { to { transform: rotate(360deg); } }
+
+/* ── Org display chip ── */
+.adp-org-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  background: rgba(42,111,200,.07);
+  border: 1px solid rgba(42,111,200,.18);
+  border-radius: 20px;
+  font-size: 12px;
+  color: var(--adp-blue);
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+.adp-org-chip-label {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--adp-mist);
+}
+
+/* ── Form ── */
+.adp-form { }
+.adp-field { margin-bottom: 20px; }
+.adp-field:last-of-type { margin-bottom: 0; }
+.adp-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--adp-mist);
+  margin-bottom: 7px;
+}
+.adp-required { color: var(--adp-rust); }
+.adp-input,
+.adp-textarea {
+  display: block;
+  width: 100%;
+  padding: 10px 13px;
+  font-size: 13px;
+  font-family: 'DM Mono', monospace;
+  border: 1px solid var(--adp-border);
+  border-radius: 7px;
+  background: rgba(13,13,13,.025);
+  color: var(--adp-paper);
+  transition: border-color .2s, box-shadow .2s, background .2s;
+  box-sizing: border-box;
+}
+.adp-input:focus, .adp-textarea:focus {
+  outline: none;
+  border-color: var(--adp-rust);
+  box-shadow: 0 0 0 3px rgba(200,75,47,.1);
+  background: #fff;
+}
+.adp-input:disabled, .adp-textarea:disabled { opacity: .6; cursor: not-allowed; }
+.adp-input.err { border-color: var(--adp-rust); background: rgba(200,75,47,.04); }
+.adp-textarea { resize: vertical; min-height: 110px; line-height: 1.55; }
+.adp-field-err  { font-size: 11px; color: var(--adp-rust); margin-top: 4px; }
+.adp-field-hint { font-size: 10px; color: var(--adp-dim); margin-top: 3px; text-align: right; }
+
+/* ── Divider ── */
+.adp-divider {
+  border: none;
+  border-top: 1px solid var(--adp-border2);
+  margin: 24px 0;
+}
+
+/* ── Actions ── */
+.adp-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+.adp-btn {
+  padding: 10px 20px;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: 'Syne', 'Poppins', sans-serif;
+  border-radius: 7px;
+  border: none;
+  cursor: pointer;
+  transition: all .2s;
+  letter-spacing: .03em;
+}
+.adp-btn:disabled { opacity: .6; cursor: not-allowed; }
+.adp-btn-cancel {
+  background: transparent;
+  border: 1px solid var(--adp-border);
+  color: var(--adp-mist);
+}
+.adp-btn-cancel:hover:not(:disabled) {
+  border-color: rgba(13,13,13,.25);
+  color: var(--adp-text);
+}
+.adp-btn-submit {
+  background: var(--adp-rust);
+  color: #fff;
+  min-width: 160px;
+}
+.adp-btn-submit:hover:not(:disabled) {
+  background: #a83a22;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(200,75,47,.3);
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .adp-card { max-width: 100%; }
+  .adp-card-head { padding: 20px 20px; }
+  .adp-card-body { padding: 20px; }
+  .adp-title { font-size: 22px; }
+}
+@media (max-width: 480px) {
+  .adp-actions { flex-direction: column-reverse; }
+  .adp-btn { width: 100%; justify-content: center; }
+}

@@ -1,4 +1,4 @@
-﻿import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const navSections = [
@@ -7,6 +7,7 @@ const navSections = [
     items: [
       { to: '/', icon: 'grid', label: 'Overview', chip: null },
       { to: '/organizations', icon: 'building', label: 'Organisations', chip: { text: '48', cls: 'c-b' } },
+      { to: '/departments', icon: 'departments', label: 'Departments', chip: null },
       { to: '/users', icon: 'users', label: 'Users', chip: { text: '1,284', cls: 'c-b' } },
       { to: '/servers', icon: 'server', label: 'Servers', chip: null },
     ],
@@ -57,6 +58,7 @@ const icons = {
   key: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 2l-2 2m-7.61 7.61A5.5 5.5 0 1 1 8.11 8.11m3.28 3.28L21 2m-4 4l3 3"/></svg>,
   cog: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>,
   email: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>,
+  departments: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="7" width="6" height="13" rx="1"/><rect x="9" y="3" width="6" height="17" rx="1"/><rect x="16" y="7" width="6" height="13" rx="1"/></svg>,
   palette: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="13.5" cy="6.5" r="0.5" fill="currentColor"/><circle cx="17.5" cy="10.5" r="0.5" fill="currentColor"/><circle cx="8.5" cy="7.5" r="0.5" fill="currentColor"/><circle cx="6.5" cy="12.5" r="0.5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.93 0 1.5-.41 1.5-1.13 0-.37-.15-.71-.39-1-.23-.28-.38-.62-.38-1 0-.93.76-1.69 1.69-1.69h2A5.58 5.58 0 0022 11.72C22 6.5 17.5 2 12 2z"/></svg>,
 };
 

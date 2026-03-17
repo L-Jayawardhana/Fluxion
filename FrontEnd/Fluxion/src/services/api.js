@@ -56,4 +56,38 @@ api.interceptors.response.use(
   }
 );
 
+// ── Department ────────────────────────────────────────────
+
+export const getDepartments = async (orgId) => {
+  const response = await api.get('/department', { params: { orgId } });
+  return response.data;
+};
+
+export const getOrganizations = async () => {
+  const response = await api.get('/organization');
+  return response.data;
+};
+
+export const createDepartment = async (data) => {
+  const response = await api.post('/department', data);
+  return response.data;
+};
+
+export const updateDepartment = async (departmentId, orgId, data) => {
+  const response = await api.put(`/department/${departmentId}`, {
+    departmentId,
+    orgId,
+    ...data
+  });
+  return response.data;
+};
+
+export const toggleDepartment = async (departmentId, orgId) => {
+  const response = await api.patch(`/department/${departmentId}/toggle`, {
+    departmentId,
+    orgId
+  });
+  return response.data;
+};
+
 export default api;
