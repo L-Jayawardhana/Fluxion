@@ -90,4 +90,24 @@ export const toggleDepartment = async (departmentId, orgId) => {
   return response.data;
 };
 
+// ── Asset ─────────────────────────────────────────────────
+
+export const createAsset = async (data) => {
+  const response = await api.post('/asset', data);
+  return response.data;
+};
+
+export const getAssets = async (orgId, { departmentId, assetType } = {}) => {
+  const params = { orgId };
+  if (departmentId) params.departmentId = departmentId;
+  if (assetType) params.assetType = assetType;
+  const response = await api.get('/asset', { params });
+  return response.data;
+};
+
+export const getAssetById = async (id, orgId) => {
+  const response = await api.get(`/asset/${id}`, { params: { orgId } });
+  return response.data;
+};
+
 export default api;
