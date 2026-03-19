@@ -82,10 +82,11 @@ export const updateDepartment = async (departmentId, orgId, data) => {
   return response.data;
 };
 
-export const toggleDepartment = async (departmentId, orgId) => {
+export const toggleDepartment = async (departmentId, orgId, isActive) => {
   const response = await api.patch(`/department/${departmentId}/toggle`, {
     departmentId,
-    orgId
+    orgId,
+    isActive
   });
   return response.data;
 };

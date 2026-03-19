@@ -2,18 +2,26 @@ import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { getOrganizations, getDepartments, getAssets } from '../../services/api';
+import { QRCodeCanvas } from 'qrcode.react';
 import './AllAssetsPage.css';
 
 /* ── SVG Icons ───────────────────────────────────────────── */
 const PlusIcon = () => (
   <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8">
-    <path d="M8 1v14M1 8h14" strokeLinecap="round"/>
+    <path d="M8 1v14M1 8h14" strokeLinecap="round" />
   </svg>
 );
 const RefreshIcon = () => (
   <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8">
-    <path d="M1 8a7 7 0 0013.3-3M15 8A7 7 0 001.7 11" strokeLinecap="round"/>
-    <path d="M12 1l2.3 4-4 .3M4 15l-2.3-4 4-.3" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M1 8a7 7 0 0013.3-3M15 8A7 7 0 001.7 11" strokeLinecap="round" />
+    <path d="M12 1l2.3 4-4 .3M4 15l-2.3-4 4-.3" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+const DownloadIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
+    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+    <polyline points="7 10 12 15 17 10" />
+    <line x1="12" y1="15" x2="12" y2="3" />
   </svg>
 );
 
@@ -44,15 +52,15 @@ const fmtCost = (cost) =>
 export default function AllAssetsPage() {
   const { user } = useAuth();
 
-  const [userOrg, setUserOrg]         = useState(null);
+  const [userOrg, setUserOrg] = useState(null);
   const [departments, setDepartments] = useState([]);
-  const [assets, setAssets]           = useState([]);
-  const [loading, setLoading]         = useState(true);
-  const [error, setError]             = useState(null);
+  const [assets, setAssets] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // Filters
-  const [filterDept, setFilterDept]   = useState('');
-  const [filterType, setFilterType]   = useState('');
+  const [filterDept, setFilterDept] = useState('');
+  const [filterType, setFilterType] = useState('');
 
   /* ── Load data ──────────────────────────────────────────── */
   useEffect(() => { loadData(); }, [user]);
@@ -113,6 +121,21 @@ export default function AllAssetsPage() {
 
   const clearFilters = () => { setFilterDept(''); setFilterType(''); };
   const hasFilters = filterDept || filterType;
+
+  /* ── QR Code Handlers ───────────────────────────────────── */
+  const generateQrText = (asset) => {
+    return `Asset: ${asset.assetName}\nType: ${asset.assetType}\nDept: ${asset.departmentName || 'Unassigned'}\nTag: ${asset.assetTag || 'N/A'}\nSN: ${asset.serialNumber || 'N/A'}\nWarranty: ${asset.warrantyEndDate ? new Date(asset.warrantyEndDate).toLocaleDateString() : 'N/A'}\nPrice: ${asset.cost != null ? '$' + Number(asset.cost).toFixed(2) : 'N/A'}`;
+  };
+
+  const downloadQR = (asset) => {
+    const canvas = document.getElementById(`qr-${asset.assetId}`);
+    if (!canvas) return;
+    const pngUrl = canvas.toDataURL("image/png");
+    const downloadLink = document.createElement("a");
+    downloadLink.href = pngUrl;
+    downloadLink.download = `QR_${asset.assetTag || asset.assetId}.png`;
+    downloadLink.click();
+  };
 
   /* ── Render ─────────────────────────────────────────────── */
   return (
@@ -247,8 +270,9 @@ export default function AllAssetsPage() {
                     <th>Type</th>
                     <th>Department</th>
                     <th>Status</th>
-                    <th>Serial / Tag</th>
+                    <th>Serial Number</th>
                     <th>Cost</th>
+                    <th style={{ width: 60, textAlign: 'center' }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -256,8 +280,8 @@ export default function AllAssetsPage() {
                     <tr key={asset.assetId}>
                       <td>
                         <div className="aa-asset-name">{asset.assetName}</div>
-                        {asset.qrCode && (
-                          <div className="aa-asset-tag">{asset.qrCode}</div>
+                        {asset.assetTag && (
+                          <div className="aa-asset-tag">{asset.assetTag}</div>
                         )}
                       </td>
                       <td>
@@ -277,11 +301,21 @@ export default function AllAssetsPage() {
                       </td>
                       <td>
                         <div className="aa-asset-tag">
-                          {asset.serialNumber || asset.assetTag || '—'}
+                          {asset.serialNumber || '—'}
                         </div>
                       </td>
                       <td>
                         <span className="aa-cost">{fmtCost(asset.cost)}</span>
+                      </td>
+                      <td style={{ textAlign: 'center' }}>
+                        <button 
+                          className="aa-btn-refresh aa-btn-icon-only" 
+                          style={{ padding: '6px', minWidth: 0 }} 
+                          onClick={() => downloadQR(asset)} 
+                          title="Download QR"
+                        >
+                          <DownloadIcon />
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -321,10 +355,30 @@ export default function AllAssetsPage() {
                       </span>
                     )}
                   </div>
-                  <div className="aa-card-meta">
-                    <span className="aa-card-detail">{asset.qrCode}</span>
+                  <div className="aa-card-meta" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span className="aa-card-detail">{asset.assetTag || '—'}</span>
+                    <button 
+                      className="aa-btn-refresh" 
+                      style={{ padding: '4px 8px', fontSize: '12px' }} 
+                      onClick={() => downloadQR(asset)}
+                    >
+                      <DownloadIcon /> QR
+                    </button>
                   </div>
                 </div>
+              ))}
+            </div>
+
+            {/* ── Hidden QR Canvases for Download ── */}
+            <div style={{ position: 'absolute', top: '-9999px', left: '-9999px' }}>
+              {filtered.map(asset => (
+                <QRCodeCanvas 
+                  key={`qr-${asset.assetId}`}
+                  id={`qr-${asset.assetId}`}
+                  value={generateQrText(asset)} 
+                  size={180} 
+                  level="M"
+                />
               ))}
             </div>
           </>
