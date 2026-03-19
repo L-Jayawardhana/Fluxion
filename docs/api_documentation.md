@@ -507,3 +507,58 @@ Registers a new asset into the organization inventory. Resolves sequential asset
 _Validation:_
 - `assetName` and `assetType` are required.
 - The system automatically ignores any manually supplied `assetTag` and sequentially generates the next available organizational tag (e.g. `AA-001`, `AA-002`).
+
+## 23. GET `/api/Asset`
+
+Returns all assets associated with the user's organization.
+
+**Query Parameters:**
+| Parameter | Type | Required | Description |
+|-----------|-------|----------|-------------------------------------|
+| `orgId` | `int` | Yes | Organization ID to retrieve assets for |
+
+**Response (200 OK):**
+
+```json
+[
+  {
+    "assetId": 14,
+    "assetName": "MacBook Pro M3",
+    "assetType": "Laptop",
+    "serialNumber": "C02X12345XYZ",
+    "departmentId": 2,
+    "departmentName": "Engineering",
+    "cost": 2199.99,
+    "status": "Available",
+    "qrCode": "ASSET-14",
+    "assetTag": "AA-001",
+    "purchaseDate": "2024-01-15T00:00:00Z",
+    "warrantyEndDate": "2027-01-15T00:00:00Z"
+  }
+]
+```
+
+## 24. GET `/api/Asset/{id}`
+
+Returns the full details of a specific asset.
+
+**Response (200 OK):**
+
+```json
+{
+  "assetId": 14,
+  "assetName": "MacBook Pro M3",
+  "assetType": "Laptop",
+  "serialNumber": "C02X12345XYZ",
+  "departmentId": 2,
+  "departmentName": "Engineering",
+  "cost": 2199.99,
+  "status": "Available",
+  "qrCode": "ASSET-14",
+  "assetTag": "AA-001",
+  "purchaseDate": "2024-01-15T00:00:00Z",
+  "warrantyEndDate": "2027-01-15T00:00:00Z"
+}
+```
+
+_Note: Returns `404 Not Found` if the asset does not exist._
