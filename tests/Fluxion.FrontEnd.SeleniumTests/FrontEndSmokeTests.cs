@@ -1,4 +1,5 @@
 using OpenQA.Selenium;
+using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -84,6 +85,7 @@ public sealed class FrontEndSmokeTests
         RunTest(nameof(LoginPageHasEmailInput), () =>
         {
             LogStep("Open login page");
+            _fixture.EnsureLoggedOut();
             _fixture.GoTo("/login");
 
             var emailInput = _fixture.Wait.Until(driver =>
@@ -148,6 +150,76 @@ public sealed class FrontEndSmokeTests
             _fixture.Wait.Until(driver => driver.FindElements(By.CssSelector(".adp-msg-success")).Any(el => el.Displayed));
             _fixture.WaitForUrlContains("/departments");
             LogStep("Department created and redirected to Departments");
+        });
+    }
+
+    [Fact]
+    public void DepartmentsCanDeactivateAndActivate()
+    {
+        RunTest(nameof(DepartmentsCanDeactivateAndActivate), () =>
+        {
+            LogStep("Ensure authenticated session");
+            _fixture.EnsureLoggedIn();
+
+            LogStep("Navigate to Departments");
+            _fixture.NavigateSidebar("All Departments", "/departments");
+            _fixture.WaitUntilVisible(By.CssSelector(".dp-title"));
+
+            _fixture.Wait.Until(driver => driver.FindElements(By.CssSelector(".dp-table tbody tr")).Any());
+
+            var rows = _fixture.Driver.FindElements(By.CssSelector(".dp-table tbody tr"));
+            IWebElement? targetRow = null;
+            bool willDeactivate = false;
+
+            foreach (var row in rows)
+            {
+                if (row.FindElements(By.CssSelector("button[title='Deactivate']")).Any())
+                {
+                    targetRow = row;
+                    willDeactivate = true;
+                    break;
+                }
+
+                if (row.FindElements(By.CssSelector("button[title='Activate']")).Any())
+                {
+                    targetRow = row;
+                    willDeactivate = false;
+                    break;
+                }
+            }
+
+            Assert.NotNull(targetRow);
+
+            var deptName = targetRow!.FindElement(By.CssSelector(".dp-dept-name")).Text.Trim();
+            var originalStatus = targetRow.FindElement(By.CssSelector(".dp-badge")).Text.Trim();
+            LogStep($"Toggle department: {deptName} (current: {originalStatus})");
+
+            var actionSelector = willDeactivate ? "button[title='Deactivate']" : "button[title='Activate']";
+            targetRow.FindElement(By.CssSelector(actionSelector)).Click();
+
+            _fixture.WaitUntilVisible(By.CssSelector(".dp-confirm-modal"));
+            var confirmSelector = willDeactivate ? "button.dp-btn-danger" : "button.dp-btn-safe";
+            _fixture.Driver.FindElement(By.CssSelector(confirmSelector)).Click();
+
+            var expectedStatus = willDeactivate ? "Inactive" : "Active";
+            var updatedRow = _fixture.Wait.Until(driver =>
+            {
+                var rowsByName = driver.FindElements(By.XPath(
+                    $"//table[contains(@class,'dp-table')]//tr[.//div[contains(@class,'dp-dept-name')][normalize-space()='{deptName}']]"));
+                return rowsByName.FirstOrDefault();
+            });
+
+            _fixture.Wait.Until(_ => updatedRow.FindElement(By.CssSelector(".dp-badge")).Text.Trim() == expectedStatus);
+
+            LogStep("Revert department status");
+            var revertActionSelector = willDeactivate ? "button[title='Activate']" : "button[title='Deactivate']";
+            updatedRow.FindElement(By.CssSelector(revertActionSelector)).Click();
+
+            _fixture.WaitUntilVisible(By.CssSelector(".dp-confirm-modal"));
+            var revertConfirmSelector = willDeactivate ? "button.dp-btn-safe" : "button.dp-btn-danger";
+            _fixture.Driver.FindElement(By.CssSelector(revertConfirmSelector)).Click();
+
+            _fixture.Wait.Until(_ => updatedRow.FindElement(By.CssSelector(".dp-badge")).Text.Trim() == originalStatus);
         });
     }
 }

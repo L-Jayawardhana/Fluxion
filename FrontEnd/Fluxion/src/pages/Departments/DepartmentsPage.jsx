@@ -152,11 +152,11 @@ export default function DepartmentsPage() {
   /* ── Toggle (activate / deactivate) ───────────────────── */
   const handleToggle = async () => {
     if (!confirmTarget) return;
-    const { dept } = confirmTarget;
+    const { dept, newIsActive } = confirmTarget;
     try {
-      await toggleDepartment(dept.departmentId, userOrg.orgId);
+      await toggleDepartment(dept.departmentId, userOrg.orgId, newIsActive);
       setDepartments(prev =>
-        prev.map(d => d.departmentId === dept.departmentId ? { ...d, isActive: !d.isActive } : d)
+        prev.map(d => d.departmentId === dept.departmentId ? { ...d, isActive: newIsActive } : d)
       );
     } catch (err) {
       const msg = err.response?.data?.message || 'Failed to update department status.';

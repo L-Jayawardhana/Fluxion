@@ -109,6 +109,20 @@ public sealed class SeleniumFixture : IAsyncLifetime, IDisposable
         Wait.Until(driver => driver.FindElements(By.CssSelector(".ml-sidebar")).Any(el => el.Displayed));
     }
 
+    public void EnsureLoggedOut()
+    {
+        Driver.Manage().Cookies.DeleteAllCookies();
+
+        try
+        {
+            ((IJavaScriptExecutor)Driver).ExecuteScript("window.localStorage && window.localStorage.clear(); window.sessionStorage && window.sessionStorage.clear();");
+        }
+        catch (WebDriverException)
+        {
+            // Ignore storage failures in locked-down environments.
+        }
+    }
+
     public void NavigateSidebar(string linkText, string expectedPath)
     {
         var link = Wait.Until(driver =>
