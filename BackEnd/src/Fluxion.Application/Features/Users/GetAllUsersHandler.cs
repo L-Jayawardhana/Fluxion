@@ -30,6 +30,7 @@ public class GetAllUsersHandler : IRequestHandler<GetAllUsersQuery, List<UserDto
                 u.Email,
                 u.Role.ToString(),
                 u.IsActive,
+                u.InvitationAccepted,
                 u.LastLoginAt,
                 u.CreatedAt,
                 u.Organization != null ? u.Organization.OrgName : null

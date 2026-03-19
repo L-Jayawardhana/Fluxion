@@ -45,6 +45,7 @@ const fmtCost = (cost) =>
 /* ████████████████████████████████████████████████████████████ */
 export default function AllAssetsPage() {
   const { user } = useAuth();
+  const isOwner = user?.role === 'owner' || user?.role === 'systemAdmin' || user?.role === 'admin';
 
   const [userOrg, setUserOrg] = useState(null);
   const [departments, setDepartments] = useState([]);
@@ -145,9 +146,11 @@ export default function AllAssetsPage() {
           <button className="aa-btn-refresh" onClick={loadData} title="Refresh">
             <RefreshIcon /> Refresh
           </button>
-          <Link to="/register-asset" className="aa-btn-add">
-            <PlusIcon /> Register Asset
-          </Link>
+          {isOwner && (
+            <Link to="/register-asset" className="aa-btn-add">
+              <PlusIcon /> Register Asset
+            </Link>
+          )}
         </div>
       </div>
 

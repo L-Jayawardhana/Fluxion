@@ -27,6 +27,9 @@ public static class DependencyInjection
         // Verification code service (singleton — codes must persist across requests)
         services.AddSingleton<IVerificationCodeService, InMemoryVerificationCodeService>();
 
+        // Invitation service
+        services.AddScoped<IInvitationService, InvitationService>();
+
         return services;
     }
 }

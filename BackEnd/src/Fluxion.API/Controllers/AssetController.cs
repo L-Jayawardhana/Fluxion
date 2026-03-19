@@ -19,7 +19,7 @@ public class AssetController : ControllerBase
 
     /// <summary>Lists all assets for an organisation, optionally filtered by department and/or asset type.</summary>
     [HttpGet]
-    [Authorize(Roles = "admin,owner")]
+    [Authorize(Roles = "user,admin,owner")]
     public async Task<IActionResult> GetAll(
         [FromQuery] int orgId,
         [FromQuery] int? departmentId = null,

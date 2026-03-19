@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo, memo } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import api from '../../services/api';
+import InviteUserModal from './InviteUserModal';
 import './DashboardPage.css';
 
 /* ── Animated counter ────────────────────────────────────── */
@@ -153,12 +154,14 @@ const AssetList = memo(function AssetList() {
 export default function DashboardPage() {
   const { user } = useAuth();
   const [orgData, setOrgData] = useState({ totalUsers: 17, activeUsers: 17 });
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const barRefs = useRef([]);
   const deptRefs = useRef([]);
   const mounted = useRef(false);
 
   const rawName = user?.email?.split('@')[0] || 'User';
   const userName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
+  const currentOrgId = user?.orgId; // needed for department fetching
 
   /* ── Fetch data (non-blocking — page renders instantly) ── */
   useEffect(() => {
@@ -349,7 +352,7 @@ export default function DashboardPage() {
         <div className="db-panel">
           <div className="db-panel-head">
             <span className="db-panel-title">Team</span>
-            <button className="db-panel-action">Manage users →</button>
+            <button className="db-panel-action" onClick={() => setIsInviteModalOpen(true)}>Manage users →</button>
           </div>
           <div className="db-panel-body" style={{ paddingTop: 12 }}>
             <div className="db-team-grid">
@@ -448,6 +451,23 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Invite User Modal */}
+      <InviteUserModal 
+        isOpen={isInviteModalOpen} 
+        onClose={() => setIsInviteModalOpen(false)} 
+        orgId={currentOrgId}
+        onUserInvited={() => {
+          // Optionally refresh dashboard user count here
+          api.get('/User').then(res => {
+            const all = res.data;
+            setOrgData({
+              totalUsers: all.length,
+              activeUsers: all.filter(u => u.isActive).length,
+            });
+          }).catch(() => {});
+        }}
+      />
     </div>
   );
 }

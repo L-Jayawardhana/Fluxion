@@ -79,6 +79,13 @@ public class AuthController : ControllerBase
         {
             return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
         }
+        catch (Exception ex)
+        {
+            var msg = ex.Message + (ex.InnerException != null ? " | " + ex.InnerException.Message : "");
+            Console.WriteLine("GOOGLE LOGIN ERROR: " + msg);
+            Console.WriteLine(ex.StackTrace);
+            return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Server Error: " + msg });
+        }
     }
 
     [HttpPost("send-verification-code")]

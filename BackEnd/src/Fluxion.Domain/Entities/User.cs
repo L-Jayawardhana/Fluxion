@@ -26,6 +26,9 @@ public class User : IAuditable
     public bool MustChangePassword { get; set; } = true;
     public bool IsActive { get; set; } = true;
 
+    public bool InvitationAccepted { get; set; } = false;
+    public string? InvitationToken { get; set; }
+
     public DateTime? LastLoginAt { get; set; }
 
     public int? CreatedBy { get; set; }

@@ -11,6 +11,7 @@ public record UserDto(
     string Email,
     string Role,
     bool IsActive,
+    bool InvitationAccepted,
     DateTime? LastLoginAt,
     DateTime CreatedAt,
     string? OrganizationName

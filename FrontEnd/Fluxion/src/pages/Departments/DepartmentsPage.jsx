@@ -51,6 +51,7 @@ const fmtDate = (iso) =>
 /* ████████████████████████████████████████████████████████ */
 export default function DepartmentsPage() {
   const { user } = useAuth();
+  const isOwner = user?.role === 'owner' || user?.role === 'systemAdmin' || user?.role === 'admin';
 
   const [userOrg, setUserOrg]         = useState(null);
   const [departments, setDepartments] = useState([]);
@@ -254,15 +255,17 @@ export default function DepartmentsPage() {
       <div className="dp-header">
         <div className="dp-header-text">
           <h1 className="dp-title">Departments</h1>
-          <p className="dp-subtitle">View and manage departments in your organisation</p>
+          <p className="dp-subtitle">{isOwner ? 'View and manage departments in your organisation' : 'View departments in your organisation'}</p>
         </div>
         <div className="dp-header-actions">
           <button className="dp-btn-refresh" onClick={loadData} title="Refresh">
             <RefreshIcon /> Refresh
           </button>
-          <Link to="/add-department" className="dp-btn-add">
-            <PlusIcon /> Add Department
-          </Link>
+          {isOwner && (
+            <Link to="/add-department" className="dp-btn-add">
+              <PlusIcon /> Add Department
+            </Link>
+          )}
         </div>
       </div>
 
@@ -356,7 +359,7 @@ export default function DepartmentsPage() {
                     <th>Description</th>
                     <th>Status</th>
                     <th>Created</th>
-                    <th />
+                    {isOwner && <th />}
                   </tr>
                 </thead>
                 <tbody>
@@ -376,6 +379,7 @@ export default function DepartmentsPage() {
                         </span>
                       </td>
                       <td className="dp-date">{fmtDate(dept.createdAt)}</td>
+                      {isOwner && (
                       <td>
                         <div className="dp-row-acts">
                           <button className="dp-ract" title="Edit" onClick={() => openEdit(dept)}>
@@ -400,6 +404,7 @@ export default function DepartmentsPage() {
                           )}
                         </div>
                       </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
@@ -421,6 +426,7 @@ export default function DepartmentsPage() {
                   )}
                   <div className="dp-card-meta">
                     <span className="dp-card-date">{fmtDate(dept.createdAt)}</span>
+                    {isOwner && (
                     <div className="dp-card-acts">
                       <button className="dp-ract" title="Edit" onClick={() => openEdit(dept)}>
                         <EditIcon />
@@ -435,6 +441,7 @@ export default function DepartmentsPage() {
                         </button>
                       )}
                     </div>
+                    )}
                   </div>
                 </div>
               ))}
