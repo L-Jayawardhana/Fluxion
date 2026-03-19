@@ -39,12 +39,6 @@ const STATUS_LABELS = {
   retired: 'Retired',
 };
 
-const TYPE_EMOJIS = {
-  Laptop: '💻', Desktop: '🖥️', Monitor: '🖥️', Printer: '🖨️',
-  Phone: '📱', Tablet: '📱', Vehicle: '🚗', Furniture: '🪑',
-  Networking: '🌐', Other: '📦',
-};
-
 const fmtCost = (cost) =>
   cost != null ? `$${Number(cost).toLocaleString('en-US', { minimumFractionDigits: 2 })}` : '—';
 
@@ -247,7 +241,13 @@ export default function AllAssetsPage() {
         ) : filtered.length === 0 ? (
           /* ── Empty state ── */
           <div className="aa-empty">
-            <div className="aa-empty-icon">📦</div>
+            <div className="aa-empty-icon" style={{ opacity: 0.6 }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="48" height="48">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+                <line x1="12" y1="22.08" x2="12" y2="12" />
+              </svg>
+            </div>
             <div className="aa-empty-title">
               {assets.length === 0
                 ? 'No assets registered yet'
@@ -286,7 +286,7 @@ export default function AllAssetsPage() {
                       </td>
                       <td>
                         <span className="aa-type-chip">
-                          {TYPE_EMOJIS[asset.assetType] || '📦'} {asset.assetType}
+                          {asset.assetType}
                         </span>
                       </td>
                       <td>
@@ -329,7 +329,7 @@ export default function AllAssetsPage() {
                 <div key={asset.assetId} className="aa-card">
                   <div className="aa-card-top">
                     <div className="aa-card-name">
-                      {TYPE_EMOJIS[asset.assetType] || '📦'} {asset.assetName}
+                      {asset.assetName}
                     </div>
                     <span className={`aa-badge aa-badge-${asset.status}`}>
                       {STATUS_LABELS[asset.status] || asset.status}
