@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { getOrganizations, getDepartments, createAsset } from '../../services/api';
+import { QRCodeCanvas } from 'qrcode.react';
 import './RegisterAssetPage.css';
 
 /* ── SVG Icons ── */
@@ -28,7 +29,6 @@ const emptyForm = {
   departmentId: '',
   assetName: '',
   assetType: '',
-  assetTag: '',
   serialNumber: '',
   purchaseDate: '',
   warrantyEndDate: '',
@@ -91,8 +91,6 @@ export default function RegisterAssetPage() {
     if (!form.assetType)                        errs.assetType = 'Asset type is required.';
     if (form.assetType === 'Other' && !form.customAssetType.trim()) errs.customAssetType = 'Custom asset type is required.';
     if (!form.departmentId)                     errs.departmentId = 'Department is required.';
-    if (form.assetTag && form.assetTag.length > 50)
-      errs.assetTag = 'Asset tag must be 50 characters or fewer.';
     if (form.serialNumber && form.serialNumber.length > 100)
       errs.serialNumber = 'Serial number must be 100 characters or fewer.';
     if (form.cost !== '' && (isNaN(Number(form.cost)) || Number(form.cost) < 0))
@@ -120,7 +118,7 @@ export default function RegisterAssetPage() {
         departmentId: Number(form.departmentId),
         assetName: form.assetName.trim(),
         assetType: form.assetType === 'Other' ? form.customAssetType.trim() : form.assetType,
-        assetTag: form.assetTag.trim() || null,
+        assetTag: null,
         serialNumber: form.serialNumber.trim() || null,
         purchaseDate: form.purchaseDate || null,
         warrantyEndDate: form.warrantyEndDate || null,
@@ -146,6 +144,16 @@ export default function RegisterAssetPage() {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const downloadQR = () => {
+    const canvas = document.getElementById('asset-qr-canvas');
+    if (!canvas) return;
+    const pngUrl = canvas.toDataURL("image/png");
+    const downloadLink = document.createElement("a");
+    downloadLink.href = pngUrl;
+    downloadLink.download = `QR_${createdAsset?.assetTag || 'Asset'}.png`;
+    downloadLink.click();
   };
 
   /* ── Render ── */
@@ -188,11 +196,27 @@ export default function RegisterAssetPage() {
               <p className="rap-success-sub">
                 {createdAsset.assetType} · {createdAsset.serialNumber || 'No serial'} · {createdAsset.status}
               </p>
-              <div className="rap-qr-box">
-                <span className="rap-qr-label">QR Code</span>
-                {createdAsset.qrCode}
+              <div className="rap-qr-box" style={{ textAlign: 'center', marginTop: '20px' }}>
+                <span className="rap-qr-label">Asset QR Code</span>
+                <div style={{ background: '#fff', padding: '12px', borderRadius: '8px', display: 'inline-block', border: '1px solid var(--rap-border)' }}>
+                  <QRCodeCanvas 
+                    id="asset-qr-canvas"
+                    value={`Asset: ${createdAsset.assetName}\nType: ${createdAsset.assetType}\nDept: ${createdAsset.departmentName || 'Unassigned'}\nTag: ${createdAsset.assetTag || 'N/A'}\nSN: ${createdAsset.serialNumber || 'N/A'}\nWarranty: ${createdAsset.warrantyEndDate ? new Date(createdAsset.warrantyEndDate).toLocaleDateString() : 'N/A'}\nPrice: ${createdAsset.cost != null ? '$' + Number(createdAsset.cost).toFixed(2) : 'N/A'}`} 
+                    size={140} 
+                  />
+                </div>
+                <div style={{ marginTop: '8px', fontSize: '13px', color: 'var(--rap-mist)', fontFamily: 'DM Mono, monospace', fontWeight: 600 }}>
+                  {createdAsset.assetTag}
+                </div>
               </div>
               <div className="rap-actions" style={{ justifyContent: 'center', marginTop: 24 }}>
+                <button
+                  className="rap-btn"
+                  style={{ background: 'var(--rap-mist)', color: '#fff' }}
+                  onClick={downloadQR}
+                >
+                  Download QR
+                </button>
                 <button
                   className="rap-btn rap-btn-cancel"
                   onClick={() => { setCreatedAsset(null); setMessage({ type: '', text: '' }); }}
@@ -319,15 +343,11 @@ export default function RegisterAssetPage() {
                   <input
                     id="asset-tag"
                     type="text"
-                    className={`rap-input${errors.assetTag ? ' err' : ''}`}
-                    value={form.assetTag}
-                    onChange={e => set('assetTag', e.target.value)}
-                    placeholder="e.g. IT-001"
-                    maxLength={50}
-                    disabled={submitting}
+                    className="rap-input"
+                    value="Auto-generated"
+                    disabled
                   />
-                  {errors.assetTag && <div className="rap-field-err">{errors.assetTag}</div>}
-                  <div className="rap-field-hint">{form.assetTag.length}/50</div>
+                  <div className="rap-field-hint">e.g. AA-001</div>
                 </div>
               </div>
 
