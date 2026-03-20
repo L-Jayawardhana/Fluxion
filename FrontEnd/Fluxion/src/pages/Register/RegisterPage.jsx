@@ -336,16 +336,26 @@ export default function RegisterPage() {
         setDragActive(false);
         const file = e.dataTransfer.files?.[0];
         if (file && file.type.startsWith('image/')) {
-            setLogoFile(file);
-            setLogoPreview(URL.createObjectURL(file));
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                const base64 = evt.target.result;
+                setLogoFile({ name: file.name, base64: base64 });
+                setLogoPreview(base64);
+            };
+            reader.readAsDataURL(file);
         }
     }, []);
 
     const handleLogoSelect = (e) => {
         const file = e.target.files?.[0];
         if (file) {
-            setLogoFile(file);
-            setLogoPreview(URL.createObjectURL(file));
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                const base64 = evt.target.result;
+                setLogoFile({ name: file.name, base64: base64 });
+                setLogoPreview(base64);
+            };
+            reader.readAsDataURL(file);
         }
     };
 
