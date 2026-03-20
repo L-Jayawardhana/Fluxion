@@ -85,4 +85,44 @@ public class OrganizationController : ControllerBase
         await _mediator.Send(new DeleteOrganizationCommand(id));
         return NoContent();
     }
+
+    [HttpPost("{id}/logo-base64")]
+    public async Task<IActionResult> UploadLogoBase64(int id, [FromBody] UploadLogoBase64Dto dto, [FromServices] Fluxion.Application.Interfaces.IImageService imageService)
+    {
+        if (string.IsNullOrEmpty(dto.Base64))
+            return BadRequest(new { message = "No image data provided." });
+
+        var base64Data = dto.Base64;
+        var match = System.Text.RegularExpressions.Regex.Match(base64Data, @"data:image/(?<type>.+?);base64,(?<data>.+)");
+        if (match.Success)
+        {
+            base64Data = match.Groups["data"].Value;
+        }
+
+        byte[] bytes;
+        try
+        {
+            bytes = Convert.FromBase64String(base64Data);
+        }
+        catch (FormatException)
+        {
+            return BadRequest(new { message = "Invalid base64 string." });
+        }
+
+        if (bytes.Length > 2 * 1024 * 1024)
+            return BadRequest(new { message = "Logo must be under 2 MB." });
+
+        using var stream = new MemoryStream(bytes);
+        var logoUrl = await imageService.UploadImageAsync(stream, dto.Name ?? $"org-{id}-logo");
+
+        var org = await _mediator.Send(new UpdateOrgLogoCommand(id, logoUrl));
+
+        return Ok(new { logoUrl });
+    }
+}
+
+public class UploadLogoBase64Dto
+{
+    public string Name { get; set; }
+    public string Base64 { get; set; }
 }
