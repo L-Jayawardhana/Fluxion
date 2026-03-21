@@ -29,6 +29,9 @@ public static class DependencyInjection
 
         // Invitation service
         services.AddScoped<IInvitationService, InvitationService>();
+        // Cloudinary Image service
+        services.Configure<Fluxion.Infrastructure.Images.CloudinarySettings>(configuration.GetSection("CloudinarySettings"));
+        services.AddScoped<IImageService, Fluxion.Infrastructure.Images.CloudinaryService>();
 
         return services;
     }
