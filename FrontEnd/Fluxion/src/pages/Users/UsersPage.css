@@ -248,3 +248,56 @@
 .up-card-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
 .up-card-footer { display: flex; align-items: center; justify-content: space-between; }
 .up-card-date { font-size: 10px; color: var(--db-dim); }
+
+/* ── Asset Assignment Panel ── */
+.up-row-expanded td {
+  background: rgba(13,13,13,.02);
+}
+.up-assign-panel {
+  background: #f8f9fa;
+  border-radius: 6px;
+  padding: 16px;
+  margin-top: 8px;
+  border: 1px solid #e1e4e8;
+  cursor: default;
+}
+.up-assign-header {
+  font-size: 13px;
+  color: var(--db-text);
+  margin-bottom: 12px;
+}
+.up-assign-msg {
+  font-size: 13px;
+  color: var(--db-dim);
+}
+.up-assign-form {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.up-select {
+  padding: 8px 12px;
+  border: 1px solid var(--db-border);
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 13px;
+  min-width: 250px;
+  background: var(--db-card);
+  color: var(--db-text);
+}
+.up-select:focus {
+  outline: none;
+  border-color: var(--db-blue);
+}
+.up-btn-primary {
+  background: var(--db-blue);
+  color: #fff;
+}
+.up-btn-primary:hover {
+  background: #2460b2;
+}
+.up-btn-primary:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+}

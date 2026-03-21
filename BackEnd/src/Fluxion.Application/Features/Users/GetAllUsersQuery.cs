@@ -14,5 +14,7 @@ public record UserDto(
     bool InvitationAccepted,
     DateTime? LastLoginAt,
     DateTime CreatedAt,
-    string? OrganizationName
+    string? OrganizationName,
+    int? DepartmentId,
+    string? DepartmentName
 );

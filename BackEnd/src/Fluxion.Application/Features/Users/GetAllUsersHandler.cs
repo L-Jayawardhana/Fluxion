@@ -15,7 +15,10 @@ public class GetAllUsersHandler : IRequestHandler<GetAllUsersQuery, List<UserDto
 
     public async Task<List<UserDto>> Handle(GetAllUsersQuery request, CancellationToken cancellationToken)
     {
-        var usersQuery = _context.Users.AsNoTracking();
+        var usersQuery = _context.Users
+            .Include(u => u.UserDepartments!)
+                .ThenInclude(ud => ud.Department)
+            .AsNoTracking();
 
         if (request.OrgId.HasValue)
         {
@@ -33,7 +36,9 @@ public class GetAllUsersHandler : IRequestHandler<GetAllUsersQuery, List<UserDto
                 u.InvitationAccepted,
                 u.LastLoginAt,
                 u.CreatedAt,
-                u.Organization != null ? u.Organization.OrgName : null
+                u.Organization != null ? u.Organization.OrgName : null,
+                u.UserDepartments != null && u.UserDepartments.Any() ? u.UserDepartments.FirstOrDefault()!.DepartmentId : null,
+                u.UserDepartments != null && u.UserDepartments.Any() && u.UserDepartments.FirstOrDefault()!.Department != null ? u.UserDepartments.FirstOrDefault()!.Department!.DepartmentName : null
             ))
             .ToListAsync(cancellationToken);
 

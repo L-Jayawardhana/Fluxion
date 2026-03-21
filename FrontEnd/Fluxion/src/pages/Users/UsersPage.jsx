@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import api from '../../services/api';
 import './UsersPage.css';
@@ -15,6 +15,93 @@ const Icons = {
 const fmtDate = (iso) =>
   iso ? new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
 
+/* ████ Asset Assignment Panel ████ */
+function AssetAssignmentPanel({ userObj, currentOrgId, currentUserId, onAssignSuccess }) {
+  const [assets, setAssets] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [selectedAssetId, setSelectedAssetId] = useState('');
+  const [assigning, setAssigning] = useState(false);
+  const [message, setMessage] = useState({ type: '', text: '' });
+
+  useEffect(() => {
+    if (!userObj.departmentId) return;
+    setLoading(true);
+    api.get(`/Asset?orgId=${currentOrgId}&departmentId=${userObj.departmentId}`)
+      .then(res => {
+        // Only select assets that are "Available"
+        const available = res.data.filter(a => a.status.toLowerCase() === 'available');
+        setAssets(available);
+      })
+      .catch()
+      .finally(() => setLoading(false));
+  }, [userObj.departmentId, currentOrgId]);
+
+  const handleAssign = async () => {
+    if (!selectedAssetId) return;
+    setAssigning(true);
+    setMessage({ type: '', text: '' });
+    try {
+      await api.put(`/Asset/${selectedAssetId}/assign`, {
+        userId: userObj.userId,
+        orgId: currentOrgId,
+        assignedBy: currentUserId
+      });
+      setMessage({ type: 'success', text: 'Asset assigned successfully.' });
+      setAssets(prev => prev.filter(a => a.assetId !== Number(selectedAssetId)));
+      setSelectedAssetId('');
+      if (onAssignSuccess) onAssignSuccess();
+    } catch (err) {
+      setMessage({ type: 'error', text: err.response?.data?.message || 'Failed to assign asset.' });
+    } finally {
+      setAssigning(false);
+    }
+  };
+
+  if (!userObj.departmentId) {
+    return <div className="up-assign-panel">User is not assigned to any department.</div>;
+  }
+
+  return (
+    <div className="up-assign-panel" onClick={e => e.stopPropagation()}>
+      <div className="up-assign-header">
+        <strong>Department:</strong> {userObj.departmentName}
+      </div>
+      {loading ? (
+        <div className="up-assign-msg">Loading available assets...</div>
+      ) : assets.length === 0 ? (
+        <div className="up-assign-msg">No available assets found in this department.</div>
+      ) : (
+        <div className="up-assign-form">
+          <select 
+            className="up-select" 
+            value={selectedAssetId} 
+            onChange={(e) => setSelectedAssetId(e.target.value)}
+            disabled={assigning}
+          >
+            <option value="">-- Select an Asset --</option>
+            {assets.map(a => (
+              <option key={a.assetId} value={a.assetId}>{a.assetName} ({a.assetTag})</option>
+            ))}
+          </select>
+          <button 
+            className="up-btn up-btn-primary" 
+            onClick={handleAssign} 
+            disabled={!selectedAssetId || assigning}
+            style={{ marginLeft: '12px', padding: '8px 16px', fontSize: '13px' }}
+          >
+            {assigning ? 'Assigning...' : 'Assign Asset'}
+          </button>
+        </div>
+      )}
+      {message.text && (
+        <div style={{ marginTop: '8px', fontSize: '13px', color: message.type === 'error' ? '#d9534f' : '#2A6FC8' }}>
+          {message.text}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ████████████████████████████████████████████████ */
 export default function UsersPage() {
   const { user } = useAuth();
@@ -28,6 +115,13 @@ export default function UsersPage() {
   // Delete confirm
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
+
+  // Expanded user assignment panel
+  const [expandedUserId, setExpandedUserId] = useState(null);
+
+  const toggleExpand = (userId) => {
+    setExpandedUserId(prev => prev === userId ? null : userId);
+  };
 
   /* ── Load users ── */
   const loadUsers = () => {
@@ -194,41 +288,58 @@ export default function UsersPage() {
                 </thead>
                 <tbody>
                   {filtered.map(u => (
-                    <tr key={u.userId}>
-                      <td>
-                        <div className="up-user-cell">
-                          <div className="up-avatar" style={{ background: u.invitationAccepted ? 'var(--db-blue)' : 'var(--db-amber)' }}>
-                            {u.fullName?.charAt(0)?.toUpperCase() || '?'}
+                    <React.Fragment key={u.userId}>
+                      <tr 
+                        onClick={() => toggleExpand(u.userId)} 
+                        style={{ cursor: 'pointer' }} 
+                        className={expandedUserId === u.userId ? 'up-row-expanded' : ''}
+                      >
+                        <td>
+                          <div className="up-user-cell">
+                            <div className="up-avatar" style={{ background: u.invitationAccepted ? 'var(--db-blue)' : 'var(--db-amber)' }}>
+                              {u.fullName?.charAt(0)?.toUpperCase() || '?'}
+                            </div>
+                            <div>
+                              <div className="up-user-name">{u.fullName}</div>
+                              <div className="up-user-email">{u.email}</div>
+                            </div>
                           </div>
-                          <div>
-                            <div className="up-user-name">{u.fullName}</div>
-                            <div className="up-user-email">{u.email}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td><span className="up-role-chip">{u.role}</span></td>
-                      <td>
-                        <span className={`up-inv-badge ${u.invitationAccepted ? 'accepted' : 'pending'}`}>
-                          {u.invitationAccepted ? Icons.check : Icons.clock}
-                          {u.invitationAccepted ? 'Accepted' : 'Pending'}
-                        </span>
-                      </td>
-                      <td>
-                        <span className={`up-status-dot ${u.isActive ? 'active' : 'inactive'}`}>
-                          {u.isActive ? 'Active' : 'Inactive'}
-                        </span>
-                      </td>
-                      <td className="up-date">{fmtDate(u.createdAt)}</td>
-                      <td>
-                        <button
-                          className="up-delete-btn"
-                          title="Delete user"
-                          onClick={() => setDeleteTarget(u)}
-                        >
-                          {Icons.trash}
-                        </button>
-                      </td>
-                    </tr>
+                        </td>
+                        <td><span className="up-role-chip">{u.role}</span></td>
+                        <td>
+                          <span className={`up-inv-badge ${u.invitationAccepted ? 'accepted' : 'pending'}`}>
+                            {u.invitationAccepted ? Icons.check : Icons.clock}
+                            {u.invitationAccepted ? 'Accepted' : 'Pending'}
+                          </span>
+                        </td>
+                        <td>
+                          <span className={`up-status-dot ${u.isActive ? 'active' : 'inactive'}`}>
+                            {u.isActive ? 'Active' : 'Inactive'}
+                          </span>
+                        </td>
+                        <td className="up-date">{fmtDate(u.createdAt)}</td>
+                        <td>
+                          <button
+                            className="up-delete-btn"
+                            title="Delete user"
+                            onClick={(e) => { e.stopPropagation(); setDeleteTarget(u); }}
+                          >
+                            {Icons.trash}
+                          </button>
+                        </td>
+                      </tr>
+                      {expandedUserId === u.userId && (
+                        <tr className="up-expanded-panel-row">
+                          <td colSpan="6" style={{ padding: '0 16px 16px 16px', borderBottom: '1px solid #eee' }}>
+                            <AssetAssignmentPanel 
+                              userObj={u} 
+                              currentOrgId={currentOrgId} 
+                              currentUserId={user?.userId} 
+                            />
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
                   ))}
                 </tbody>
               </table>
@@ -237,7 +348,7 @@ export default function UsersPage() {
             {/* Mobile cards */}
             <div className="up-cards">
               {filtered.map(u => (
-                <div key={u.userId} className="up-card">
+                <div key={u.userId} className="up-card" onClick={() => toggleExpand(u.userId)}>
                   <div className="up-card-top">
                     <div className="up-user-cell">
                       <div className="up-avatar" style={{ background: u.invitationAccepted ? 'var(--db-blue)' : 'var(--db-amber)' }}>
@@ -248,7 +359,7 @@ export default function UsersPage() {
                         <div className="up-user-email">{u.email}</div>
                       </div>
                     </div>
-                    <button className="up-delete-btn" title="Delete" onClick={() => setDeleteTarget(u)}>
+                    <button className="up-delete-btn" title="Delete" onClick={(e) => { e.stopPropagation(); setDeleteTarget(u); }}>
                       {Icons.trash}
                     </button>
                   </div>
@@ -265,6 +376,16 @@ export default function UsersPage() {
                     </span>
                     <span className="up-card-date">{fmtDate(u.createdAt)}</span>
                   </div>
+                  {expandedUserId === u.userId && (
+                    <div className="up-card-expanded" onClick={e => e.stopPropagation()}>
+                       <hr style={{ border: 'none', borderTop: '1px solid #eee', margin: '16px 0' }} />
+                       <AssetAssignmentPanel 
+                          userObj={u} 
+                          currentOrgId={currentOrgId} 
+                          currentUserId={user?.userId} 
+                       />
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

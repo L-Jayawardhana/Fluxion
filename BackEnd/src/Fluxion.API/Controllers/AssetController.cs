@@ -65,4 +65,25 @@ public class AssetController : ControllerBase
             return NotFound(new { message = ex.Message });
         }
     }
+
+    /// <summary>Assigns an asset to a user.</summary>
+    [HttpPut("{id:int}/assign")]
+    [Authorize(Roles = "admin,owner")]
+    public async Task<IActionResult> Assign(int id, [FromBody] AssignAssetRequest request)
+    {
+        try
+        {
+            var command = new Fluxion.Application.Features.Assets.AssignAsset.AssignAssetCommand(
+                id, request.UserId, request.OrgId, request.AssignedBy);
+            
+            var result = await _mediator.Send(command);
+            return Ok(new { message = "Asset assigned successfully." });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
 }
+
+public record AssignAssetRequest(int UserId, int OrgId, int AssignedBy);
