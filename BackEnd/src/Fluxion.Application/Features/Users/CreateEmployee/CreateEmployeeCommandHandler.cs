@@ -69,7 +69,7 @@ public class CreateEmployeeCommandHandler : IRequestHandler<CreateEmployeeComman
         await _context.SaveChangesAsync(cancellationToken);
 
         // 5. Send invitation email via Infrastructure service
-        await _invitationService.SendInvitationEmailAsync(user.Email, user.FullName, token);
+        await _invitationService.SendInvitationEmailAsync(user.Email, user.FullName, token, request.Password);
 
         return new RegisterResponse(
             UserId: user.UserId,

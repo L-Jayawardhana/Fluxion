@@ -25,7 +25,7 @@ public class InvitationService : IInvitationService
         return Guid.NewGuid().ToString();
     }
 
-    public async Task SendInvitationEmailAsync(string toEmail, string employeeName, string invitationToken)
+    public async Task SendInvitationEmailAsync(string toEmail, string employeeName, string invitationToken, string temporaryPassword)
     {
         var frontendUrl = _configuration["FrontendUrl"] ?? "http://localhost:5173";
         var inviteLink = $"{frontendUrl}/accept-invite?token={invitationToken}";
@@ -49,8 +49,16 @@ public class InvitationService : IInvitationService
                         Accept Invitation
                     </a>
                 </div>
+                <div style='background: #f9f9f9; padding: 16px; border-radius: 6px; margin: 24px 0;'>
+                    <p style='margin: 0; color: #333; font-size: 14px;'><strong>Your Login Details:</strong></p>
+                    <p style='margin: 8px 0; color: #555; font-size: 14px;'>Email: <strong>{toEmail}</strong></p>
+                    <p style='margin: 0; color: #333; font-size: 14px;'>This is the password that the owner created for you during registration:</p>
+                    <p style='margin: 8px 0 0 0; color: #555; font-size: 14px;'>Password: <strong>{temporaryPassword}</strong></p>
+                </div>
+                <p style='color: #d9534f; font-size: 14px; font-weight: bold; line-height: 1.5;'>
+                    Important: Please change this password within 1 week for security reasons.
+                </p>
                 <p style='color: #888; font-size: 12px; line-height: 1.5;'>
-                    You can log in with your email and the password provided to you by your administrator.
                     If you did not expect this invitation, you can safely ignore this email.
                 </p>
                 <hr style='border: none; border-top: 1px solid #eee; margin: 24px 0;' />

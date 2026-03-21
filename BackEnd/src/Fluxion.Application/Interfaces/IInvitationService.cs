@@ -10,5 +10,5 @@ public interface IInvitationService
     /// <summary>
     /// Sends an invitation email to the employee with an acceptance link.
     /// </summary>
-    Task SendInvitationEmailAsync(string toEmail, string employeeName, string invitationToken);
+    Task SendInvitationEmailAsync(string toEmail, string employeeName, string invitationToken, string temporaryPassword);
 }

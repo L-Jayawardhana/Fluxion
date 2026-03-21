@@ -270,7 +270,60 @@ _Note: This is a hard delete — the organization and its data are permanently r
 
 # User API (`/api/User`)
 
-## 13. GET `/api/User`
+## 13. POST `/api/User/employee`
+
+Registers a new employee and automatically sends an email invitation. Requires **Owner** or **Admin** privileges.
+
+**Request Body:**
+
+```json
+{
+  "firstName": "Jane",
+  "lastName": "Doe",
+  "email": "jane@example.com",
+  "password": "SecurePassword123!",
+  "orgId": 1,
+  "departmentId": 2
+}
+```
+
+**Response (201 Created):**
+
+```json
+{
+  "userId": 11,
+  "fullName": "Jane Doe",
+  "email": "jane@example.com",
+  "role": "user",
+  "token": ""
+}
+```
+
+_Note: The user is created in an inactive/invited state until they accept the invitation. The temporary password is included in the invitation email._
+
+## 14. POST `/api/User/accept-invite`
+
+Accepts an invitation using a unique invitation token sent via email. Allows Anonymous requests.
+
+**Request Body:**
+
+```json
+{
+  "token": "49bade91-f925-46fd-ab8c-..."
+}
+```
+
+**Response (200 OK):**
+
+```json
+{
+  "message": "Invitation accepted successfully."
+}
+```
+
+_Note: Returns `400 Bad Request` if the token is invalid or expired._
+
+## 15. GET `/api/User`
 
 Returns all users. Optionally filter by organization.
 
