@@ -116,4 +116,9 @@ export const retireAsset = async (id, orgId, retiredBy) => {
   return response.data;
 };
 
+export const transferAsset = async (id, orgId, newDepartmentId, transferredBy) => {
+  const response = await api.put(`/asset/${id}/transfer`, { orgId, newDepartmentId, transferredBy });
+  return response.data;
+};
+
 export default api;
