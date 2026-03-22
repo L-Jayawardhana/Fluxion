@@ -111,4 +111,9 @@ export const getAssetById = async (id, orgId) => {
   return response.data;
 };
 
+export const retireAsset = async (id, orgId, retiredBy) => {
+  const response = await api.put(`/asset/${id}/retire`, { orgId, retiredBy });
+  return response.data;
+};
+
 export default api;

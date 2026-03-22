@@ -25,6 +25,7 @@ export default function AdminAssetAssignmentsPage() {
   const [loadingAssignments, setLoadingAssignments] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
+  const [unassignTarget, setUnassignTarget] = useState(null);
 
   /* ── Fetch initial data ── */
   const fetchInitialData = async () => {
@@ -95,8 +96,15 @@ export default function AdminAssetAssignmentsPage() {
   };
 
   /* ── Unassign ── */
-  const handleUnassign = async (assetId) => {
-    if (!window.confirm('Are you sure you want to revoke this asset assignment?')) return;
+  const handleUnassign = (asset) => {
+    setUnassignTarget(asset);
+  };
+
+  const confirmUnassign = async () => {
+    if (!unassignTarget) return;
+    const assetName = unassignTarget.assetName;
+    const assetId = unassignTarget.assetId;
+    setUnassignTarget(null);
     setProcessing(true);
     setMessage({ text: '', type: '' });
     try {
@@ -104,7 +112,7 @@ export default function AdminAssetAssignmentsPage() {
         userId: parseInt(selectedUserId),
         orgId: parseInt(user.orgId)
       });
-      setMessage({ text: 'Asset revoked successfully.', type: 'success' });
+      setMessage({ text: `"${assetName}" has been unassigned successfully.`, type: 'success' });
       await Promise.all([fetchInitialData(), fetchUserAssignments(selectedUserId)]);
     } catch (err) {
       setMessage({ text: err.response?.data?.message || 'Failed to unassign asset.', type: 'error' });
@@ -128,6 +136,25 @@ export default function AdminAssetAssignmentsPage() {
   /* ── Render ── */
   return (
     <div className="page up-page">
+
+      {/* ── Unassign confirmation modal ────────────── */}
+      {unassignTarget && (
+        <div className="up-overlay" onClick={() => setUnassignTarget(null)}>
+          <div className="up-confirm" onClick={e => e.stopPropagation()}>
+            <div className="up-confirm-icon">⚠️</div>
+            <div className="up-confirm-title">Unassign Asset</div>
+            <div className="up-confirm-msg">
+              Are you sure you want to unassign <strong>"{unassignTarget.assetName}"</strong> from
+              {selectedUserObj ? ` ${selectedUserObj.fullName}` : ' this user'}?
+              The asset will be returned to the available pool.
+            </div>
+            <div className="up-confirm-acts">
+              <button className="up-btn up-btn-secondary" onClick={() => setUnassignTarget(null)}>Cancel</button>
+              <button className="up-btn up-btn-danger" onClick={confirmUnassign}>Unassign</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Header ── */}
       <div className="up-header">
@@ -310,15 +337,15 @@ export default function AdminAssetAssignmentsPage() {
                     <td className="up-date">
                       {new Date(a.assignedDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
                     </td>
-                    <td>
+                    <td style={{ textAlign: 'right' }}>
                       <button
-                        className="up-delete-btn"
-                        title="Revoke asset"
-                        onClick={() => handleUnassign(a.assetId)}
+                        className="up-btn up-btn-danger"
+                        title="Unassign asset"
+                        onClick={() => handleUnassign(a)}
                         disabled={processing}
-                        style={{ color: 'var(--db-rust)' }}
+                        style={{ padding: '6px 14px', fontSize: '11px', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
                       >
-                        {Icons.revoke}
+                        {Icons.revoke} Unassign
                       </button>
                     </td>
                   </tr>

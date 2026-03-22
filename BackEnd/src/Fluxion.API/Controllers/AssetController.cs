@@ -130,7 +130,35 @@ public class AssetController : ControllerBase
             return StatusCode(500, new { message = $"Internal Error: {ex.Message} {ex.InnerException?.Message}" });
         }
     }
+
+    /// <summary>Retires an asset, making it permanently unavailable.</summary>
+    [HttpPut("{id:int}/retire")]
+    [Authorize(Roles = "admin,owner")]
+    public async Task<IActionResult> Retire(int id, [FromBody] RetireAssetRequest request)
+    {
+        try
+        {
+            var command = new Fluxion.Application.Features.Assets.RetireAsset.RetireAssetCommand(
+                id, request.OrgId, request.RetiredBy);
+            
+            await _mediator.Send(command);
+            return Ok(new { message = "Asset retired successfully." });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = $"Internal Error: {ex.Message} {ex.InnerException?.Message}" });
+        }
+    }
 }
 
 public record AssignAssetRequest(int UserId, int OrgId, int AssignedBy);
 public record UnassignAssetRequest(int UserId, int OrgId);
+public record RetireAssetRequest(int OrgId, int RetiredBy);
