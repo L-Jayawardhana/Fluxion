@@ -17,6 +17,8 @@ public class GetAssetsQueryHandler : IRequestHandler<GetAssetsQuery, List<AssetD
     {
         var query = _context.Assets
             .AsNoTracking()
+            .Include(a => a.Assignments!.Where(aa => aa.ReturnDate == null))
+                .ThenInclude(aa => aa.User)
             .Where(a => a.OrgId == request.OrgId);
 
         if (request.DepartmentId.HasValue)
@@ -39,7 +41,10 @@ public class GetAssetsQueryHandler : IRequestHandler<GetAssetsQuery, List<AssetD
                 a.QrCode,
                 a.AssetTag,
                 a.PurchaseDate,
-                a.WarrantyEndDate
+                a.WarrantyEndDate,
+                a.Assignments != null && a.Assignments.Any(aa => aa.ReturnDate == null)
+                    ? a.Assignments.First(aa => aa.ReturnDate == null).User.FullName
+                    : null
             ))
             .ToListAsync(cancellationToken);
 

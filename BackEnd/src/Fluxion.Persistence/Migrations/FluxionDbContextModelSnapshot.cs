@@ -418,6 +418,12 @@ namespace Fluxion.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
 
+                    b.Property<bool>("InvitationAccepted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("InvitationToken")
+                        .HasColumnType("longtext");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("tinyint(1)");
 

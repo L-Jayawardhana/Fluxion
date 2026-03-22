@@ -45,6 +45,7 @@ const fmtCost = (cost) =>
 /* ████████████████████████████████████████████████████████████ */
 export default function AllAssetsPage() {
   const { user } = useAuth();
+  const isOwner = user?.role === 'owner' || user?.role === 'systemAdmin' || user?.role === 'admin';
 
   const [userOrg, setUserOrg] = useState(null);
   const [departments, setDepartments] = useState([]);
@@ -145,9 +146,11 @@ export default function AllAssetsPage() {
           <button className="aa-btn-refresh" onClick={loadData} title="Refresh">
             <RefreshIcon /> Refresh
           </button>
-          <Link to="/register-asset" className="aa-btn-add">
-            <PlusIcon /> Register Asset
-          </Link>
+          {isOwner && (
+            <Link to="/register-asset" className="aa-btn-add">
+              <PlusIcon /> Register Asset
+            </Link>
+          )}
         </div>
       </div>
 
@@ -270,6 +273,7 @@ export default function AllAssetsPage() {
                     <th>Type</th>
                     <th>Department</th>
                     <th>Status</th>
+                    <th>Assigned To</th>
                     <th>Serial Number</th>
                     <th>Cost</th>
                     <th style={{ width: 60, textAlign: 'center' }}>Actions</th>
@@ -298,6 +302,11 @@ export default function AllAssetsPage() {
                         <span className={`aa-badge aa-badge-${asset.status}`}>
                           {STATUS_LABELS[asset.status] || asset.status}
                         </span>
+                      </td>
+                      <td>
+                        {asset.assignedToUserName
+                          ? <span className="aa-dept-name">{asset.assignedToUserName}</span>
+                          : <span className="aa-dept-none">—</span>}
                       </td>
                       <td>
                         <div className="aa-asset-tag">
@@ -340,6 +349,11 @@ export default function AllAssetsPage() {
                     {asset.departmentName && (
                       <span className="aa-card-detail">
                         <strong>Dept:</strong> {asset.departmentName}
+                      </span>
+                    )}
+                    {asset.assignedToUserName && (
+                      <span className="aa-card-detail">
+                        <strong>Assigned:</strong> {asset.assignedToUserName}
                       </span>
                     )}
                   </div>

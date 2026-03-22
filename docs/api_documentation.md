@@ -270,7 +270,60 @@ _Note: This is a hard delete — the organization and its data are permanently r
 
 # User API (`/api/User`)
 
-## 13. GET `/api/User`
+## 13. POST `/api/User/employee`
+
+Registers a new employee and automatically sends an email invitation. Requires **Owner** or **Admin** privileges.
+
+**Request Body:**
+
+```json
+{
+  "firstName": "Jane",
+  "lastName": "Doe",
+  "email": "jane@example.com",
+  "password": "SecurePassword123!",
+  "orgId": 1,
+  "departmentId": 2
+}
+```
+
+**Response (201 Created):**
+
+```json
+{
+  "userId": 11,
+  "fullName": "Jane Doe",
+  "email": "jane@example.com",
+  "role": "user",
+  "token": ""
+}
+```
+
+_Note: The user is created in an inactive/invited state until they accept the invitation. The temporary password is included in the invitation email._
+
+## 14. POST `/api/User/accept-invite`
+
+Accepts an invitation using a unique invitation token sent via email. Allows Anonymous requests.
+
+**Request Body:**
+
+```json
+{
+  "token": "49bade91-f925-46fd-ab8c-..."
+}
+```
+
+**Response (200 OK):**
+
+```json
+{
+  "message": "Invitation accepted successfully."
+}
+```
+
+_Note: Returns `400 Bad Request` if the token is invalid or expired._
+
+## 15. GET `/api/User`
 
 Returns all users. Optionally filter by organization.
 
@@ -562,3 +615,73 @@ Returns the full details of a specific asset.
 ```
 
 _Note: Returns `404 Not Found` if the asset does not exist._
+
+## 25. GET `/api/Asset/user/{userId}`
+
+Returns all assets currently assigned to a specific user.
+
+**Query Parameters:**
+| Parameter | Type | Required | Description |
+|-----------|-------|----------|-------------------------------------|
+| `orgId` | `int` | Yes | Organization ID to verify access |
+
+**Response (200 OK):**
+
+```json
+[
+  {
+    "assignmentId": 5,
+    "assetId": 14,
+    "assetName": "MacBook Pro M3",
+    "assetTag": "AA-001",
+    "assignedDate": "2024-03-21T10:00:00Z"
+  }
+]
+```
+
+## 26. PUT `/api/Asset/{id}/assign`
+
+Assigns an available asset to a specific user. Requires **Admin** or **Owner** privileges.
+
+**Request Body:**
+
+```json
+{
+  "userId": 11,
+  "orgId": 1,
+  "assignedBy": 5
+}
+```
+
+**Response (200 OK):**
+
+```json
+{
+  "message": "Asset assigned successfully."
+}
+```
+
+_Note: Returns `400 Bad Request` if the asset is not `available` or if there's a permission mismatch._
+
+## 27. PUT `/api/Asset/{id}/unassign`
+
+Unassigns an asset from a user, making its status `available` again. Requires **Admin** or **Owner** privileges.
+
+**Request Body:**
+
+```json
+{
+  "userId": 11,
+  "orgId": 1
+}
+```
+
+**Response (200 OK):**
+
+```json
+{
+  "message": "Asset unassigned successfully."
+}
+```
+
+_Note: Returns `400 Bad Request` if the active assignment cannot be found._

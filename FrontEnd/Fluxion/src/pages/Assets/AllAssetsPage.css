@@ -1,9 +1,9 @@
-/* ══════════════════════════════════════════════════════════
+/*
    All Assets Page — Owner Dashboard · Fluxion
    Matches DashboardPage / DepartmentsPage design language
-   ══════════════════════════════════════════════════════════ */
+*/
 
-/* ── Scoped variables ───────────────────────────────────── */
+/* ── Scoped variables */
 .aa-page {
   --aa-bg:      #F2EFE8;
   --aa-card:    #FFFFFF;
@@ -24,7 +24,7 @@
   background: var(--aa-bg);
 }
 
-/* ── Keyframes ──────────────────────────────────────────── */
+/* ── Keyframes*/
 @keyframes aaFadeUp {
   from { opacity: 0; transform: translateY(16px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -33,7 +33,7 @@
   to { transform: rotate(360deg); }
 }
 
-/* ══════════════════ PAGE HEADER ══════════════════ */
+/* PAGE HEADER */
 .aa-header {
   display: flex;
   align-items: flex-start;
@@ -147,7 +147,7 @@
   animation: aaFadeUp .3s both;
 }
 
-/* ══════════════════ STATS ROW ══════════════════ */
+/*STATS ROW */
 .aa-stats-row {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -199,7 +199,7 @@
   margin-top: 4px;
 }
 
-/* ══════════════════ PANEL ══════════════════ */
+/* PANEL */
 .aa-panel {
   background: var(--aa-card);
   border: 1px solid var(--aa-border);
@@ -271,7 +271,7 @@
   color: var(--aa-rust);
 }
 
-/* ══════════════════ TABLE ══════════════════ */
+/* TABLE */
 .aa-table-wrap {
   overflow-x: auto;
 }
@@ -376,7 +376,7 @@
 .aa-badge-retired      { background: rgba(13,13,13,.08); color: var(--aa-dim); }
 .aa-badge-retired::before   { background: var(--aa-dim); }
 
-/* ══════════════════ EMPTY / LOADING ══════════════════ */
+/* EMPTY / LOADING  */
 .aa-empty {
   padding: 64px 24px;
   text-align: center;
@@ -416,7 +416,7 @@
   animation: aaSpin .7s linear infinite;
 }
 
-/* ══════════════════ MOBILE CARDS ══════════════════ */
+/* MOBILE CARDS  */
 .aa-cards {
   display: none;
   padding: 16px;
@@ -466,12 +466,12 @@
   margin-top: 8px;
 }
 
-/* ══════════════════ SCROLLBAR ══════════════════ */
+/* SCROLLBAR */
 .aa-page ::-webkit-scrollbar { width: 4px; }
 .aa-page ::-webkit-scrollbar-track { background: transparent; }
 .aa-page ::-webkit-scrollbar-thumb { background: rgba(13,13,13,.12); border-radius: 2px; }
 
-/* ══════════════════ RESPONSIVE ══════════════════ */
+/* RESPONSIVE  */
 @media (max-width: 1200px) {
   .aa-stats-row { grid-template-columns: repeat(2, 1fr); }
 }

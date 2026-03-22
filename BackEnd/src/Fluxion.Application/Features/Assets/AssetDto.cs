@@ -12,5 +12,6 @@ public record AssetDto(
     string? QrCode,
     string? AssetTag,
     DateTime? PurchaseDate,
-    DateTime? WarrantyEndDate
+    DateTime? WarrantyEndDate,
+    string? AssignedToUserName = null
 );

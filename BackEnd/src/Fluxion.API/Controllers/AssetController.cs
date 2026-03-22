@@ -19,7 +19,7 @@ public class AssetController : ControllerBase
 
     /// <summary>Lists all assets for an organisation, optionally filtered by department and/or asset type.</summary>
     [HttpGet]
-    [Authorize(Roles = "admin,owner")]
+    [Authorize(Roles = "user,admin,owner")]
     public async Task<IActionResult> GetAll(
         [FromQuery] int orgId,
         [FromQuery] int? departmentId = null,
@@ -65,4 +65,72 @@ public class AssetController : ControllerBase
             return NotFound(new { message = ex.Message });
         }
     }
+
+    /// <summary>Lists all assets currently assigned to a user.</summary>
+    [HttpGet("user/{userId:int}")]
+    [Authorize(Roles = "user,admin,owner")]
+    public async Task<IActionResult> GetAssignedToUser(int userId, [FromQuery] int orgId)
+    {
+        var currentUserIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value 
+                            ?? User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value;
+        var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value?.ToLower()
+                   ?? User.FindFirst("role")?.Value?.ToLower();
+
+        if (currentUserIdStr != userId.ToString() && role != "admin" && role != "owner")
+        {
+            return Forbid();
+        }
+
+        if (orgId <= 0)
+            return BadRequest(new { message = "A valid orgId is required." });
+
+        var result = await _mediator.Send(new Fluxion.Application.Features.Assets.GetAssignedAssets.GetAssignedAssetsQuery(userId, orgId));
+        return Ok(result);
+    }
+
+    /// <summary>Assigns an asset to a user.</summary>
+    [HttpPut("{id:int}/assign")]
+    [Authorize(Roles = "admin,owner")]
+    public async Task<IActionResult> Assign(int id, [FromBody] AssignAssetRequest request)
+    {
+        try
+        {
+            var command = new Fluxion.Application.Features.Assets.AssignAsset.AssignAssetCommand(
+                id, request.UserId, request.OrgId, request.AssignedBy);
+            
+            var result = await _mediator.Send(command);
+            return Ok(new { message = "Asset assigned successfully." });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>Unassigns an asset from a user, making it available again.</summary>
+    [HttpPut("{id:int}/unassign")]
+    [Authorize(Roles = "admin,owner")]
+    public async Task<IActionResult> Unassign(int id, [FromBody] UnassignAssetRequest request)
+    {
+        try
+        {
+            var command = new Fluxion.Application.Features.Assets.UnassignAsset.UnassignAssetCommand(
+                id, request.UserId, request.OrgId);
+            
+            var result = await _mediator.Send(command);
+            return Ok(new { message = "Asset unassigned successfully." });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            // Debugging ONLY: Return the full exception stack trace to find the 500 error
+            return StatusCode(500, new { message = $"Internal Error: {ex.Message} {ex.InnerException?.Message}" });
+        }
+    }
 }
+
+public record AssignAssetRequest(int UserId, int OrgId, int AssignedBy);
+public record UnassignAssetRequest(int UserId, int OrgId);
