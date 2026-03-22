@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { getOrganizations, getDepartments, getAssets, retireAsset } from '../../services/api';
+import { getOrganizations, getDepartments, getAssets, retireAsset, transferAsset } from '../../services/api';
 import { QRCodeCanvas } from 'qrcode.react';
 import './AllAssetsPage.css';
 
@@ -28,6 +28,14 @@ const TrashIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
     <polyline points="3 6 5 6 21 6" />
     <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+  </svg>
+);
+const SwapIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
+    <polyline points="17 1 21 5 17 9" />
+    <path d="M3 11V9a4 4 0 014-4h14" />
+    <polyline points="7 23 3 19 7 15" />
+    <path d="M21 13v2a4 4 0 01-4 4H3" />
   </svg>
 );
 
@@ -60,6 +68,8 @@ export default function AllAssetsPage() {
   const [error, setError] = useState(null);
   const [successMsg, setSuccessMsg] = useState(null);
   const [retireTarget, setRetireTarget] = useState(null);
+  const [transferTarget, setTransferTarget] = useState(null);
+  const [transferDeptId, setTransferDeptId] = useState('');
 
   // Filters
   const [filterDept, setFilterDept] = useState('');
@@ -157,6 +167,38 @@ export default function AllAssetsPage() {
     }
   };
 
+  /* ── Transfer Handlers ──────────────────────────────────── */
+  const handleTransfer = (asset) => {
+    if (asset.status === 'assigned') {
+      setError('Cannot transfer an assigned asset. Please unassign it first.');
+      setTimeout(() => setError(null), 4000);
+      return;
+    }
+    setTransferTarget(asset);
+    setTransferDeptId('');
+  };
+
+  const confirmTransfer = async () => {
+    if (!transferTarget || !transferDeptId) return;
+    const assetName = transferTarget.assetName;
+    const targetDept = departments.find(d => d.departmentId === parseInt(transferDeptId));
+    const deptName = targetDept?.departmentName || 'selected department';
+    setTransferTarget(null);
+    try {
+      setLoading(true);
+      setError(null);
+      setSuccessMsg(null);
+      await transferAsset(transferTarget.assetId, user.orgId, parseInt(transferDeptId), user.userId);
+      setSuccessMsg(`"${assetName}" transferred to "${deptName}" successfully.`);
+      setTimeout(() => setSuccessMsg(null), 4000);
+      await loadData();
+    } catch (err) {
+      console.error(err);
+      setError(err.response?.data?.message || 'Failed to transfer asset.');
+      setLoading(false);
+    }
+  };
+
   /* ── QR Code Handlers ───────────────────────────────────── */
   const generateQrText = (asset) => {
     return `Asset: ${asset.assetName}\nType: ${asset.assetType}\nDept: ${asset.departmentName || 'Unassigned'}\nTag: ${asset.assetTag || 'N/A'}\nSN: ${asset.serialNumber || 'N/A'}\nWarranty: ${asset.warrantyEndDate ? new Date(asset.warrantyEndDate).toLocaleDateString() : 'N/A'}\nPrice: ${asset.cost != null ? '$' + Number(asset.cost).toFixed(2) : 'N/A'}`;
@@ -189,6 +231,48 @@ export default function AllAssetsPage() {
             <div className="aa-confirm-acts">
               <button className="aa-btn aa-btn-secondary" onClick={() => setRetireTarget(null)}>Cancel</button>
               <button className="aa-btn aa-btn-danger" onClick={confirmRetire}>Retire Asset</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Transfer modal ────────────────────────────────── */}
+      {transferTarget && (
+        <div className="aa-overlay" onClick={() => setTransferTarget(null)}>
+          <div className="aa-confirm-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 420 }}>
+            <div className="aa-confirm-icon">🔄</div>
+            <div className="aa-confirm-title">Transfer Asset</div>
+            <div className="aa-confirm-msg">
+              Transfer <strong>"{transferTarget.assetName}"</strong> from
+              <strong> {transferTarget.departmentName || 'Unassigned'}</strong> to a different department.
+            </div>
+            <div style={{ marginBottom: 20 }}>
+              <label className="aa-transfer-label">Target Department</label>
+              <select
+                className="aa-filter-select"
+                value={transferDeptId}
+                onChange={e => setTransferDeptId(e.target.value)}
+                style={{ width: '100%', padding: '10px 13px', fontSize: '13px' }}
+              >
+                <option value="">-- Select Department --</option>
+                {departments
+                  .filter(d => d.departmentId !== transferTarget.departmentId && d.isActive)
+                  .map(d => (
+                    <option key={d.departmentId} value={d.departmentId}>
+                      {d.departmentName}
+                    </option>
+                  ))}
+              </select>
+            </div>
+            <div className="aa-confirm-acts">
+              <button className="aa-btn aa-btn-secondary" onClick={() => setTransferTarget(null)}>Cancel</button>
+              <button
+                className="aa-btn aa-btn-primary"
+                onClick={confirmTransfer}
+                disabled={!transferDeptId}
+              >
+                Transfer
+              </button>
             </div>
           </div>
         </div>
@@ -393,7 +477,7 @@ export default function AllAssetsPage() {
                       <td>
                         <span className="aa-cost">{fmtCost(asset.cost)}</span>
                       </td>
-                      <td style={{ textAlign: 'center', display: 'flex', justifyContent: 'center', gap: '8px' }}>
+                      <td style={{ textAlign: 'center', display: 'flex', justifyContent: 'center', gap: '6px' }}>
                         <button 
                           className="aa-btn-refresh aa-btn-icon-only" 
                           style={{ padding: '6px', minWidth: 0 }} 
@@ -403,15 +487,26 @@ export default function AllAssetsPage() {
                           <DownloadIcon />
                         </button>
                         {isOwner && asset.status !== 'retired' && (
-                          <button
-                            className="aa-btn-refresh aa-btn-icon-only"
-                            style={{ padding: '6px', minWidth: 0, color: asset.status === 'assigned' ? '#999' : '#dc2626', borderColor: asset.status === 'assigned' ? '#ccc' : '#fca5a5', backgroundColor: asset.status === 'assigned' ? '#f3f4f6' : '#fef2f2' }}
-                            onClick={() => handleRetire(asset)}
-                            title={asset.status === 'assigned' ? "Must unassign to retire" : "Retire Asset"}
-                            disabled={asset.status === 'assigned'}
-                          >
-                            <TrashIcon />
-                          </button>
+                          <>
+                            <button
+                              className="aa-btn-refresh aa-btn-icon-only"
+                              style={{ padding: '6px', minWidth: 0, color: asset.status === 'assigned' ? '#999' : 'var(--aa-blue)', borderColor: asset.status === 'assigned' ? '#ccc' : 'rgba(42,111,200,.3)', backgroundColor: asset.status === 'assigned' ? '#f3f4f6' : 'rgba(42,111,200,.06)' }}
+                              onClick={() => handleTransfer(asset)}
+                              title={asset.status === 'assigned' ? 'Must unassign first' : 'Transfer Department'}
+                              disabled={asset.status === 'assigned'}
+                            >
+                              <SwapIcon />
+                            </button>
+                            <button
+                              className="aa-btn-refresh aa-btn-icon-only"
+                              style={{ padding: '6px', minWidth: 0, color: asset.status === 'assigned' ? '#999' : '#dc2626', borderColor: asset.status === 'assigned' ? '#ccc' : '#fca5a5', backgroundColor: asset.status === 'assigned' ? '#f3f4f6' : '#fef2f2' }}
+                              onClick={() => handleRetire(asset)}
+                              title={asset.status === 'assigned' ? 'Must unassign to retire' : 'Retire Asset'}
+                              disabled={asset.status === 'assigned'}
+                            >
+                              <TrashIcon />
+                            </button>
+                          </>
                         )}
                       </td>
                     </tr>
@@ -459,7 +554,7 @@ export default function AllAssetsPage() {
                   </div>
                   <div className="aa-card-meta" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span className="aa-card-detail">{asset.assetTag || '—'}</span>
-                    <div style={{ display: 'flex', gap: '8px' }}>
+                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                       <button 
                         className="aa-btn-refresh" 
                         style={{ padding: '4px 8px', fontSize: '12px' }} 
@@ -468,15 +563,26 @@ export default function AllAssetsPage() {
                         <DownloadIcon /> QR
                       </button>
                       {isOwner && asset.status !== 'retired' && (
-                        <button
-                          className="aa-btn-refresh"
-                          style={{ padding: '4px 8px', fontSize: '12px', color: asset.status === 'assigned' ? '#999' : '#dc2626', borderColor: asset.status === 'assigned' ? '#ccc' : '#fca5a5', backgroundColor: asset.status === 'assigned' ? '#f3f4f6' : '#fef2f2' }}
-                          onClick={() => handleRetire(asset)}
-                          disabled={asset.status === 'assigned'}
-                          title={asset.status === 'assigned' ? "Must unassign to retire" : "Retire Asset"}
-                        >
-                          <TrashIcon /> Retire
-                        </button>
+                        <>
+                          <button
+                            className="aa-btn-refresh"
+                            style={{ padding: '4px 8px', fontSize: '12px', color: asset.status === 'assigned' ? '#999' : 'var(--aa-blue)', borderColor: asset.status === 'assigned' ? '#ccc' : 'rgba(42,111,200,.3)', backgroundColor: asset.status === 'assigned' ? '#f3f4f6' : 'rgba(42,111,200,.06)' }}
+                            onClick={() => handleTransfer(asset)}
+                            disabled={asset.status === 'assigned'}
+                            title={asset.status === 'assigned' ? 'Must unassign first' : 'Transfer'}
+                          >
+                            <SwapIcon /> Transfer
+                          </button>
+                          <button
+                            className="aa-btn-refresh"
+                            style={{ padding: '4px 8px', fontSize: '12px', color: asset.status === 'assigned' ? '#999' : '#dc2626', borderColor: asset.status === 'assigned' ? '#ccc' : '#fca5a5', backgroundColor: asset.status === 'assigned' ? '#f3f4f6' : '#fef2f2' }}
+                            onClick={() => handleRetire(asset)}
+                            disabled={asset.status === 'assigned'}
+                            title={asset.status === 'assigned' ? 'Must unassign to retire' : 'Retire Asset'}
+                          >
+                            <TrashIcon /> Retire
+                          </button>
+                        </>
                       )}
                     </div>
                   </div>

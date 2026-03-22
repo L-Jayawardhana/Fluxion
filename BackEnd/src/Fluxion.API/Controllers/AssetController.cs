@@ -157,8 +157,36 @@ public class AssetController : ControllerBase
             return StatusCode(500, new { message = $"Internal Error: {ex.Message} {ex.InnerException?.Message}" });
         }
     }
+
+    /// <summary>Transfers an asset to a different department.</summary>
+    [HttpPut("{id:int}/transfer")]
+    [Authorize(Roles = "admin,owner")]
+    public async Task<IActionResult> Transfer(int id, [FromBody] TransferAssetRequest request)
+    {
+        try
+        {
+            var command = new Fluxion.Application.Features.Assets.TransferAsset.TransferAssetCommand(
+                id, request.OrgId, request.NewDepartmentId, request.TransferredBy);
+
+            await _mediator.Send(command);
+            return Ok(new { message = "Asset transferred successfully." });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = $"Internal Error: {ex.Message} {ex.InnerException?.Message}" });
+        }
+    }
 }
 
 public record AssignAssetRequest(int UserId, int OrgId, int AssignedBy);
 public record UnassignAssetRequest(int UserId, int OrgId);
 public record RetireAssetRequest(int OrgId, int RetiredBy);
+public record TransferAssetRequest(int OrgId, int NewDepartmentId, int TransferredBy);

@@ -685,3 +685,50 @@ Unassigns an asset from a user, making its status `available` again. Requires **
 ```
 
 _Note: Returns `400 Bad Request` if the active assignment cannot be found._
+
+## 28. PUT `/api/Asset/{id}/retire`
+
+Retires an asset, making it permanently unavailable. Requires **Admin** or **Owner** privileges.
+
+**Request Body:**
+
+```json
+{
+  "orgId": 1,
+  "retiredBy": 5
+}
+```
+
+**Response (200 OK):**
+
+```json
+{
+  "message": "Asset retired successfully."
+}
+```
+
+_Note: Returns `400 Bad Request` if the asset is currently assigned. Returns `404 Not Found` if the asset doesn't exist._
+
+## 29. PUT `/api/Asset/{id}/transfer`
+
+Transfers an asset to a different department within the same organization. Requires **Admin** or **Owner** privileges.
+
+**Request Body:**
+
+```json
+{
+  "orgId": 1,
+  "newDepartmentId": 3,
+  "transferredBy": 5
+}
+```
+
+**Response (200 OK):**
+
+```json
+{
+  "message": "Asset transferred successfully."
+}
+```
+
+_Note: Returns `400 Bad Request` if the asset is currently assigned, retired, or already in the target department. Returns `404 Not Found` if the asset or target department doesn't exist._
