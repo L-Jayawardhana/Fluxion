@@ -106,7 +106,7 @@ const WARRANTIES = [
 ];
 
 /* ── SVG Icons ───────────────────────────────────────────── */
-const ArrowIcon = () => <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 8h10M9 4l4 4-4 4"/></svg>;
+const ArrowIcon = () => <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 8h10M9 4l4 4-4 4" /></svg>;
 
 /* ── Memoised heavy sub-components ────────────────────────── */
 const TicketTable = memo(function TicketTable() {
@@ -153,6 +153,13 @@ const AssetList = memo(function AssetList() {
 /* ████████████████████████████████████████████████████████████ */
 export default function DashboardPage() {
   const { user } = useAuth();
+  
+  // If the user is an employee, return the dedicated employee dashboard immediately.
+  const isEmployee = user?.role?.toLowerCase() === 'user';
+  if (isEmployee) {
+    return <EmployeeDashboardPage />;
+  }
+
   const [orgData, setOrgData] = useState({ totalUsers: 17, activeUsers: 17 });
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const barRefs = useRef([]);
@@ -453,9 +460,9 @@ export default function DashboardPage() {
       </div>
 
       {/* Invite User Modal */}
-      <InviteUserModal 
-        isOpen={isInviteModalOpen} 
-        onClose={() => setIsInviteModalOpen(false)} 
+      <InviteUserModal
+        isOpen={isInviteModalOpen}
+        onClose={() => setIsInviteModalOpen(false)}
         orgId={currentOrgId}
         onUserInvited={() => {
           // Optionally refresh dashboard user count here
@@ -465,7 +472,7 @@ export default function DashboardPage() {
               totalUsers: all.length,
               activeUsers: all.filter(u => u.isActive).length,
             });
-          }).catch(() => {});
+          }).catch(() => { });
         }}
       />
     </div>

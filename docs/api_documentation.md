@@ -615,3 +615,73 @@ Returns the full details of a specific asset.
 ```
 
 _Note: Returns `404 Not Found` if the asset does not exist._
+
+## 25. GET `/api/Asset/user/{userId}`
+
+Returns all assets currently assigned to a specific user.
+
+**Query Parameters:**
+| Parameter | Type | Required | Description |
+|-----------|-------|----------|-------------------------------------|
+| `orgId` | `int` | Yes | Organization ID to verify access |
+
+**Response (200 OK):**
+
+```json
+[
+  {
+    "assignmentId": 5,
+    "assetId": 14,
+    "assetName": "MacBook Pro M3",
+    "assetTag": "AA-001",
+    "assignedDate": "2024-03-21T10:00:00Z"
+  }
+]
+```
+
+## 26. PUT `/api/Asset/{id}/assign`
+
+Assigns an available asset to a specific user. Requires **Admin** or **Owner** privileges.
+
+**Request Body:**
+
+```json
+{
+  "userId": 11,
+  "orgId": 1,
+  "assignedBy": 5
+}
+```
+
+**Response (200 OK):**
+
+```json
+{
+  "message": "Asset assigned successfully."
+}
+```
+
+_Note: Returns `400 Bad Request` if the asset is not `available` or if there's a permission mismatch._
+
+## 27. PUT `/api/Asset/{id}/unassign`
+
+Unassigns an asset from a user, making its status `available` again. Requires **Admin** or **Owner** privileges.
+
+**Request Body:**
+
+```json
+{
+  "userId": 11,
+  "orgId": 1
+}
+```
+
+**Response (200 OK):**
+
+```json
+{
+  "message": "Asset unassigned successfully."
+}
+```
+
+_Note: Returns `400 Bad Request` if the active assignment cannot be found._

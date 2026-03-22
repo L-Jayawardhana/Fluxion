@@ -59,7 +59,8 @@ const NAV = [
     label: 'Assets', items: [
       { to: '/assets', icon: I.asset, text: 'All Assets' },
       { to: '/register-asset', icon: I.plus, text: 'Register Asset', ownerOnly: true },
-      { to: '/assignments', icon: I.assignment, text: 'Asset Assignments' },
+      { to: '/assignments', icon: I.assignment, text: 'Asset Assignments', ownerOnly: true },
+      { to: '/assigned-assets', icon: I.assignment, text: 'Assigned Assets', userOnly: true },
       { to: '/qr-labels', icon: I.qr, text: 'QR Code Labels' },
       { to: '/asset-categories', icon: I.category, text: 'Asset Categories', ownerOnly: true },
     ]
@@ -99,13 +100,14 @@ const pageName = (path) => {
 /* ── Filter nav by role ────────────────────────────────── */
 function getFilteredNav(role) {
   const isOwner = role === 'owner' || role === 'systemAdmin';
+  const isEmployee = role === 'user';
   return NAV
-    .filter(g => !g.ownerOnly || isOwner)               // hide entire owner-only groups
+    .filter(g => (!g.ownerOnly || isOwner) && (!g.userOnly || isEmployee))
     .map(g => ({
       ...g,
-      items: g.items.filter(i => !i.ownerOnly || isOwner) // hide individual owner-only items
+      items: g.items.filter(i => (!i.ownerOnly || isOwner) && (!i.userOnly || isEmployee))
     }))
-    .filter(g => g.items.length > 0);                    // drop empty groups
+    .filter(g => g.items.length > 0);
 }
 
 /* ██████████████████████████████████████████████████████████ */

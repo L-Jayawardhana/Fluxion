@@ -30,7 +30,8 @@ public class GetAssetByIdHandler : IRequestHandler<GetAssetByIdQuery, AssetDto?>
                 a.QrCode,
                 a.AssetTag,
                 a.PurchaseDate,
-                a.WarrantyEndDate))
+                a.WarrantyEndDate,
+                null))
             .FirstOrDefaultAsync(cancellationToken);
 
         return asset;
