@@ -26,6 +26,9 @@ public class User : IAuditable
     public bool MustChangePassword { get; set; } = true;
     public bool IsActive { get; set; } = true;
 
+    public bool InvitationAccepted { get; set; } = false;
+    public string? InvitationToken { get; set; }
+
     public DateTime? LastLoginAt { get; set; }
 
     public int? CreatedBy { get; set; }
@@ -34,6 +37,9 @@ public class User : IAuditable
     public DateTime UpdatedAt { get; set; }
 
     public Organization? Organization { get; set; }
+
+    public string? ResetPasswordToken { get; set; }
+    public DateTime? ResetPasswordTokenExpiresAt { get; set; }
 
     public ICollection<UserDepartment>? UserDepartments { get; set; }
     public ICollection<AssetAssignment>? AssetAssignments { get; set; }

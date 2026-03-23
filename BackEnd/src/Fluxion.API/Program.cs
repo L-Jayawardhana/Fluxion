@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json;
 using Microsoft.AspNetCore.HttpOverrides;
 using Fluxion.Application.Behaviors;
 using Fluxion.Application.Features.Authentication.Login;
@@ -11,6 +12,10 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// ── Configure dynamic port to prevent "address already in use" errors ────
+var port = Environment.GetEnvironmentVariable("ASPNETCORE_PORT") ?? "5226";
+builder.WebHost.UseUrls($"http://localhost:{port}");
 
 // ── Layer Registrations ───────────────────────────────────
 builder.Services.AddPersistence(builder.Configuration);
@@ -44,7 +49,12 @@ builder.Services.AddAuthentication(options =>
 });
 
 // ── Controllers ───────────────────────────────────────────
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+    });
 
 // ── Swagger / OpenAPI ─────────────────────────────────────
 builder.Services.AddEndpointsApiExplorer();

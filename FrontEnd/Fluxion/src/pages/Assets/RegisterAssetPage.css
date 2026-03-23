@@ -1,0 +1,332 @@
+/* ══════════════════════════════════════════════════════════
+   Register Asset Page — Owner Dashboard · Fluxion
+   Renders inside MainLayout (not standalone full-page)
+   ══════════════════════════════════════════════════════════ */
+
+.rap-page {
+  --rap-bg:      #F2EFE8;
+  --rap-card:    #FFFFFF;
+  --rap-border:  rgba(13,13,13,.10);
+  --rap-border2: rgba(13,13,13,.06);
+  --rap-paper:   #0D0D0D;
+  --rap-rust:    #C84B2F;
+  --rap-amber:   #D48A08;
+  --rap-green:   #2D9456;
+  --rap-blue:    #2A6FC8;
+  --rap-mist:    #6B7A8D;
+  --rap-dim:     #8A9BAD;
+  --rap-text:    #1A1A1A;
+
+  padding-bottom: 40px;
+  font-family: 'DM Mono', 'Poppins', monospace;
+  color: var(--rap-text);
+  background: var(--rap-bg);
+}
+
+/* ── Keyframes ── */
+@keyframes rapFadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Page header ── */
+.rap-header {
+  margin-bottom: 24px;
+  animation: rapFadeUp .4s .05s both;
+}
+.rap-title {
+  font-family: 'Syne', 'Poppins', sans-serif;
+  font-weight: 800;
+  font-size: 26px;
+  letter-spacing: -.03em;
+  color: var(--rap-paper);
+  margin: 0 0 4px;
+}
+.rap-subtitle {
+  font-size: 12px;
+  color: var(--rap-mist);
+  margin: 0;
+}
+
+/* ── Breadcrumb back link ── */
+.rap-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--rap-mist);
+  text-decoration: none;
+  margin-bottom: 12px;
+  font-family: 'DM Mono', monospace;
+  transition: color .15s;
+}
+.rap-back:hover { color: var(--rap-rust); }
+.rap-back svg { width: 12px; height: 12px; }
+
+/* ── Card container ── */
+.rap-card {
+  background: var(--rap-card);
+  border: 1px solid var(--rap-border);
+  border-radius: 10px;
+  overflow: hidden;
+  max-width: 680px;
+  animation: rapFadeUp .4s .1s both;
+}
+
+/* ── Card header strip ── */
+.rap-card-head {
+  padding: 24px 28px;
+  position: relative;
+  overflow: hidden;
+  background: var(--rap-card);
+  border-bottom: 1px solid var(--rap-border2);
+}
+.rap-card-head::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--rap-blue), var(--rap-rust), transparent);
+}
+.rap-card-head-title {
+  font-family: 'Syne', 'Poppins', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--rap-paper);
+  margin: 0 0 4px;
+}
+.rap-card-head-sub {
+  font-size: 11px;
+  color: var(--rap-mist);
+  margin: 0;
+}
+
+/* ── Card body ── */
+.rap-card-body { padding: 24px 28px; }
+
+/* ── Messages ── */
+.rap-msg {
+  padding: 11px 14px;
+  border-radius: 7px;
+  font-size: 12px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: rapFadeUp .3s both;
+}
+.rap-msg-success { background: rgba(45,148,86,.1); color: #1E7A3C; border: 1px solid rgba(45,148,86,.2); }
+.rap-msg-error   { background: rgba(200,75,47,.08); color: var(--rap-rust); border: 1px solid rgba(200,75,47,.2); }
+
+/* ── Loading / org missing ── */
+.rap-loading,
+.rap-org-missing {
+  padding: 40px 28px;
+  text-align: center;
+  color: var(--rap-mist);
+  font-size: 13px;
+}
+.rap-spinner {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  border: 3px solid var(--rap-border);
+  border-top-color: var(--rap-blue);
+  animation: rapSpin .7s linear infinite;
+  margin: 0 auto 10px;
+}
+@keyframes rapSpin { to { transform: rotate(360deg); } }
+
+/* ── Org display chip ── */
+.rap-org-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  background: rgba(42,111,200,.07);
+  border: 1px solid rgba(42,111,200,.18);
+  border-radius: 20px;
+  font-size: 12px;
+  color: var(--rap-blue);
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+.rap-org-chip-label {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--rap-mist);
+}
+
+/* ── Form ── */
+.rap-field { margin-bottom: 20px; }
+.rap-field:last-of-type { margin-bottom: 0; }
+.rap-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--rap-mist);
+  margin-bottom: 7px;
+}
+.rap-required { color: var(--rap-rust); }
+.rap-input,
+.rap-select,
+.rap-textarea {
+  display: block;
+  width: 100%;
+  padding: 10px 13px;
+  font-size: 13px;
+  font-family: 'DM Mono', monospace;
+  border: 1px solid var(--rap-border);
+  border-radius: 7px;
+  background: rgba(13,13,13,.025);
+  color: var(--rap-paper);
+  transition: border-color .2s, box-shadow .2s, background .2s;
+  box-sizing: border-box;
+}
+.rap-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 10 6' fill='none' stroke='%236B7A8D' stroke-width='1.5' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 10px;
+  padding-right: 32px;
+  cursor: pointer;
+}
+.rap-input:focus, .rap-select:focus, .rap-textarea:focus {
+  outline: none;
+  border-color: var(--rap-blue);
+  box-shadow: 0 0 0 3px rgba(42,111,200,.1);
+  background: #fff;
+}
+.rap-input:disabled, .rap-select:disabled, .rap-textarea:disabled { opacity: .6; cursor: not-allowed; }
+.rap-input.err, .rap-select.err { border-color: var(--rap-rust); background: rgba(200,75,47,.04); }
+.rap-textarea { resize: vertical; min-height: 80px; line-height: 1.55; }
+.rap-field-err  { font-size: 11px; color: var(--rap-rust); margin-top: 4px; }
+.rap-field-hint { font-size: 10px; color: var(--rap-dim); margin-top: 3px; text-align: right; }
+
+/* ── Row layout (two fields side-by-side) ── */
+.rap-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.rap-row .rap-field { margin-bottom: 20px; }
+
+/* ── Divider ── */
+.rap-divider {
+  border: none;
+  border-top: 1px solid var(--rap-border2);
+  margin: 24px 0;
+}
+
+/* ── Section label ── */
+.rap-section {
+  font-family: 'Syne', 'Poppins', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--rap-paper);
+  margin: 0 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.rap-section-icon {
+  font-size: 15px;
+}
+
+/* ── Success card ── */
+.rap-success-card {
+  text-align: center;
+  padding: 16px 0;
+  animation: rapFadeUp .4s both;
+}
+.rap-success-icon {
+  font-size: 42px;
+  margin-bottom: 12px;
+}
+.rap-success-title {
+  font-family: 'Syne', 'Poppins', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--rap-paper);
+  margin: 0 0 4px;
+}
+.rap-success-sub {
+  font-size: 12px;
+  color: var(--rap-mist);
+  margin: 0 0 16px;
+}
+.rap-qr-box {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: rgba(42,111,200,.06);
+  border: 1px dashed rgba(42,111,200,.25);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--rap-blue);
+  font-family: 'DM Mono', monospace;
+}
+.rap-qr-label {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--rap-mist);
+  font-weight: 500;
+}
+
+/* ── Actions ── */
+.rap-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+.rap-btn {
+  padding: 10px 20px;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: 'Syne', 'Poppins', sans-serif;
+  border-radius: 7px;
+  border: none;
+  cursor: pointer;
+  transition: all .2s;
+  letter-spacing: .03em;
+}
+.rap-btn:disabled { opacity: .6; cursor: not-allowed; }
+.rap-btn-cancel {
+  background: transparent;
+  border: 1px solid var(--rap-border);
+  color: var(--rap-mist);
+}
+.rap-btn-cancel:hover:not(:disabled) {
+  border-color: rgba(13,13,13,.25);
+  color: var(--rap-text);
+}
+.rap-btn-submit {
+  background: var(--rap-blue);
+  color: #fff;
+  min-width: 160px;
+}
+.rap-btn-submit:hover:not(:disabled) {
+  background: #1e5ba6;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(42,111,200,.3);
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .rap-card { max-width: 100%; }
+  .rap-card-head { padding: 20px 20px; }
+  .rap-card-body { padding: 20px; }
+  .rap-title { font-size: 22px; }
+  .rap-row { grid-template-columns: 1fr; gap: 0; }
+}
+@media (max-width: 480px) {
+  .rap-actions { flex-direction: column-reverse; }
+  .rap-btn { width: 100%; justify-content: center; }
+}

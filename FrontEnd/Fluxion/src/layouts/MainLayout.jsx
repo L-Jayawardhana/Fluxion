@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Outlet, NavLink, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import './MainLayout.css';
@@ -34,6 +34,7 @@ const I = {
 };
 
 /* ── Sidebar data ──────────────────────────────────────── */
+/* ownerOnly: true → hidden from employees (role "user") */
 const NAV = [
   {
     label: 'Home', items: [
@@ -42,7 +43,7 @@ const NAV = [
     ]
   },
   {
-    label: 'People', items: [
+    label: 'People', ownerOnly: true, items: [
       { to: '/users', icon: I.users, text: 'Users' },
       { to: '/invite-users', icon: I.invite, text: 'Invite Users' },
       { to: '/roles', icon: I.roles, text: 'Roles & Access' },
@@ -51,16 +52,17 @@ const NAV = [
   {
     label: 'Departments', items: [
       { to: '/departments', icon: I.department, text: 'All Departments' },
-      { to: '/add-department', icon: I.plus, text: 'Add Department' },
+      { to: '/add-department', icon: I.plus, text: 'Add Department', ownerOnly: true },
     ]
   },
   {
     label: 'Assets', items: [
       { to: '/assets', icon: I.asset, text: 'All Assets' },
-      { to: '/register-asset', icon: I.plus, text: 'Register Asset' },
-      { to: '/assignments', icon: I.assignment, text: 'Asset Assignments' },
+      { to: '/register-asset', icon: I.plus, text: 'Register Asset', ownerOnly: true },
+      { to: '/assignments', icon: I.assignment, text: 'Asset Assignments', ownerOnly: true },
+      { to: '/assigned-assets', icon: I.assignment, text: 'Assigned Assets', userOnly: true },
       { to: '/qr-labels', icon: I.qr, text: 'QR Code Labels' },
-      { to: '/asset-categories', icon: I.category, text: 'Asset Categories' },
+      { to: '/asset-categories', icon: I.category, text: 'Asset Categories', ownerOnly: true },
     ]
   },
   {
@@ -72,7 +74,7 @@ const NAV = [
     ]
   },
   {
-    label: 'Reports', items: [
+    label: 'Reports', ownerOnly: true, items: [
       { to: '/report-assets', icon: I.report, text: 'Asset Register' },
       { to: '/report-maintenance', icon: I.chart, text: 'Maintenance Cost' },
       { to: '/report-warranty', icon: I.warranty, text: 'Warranty Expiry' },
@@ -80,7 +82,7 @@ const NAV = [
     ]
   },
   {
-    label: 'Organisation', items: [
+    label: 'Organisation', ownerOnly: true, items: [
       { to: '/subscription', icon: I.globe, text: 'Subscription' },
       { to: '/audit-log', icon: I.audit, text: 'Audit Log' },
       { to: '/settings', icon: I.settings, text: 'Settings' },
@@ -95,6 +97,19 @@ const pageName = (path) => {
   return 'Page';
 };
 
+/* ── Filter nav by role ────────────────────────────────── */
+function getFilteredNav(role) {
+  const isOwner = role === 'owner' || role === 'systemAdmin';
+  const isEmployee = role === 'user';
+  return NAV
+    .filter(g => (!g.ownerOnly || isOwner) && (!g.userOnly || isEmployee))
+    .map(g => ({
+      ...g,
+      items: g.items.filter(i => (!i.ownerOnly || isOwner) && (!i.userOnly || isEmployee))
+    }))
+    .filter(g => g.items.length > 0);
+}
+
 /* ██████████████████████████████████████████████████████████ */
 export default function MainLayout() {
   const { user, logout } = useAuth();
@@ -103,8 +118,9 @@ export default function MainLayout() {
 
   const rawName = user?.email?.split('@')[0] || 'User';
   const userName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
-  const userRole = user?.role || 'User';
+  const userRole = user?.role || 'user';
   const initials = userName.slice(0, 2).toUpperCase();
+  const filteredNav = useMemo(() => getFilteredNav(userRole), [userRole]);
 
   /* Live clock */
   useEffect(() => {
@@ -139,7 +155,7 @@ export default function MainLayout() {
 
         {/* Scrollable nav */}
         <nav className="ml-sb-scroll">
-          {NAV.map((group) => (
+          {filteredNav.map((group) => (
             <div key={group.label}>
               <span className="ml-sb-label">{group.label}</span>
               {group.items.map((item) => (

@@ -59,14 +59,12 @@ namespace Fluxion.Persistence.Migrations
                     b.Property<int>("OrgId")
                         .HasColumnType("int");
 
-                    b.Property<int>("OrganizationOrgId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime?>("PurchaseDate")
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("QrCode")
-                        .HasColumnType("longtext");
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
 
                     b.Property<DateTime?>("RetiredAt")
                         .HasColumnType("datetime(6)");
@@ -78,8 +76,10 @@ namespace Fluxion.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("varchar(30)");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime(6)");
@@ -91,9 +91,9 @@ namespace Fluxion.Persistence.Migrations
 
                     b.HasIndex("DepartmentId");
 
-                    b.HasIndex("OrganizationOrgId");
+                    b.HasIndex("OrgId");
 
-                    b.ToTable("Assets");
+                    b.ToTable("Assets", (string)null);
                 });
 
             modelBuilder.Entity("Fluxion.Domain.Entities.AssetAssignment", b =>
@@ -153,6 +153,15 @@ namespace Fluxion.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
 
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(true);
+
                     b.Property<string>("Location")
                         .HasMaxLength(150)
                         .HasColumnType("varchar(150)");
@@ -160,17 +169,14 @@ namespace Fluxion.Persistence.Migrations
                     b.Property<int>("OrgId")
                         .HasColumnType("int");
 
-                    b.Property<int>("OrganizationOrgId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime(6)");
 
                     b.HasKey("DepartmentId");
 
-                    b.HasIndex("OrganizationOrgId");
+                    b.HasIndex("OrgId");
 
-                    b.ToTable("Departments");
+                    b.ToTable("Departments", (string)null);
                 });
 
             modelBuilder.Entity("Fluxion.Domain.Entities.MaintenanceLog", b =>
@@ -412,6 +418,12 @@ namespace Fluxion.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
 
+                    b.Property<bool>("InvitationAccepted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("InvitationToken")
+                        .HasColumnType("longtext");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("tinyint(1)");
 
@@ -477,11 +489,12 @@ namespace Fluxion.Persistence.Migrations
                 {
                     b.HasOne("Fluxion.Domain.Entities.Department", "Department")
                         .WithMany()
-                        .HasForeignKey("DepartmentId");
+                        .HasForeignKey("DepartmentId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("Fluxion.Domain.Entities.Organization", "Organization")
                         .WithMany("Assets")
-                        .HasForeignKey("OrganizationOrgId")
+                        .HasForeignKey("OrgId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -513,7 +526,7 @@ namespace Fluxion.Persistence.Migrations
                 {
                     b.HasOne("Fluxion.Domain.Entities.Organization", "Organization")
                         .WithMany("Departments")
-                        .HasForeignKey("OrganizationOrgId")
+                        .HasForeignKey("OrgId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

@@ -79,6 +79,13 @@ public class AuthController : ControllerBase
         {
             return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
         }
+        catch (Exception ex)
+        {
+            var msg = ex.Message + (ex.InnerException != null ? " | " + ex.InnerException.Message : "");
+            Console.WriteLine("GOOGLE LOGIN ERROR: " + msg);
+            Console.WriteLine(ex.StackTrace);
+            return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Server Error: " + msg });
+        }
     }
 
     [HttpPost("send-verification-code")]
@@ -115,6 +122,14 @@ public class AuthController : ControllerBase
     {
         var result = await _mediator.Send(command);
         if (!result.Success) return BadRequest(new { message = result.Message });
+        return Ok(result);
+    }
+
+    [HttpPost("verify-reset-code")]
+    public async Task<IActionResult> VerifyResetCode([FromBody] Application.Features.Authentication.ForgotPassword.VerifyResetCodeCommand command)
+    {
+        var result = await _mediator.Send(command);
+        if (!result.IsValid) return BadRequest(new { message = result.Message });
         return Ok(result);
     }
 }

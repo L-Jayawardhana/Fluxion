@@ -1,4 +1,6 @@
 using Fluxion.Application.Features.Users;
+using Fluxion.Application.Features.Users.CreateEmployee;
+using Fluxion.Application.Features.Users.AcceptInvite;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,6 +15,30 @@ public class UserController : ControllerBase
     public UserController(IMediator mediator)
     {
         _mediator = mediator;
+    }
+
+    [HttpPost("employee")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "owner,admin")]
+    public async Task<IActionResult> CreateEmployee([FromBody] CreateEmployeeCommand command)
+    {
+        try
+        {
+            var result = await _mediator.Send(command);
+            return StatusCode(StatusCodes.Status201Created, result);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new { message = ex.Message });
+        }
+    }
+
+    [HttpPost("accept-invite")]
+    [Microsoft.AspNetCore.Authorization.AllowAnonymous]
+    public async Task<IActionResult> AcceptInvite([FromBody] AcceptInviteCommand command)
+    {
+        var success = await _mediator.Send(command);
+        if (!success) return BadRequest(new { message = "Invalid or expired invitation token." });
+        return Ok(new { message = "Invitation accepted successfully." });
     }
 
     [HttpGet]

@@ -27,6 +27,12 @@ public static class DependencyInjection
         // Verification code service (singleton — codes must persist across requests)
         services.AddSingleton<IVerificationCodeService, InMemoryVerificationCodeService>();
 
+        // Invitation service
+        services.AddScoped<IInvitationService, InvitationService>();
+        // Cloudinary Image service
+        services.Configure<Fluxion.Infrastructure.Images.CloudinarySettings>(configuration.GetSection("CloudinarySettings"));
+        services.AddScoped<IImageService, Fluxion.Infrastructure.Images.CloudinaryService>();
+
         return services;
     }
 }

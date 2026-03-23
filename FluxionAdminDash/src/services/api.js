@@ -55,4 +55,24 @@ export const deleteUser = async (id) => {
   await api.delete(`/user/${id}`);
 };
 
+// ── Department ────────────────────────────────────────────
+
+export const getDepartments = async (orgId) => {
+  const response = await api.get('/department', { params: { orgId } });
+  return response.data;
+};
+
+export const createDepartment = async (data) => {
+  const response = await api.post('/department', data);
+  return response.data;
+};
+
+export const updateDepartment = async (id, data) => {
+  await api.put(`/department/${id}`, data);
+};
+
+export const toggleDepartment = async (id, orgId, isActive) => {
+  await api.patch(`/department/${id}/toggle`, { departmentId: id, orgId, isActive });
+};
+
 export default api;

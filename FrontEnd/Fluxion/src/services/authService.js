@@ -27,14 +27,13 @@ export const authService = {
     resetPassword: (email, code, newPassword) =>
         api.post('/Auth/reset-password', { email, code, newPassword }),
 
+    verifyResetCode: (email, code) =>
+        api.post('/Auth/verify-reset-code', { email, code }),
+
     createOrganization: (orgName, slug, timezone, ownerId) =>
         api.post('/Organization', { orgName, slug, timezone, ownerId }),
 
-    uploadOrgLogo: (orgId, file) => {
-        const formData = new FormData();
-        formData.append('file', file);
-        return api.post(`/Organization/${orgId}/logo`, formData, {
-            headers: { 'Content-Type': 'multipart/form-data' },
-        });
+    uploadOrgLogo: (orgId, logoData) => {
+        return api.post(`/Organization/${orgId}/logo-base64`, logoData);
     },
 };

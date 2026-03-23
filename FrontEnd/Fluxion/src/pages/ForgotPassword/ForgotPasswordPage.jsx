@@ -93,7 +93,7 @@ export default function ForgotPasswordPage() {
         }
     };
 
-    // Step 2: Verify code
+    // Step 2: Verify code via backend
     const handleVerifyCode = async (e) => {
         e.preventDefault();
         setError('');
@@ -102,7 +102,19 @@ export default function ForgotPasswordPage() {
         if (!code || code.length < 4) errs.code = 'Please enter the verification code.';
         if (Object.keys(errs).length) { setFieldErrors(errs); return; }
 
-        setStep(3);
+        setLoading(true);
+        try {
+            const { data } = await authService.verifyResetCode(email, code);
+            if (data.isValid) {
+                setStep(3);
+            } else {
+                setError(data.message || 'Invalid verification code.');
+            }
+        } catch (err) {
+            setError(err.response?.data?.message || 'Invalid or expired verification code.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     // Step 3: Reset password
