@@ -27,6 +27,9 @@ export const authService = {
     resetPassword: (email, code, newPassword) =>
         api.post('/Auth/reset-password', { email, code, newPassword }),
 
+    verifyResetCode: (email, code) =>
+        api.post('/Auth/verify-reset-code', { email, code }),
+
     createOrganization: (orgName, slug, timezone, ownerId) =>
         api.post('/Organization', { orgName, slug, timezone, ownerId }),
 

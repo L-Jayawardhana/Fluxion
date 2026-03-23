@@ -9,15 +9,18 @@ public class ForgotPasswordHandler : IRequestHandler<ForgotPasswordCommand, Forg
     private readonly IApplicationDbContext _context;
     private readonly IVerificationCodeService _codeService;
     private readonly IEmailService _emailService;
+    private readonly IPasswordHasher _passwordHasher;
 
     public ForgotPasswordHandler(
         IApplicationDbContext context,
         IVerificationCodeService codeService,
-        IEmailService emailService)
+        IEmailService emailService,
+        IPasswordHasher passwordHasher)
     {
         _context = context;
         _codeService = codeService;
         _emailService = emailService;
+        _passwordHasher = passwordHasher;
     }
 
     public async Task<ForgotPasswordResponse> Handle(ForgotPasswordCommand request, CancellationToken cancellationToken)
@@ -32,6 +35,10 @@ public class ForgotPasswordHandler : IRequestHandler<ForgotPasswordCommand, Forg
         }
 
         var code = _codeService.GenerateCode(request.Email);
+
+        // Persist hashed reset code to DB so it survives app restarts
+        user.ResetPasswordToken = _passwordHasher.Hash(code);
+        user.ResetPasswordTokenExpiresAt = DateTime.UtcNow.AddMinutes(10);
 
         var logoImg = @"
           <table role=""presentation"" cellpadding=""0"" cellspacing=""0"" border=""0"">
@@ -127,6 +134,8 @@ public class ForgotPasswordHandler : IRequestHandler<ForgotPasswordCommand, Forg
   </table>
 </body>
 </html>";
+
+        await _context.SaveChangesAsync(cancellationToken);
 
         await _emailService.SendEmailAsync(
             request.Email,

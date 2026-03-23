@@ -38,6 +38,9 @@ public class User : IAuditable
 
     public Organization? Organization { get; set; }
 
+    public string? ResetPasswordToken { get; set; }
+    public DateTime? ResetPasswordTokenExpiresAt { get; set; }
+
     public ICollection<UserDepartment>? UserDepartments { get; set; }
     public ICollection<AssetAssignment>? AssetAssignments { get; set; }
 }

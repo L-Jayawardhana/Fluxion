@@ -124,4 +124,12 @@ public class AuthController : ControllerBase
         if (!result.Success) return BadRequest(new { message = result.Message });
         return Ok(result);
     }
+
+    [HttpPost("verify-reset-code")]
+    public async Task<IActionResult> VerifyResetCode([FromBody] Application.Features.Authentication.ForgotPassword.VerifyResetCodeCommand command)
+    {
+        var result = await _mediator.Send(command);
+        if (!result.IsValid) return BadRequest(new { message = result.Message });
+        return Ok(result);
+    }
 }
