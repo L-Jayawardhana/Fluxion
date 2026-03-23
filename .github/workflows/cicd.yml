@@ -17,6 +17,10 @@ jobs:
   build-backend:
     name: Build & Test Backend
     runs-on: ubuntu-latest
+    env:
+      CloudinarySettings__CloudName: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
+      CloudinarySettings__ApiKey: ${{ secrets.CLOUDINARY_API_KEY }}
+      CloudinarySettings__ApiSecret: ${{ secrets.CLOUDINARY_API_SECRET }}
     defaults:
       run:
         working-directory: BackEnd/src
@@ -151,6 +155,9 @@ jobs:
             SMTP_FROM_NAME=Fluxion
             SMTP_ENABLE_SSL=true
             GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+            CLOUDINARY_CLOUD_NAME=${{ secrets.CLOUDINARY_CLOUD_NAME }}
+            CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }}
+            CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }}
             ALLOWED_ORIGIN_0=${{ secrets.ALLOWED_ORIGIN_0 }}
             ALLOWED_ORIGIN_1=${{ secrets.ALLOWED_ORIGIN_1 }}
             EOF

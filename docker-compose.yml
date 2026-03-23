@@ -22,6 +22,9 @@ services:
       - SmtpSettings__FromName=${SMTP_FROM_NAME:-Fluxion}
       - SmtpSettings__EnableSsl=${SMTP_ENABLE_SSL:-true}
       - GoogleAuth__ClientId=${GOOGLE_CLIENT_ID}
+      - CloudinarySettings__CloudName=${CLOUDINARY_CLOUD_NAME}
+      - CloudinarySettings__ApiKey=${CLOUDINARY_API_KEY}
+      - CloudinarySettings__ApiSecret=${CLOUDINARY_API_SECRET}
       # CORS — Vercel frontend origins (set via GitHub Secrets → VM .env)
       - AllowedOrigins__0=${ALLOWED_ORIGIN_0}
       - AllowedOrigins__1=${ALLOWED_ORIGIN_1}

@@ -197,6 +197,30 @@ Automated workflows handle:
 - Docker build
 - Deployment to Azure
 
+#### Required GitHub Secrets (backend deploy)
+
+- `DOCKERHUB_USERNAME`
+- `DOCKERHUB_TOKEN`
+- `VM_HOST`
+- `VM_USER`
+- `VM_SSH_PRIVATE_KEY`
+- `DB_CONNECTION_STRING`
+- `JWT_SECRET_KEY`
+- `JWT_ISSUER`
+- `JWT_AUDIENCE`
+- `JWT_EXPIRY_MINUTES`
+- `SMTP_HOST`
+- `SMTP_PORT`
+- `SMTP_USERNAME`
+- `SMTP_PASSWORD`
+- `SMTP_FROM_EMAIL`
+- `GOOGLE_CLIENT_ID`
+- `CLOUDINARY_CLOUD_NAME`
+- `CLOUDINARY_API_KEY`
+- `CLOUDINARY_API_SECRET`
+- `ALLOWED_ORIGIN_0`
+- `ALLOWED_ORIGIN_1`
+
 ---
 
 ## 👨‍💻 Team
