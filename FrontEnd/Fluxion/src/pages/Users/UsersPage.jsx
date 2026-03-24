@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import api from '../../services/api';
 import './UsersPage.css';
@@ -34,7 +34,7 @@ export default function UsersPage() {
 
 
   /* ── Load users ── */
-  const loadUsers = () => {
+  const loadUsers = useCallback(() => {
     if (!currentOrgId) return;
     setLoading(true);
     setError('');
@@ -46,9 +46,9 @@ export default function UsersPage() {
       })
       .catch(() => setError('Failed to load users.'))
       .finally(() => setLoading(false));
-  };
+  }, [currentOrgId, user?.userId]);
 
-  useEffect(() => { loadUsers(); }, [currentOrgId]);
+  useEffect(() => { loadUsers(); }, [loadUsers]);
 
   /* ── Delete user ── */
   const handleDelete = async () => {

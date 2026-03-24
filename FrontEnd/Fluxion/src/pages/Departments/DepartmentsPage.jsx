@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { getOrganizations, getDepartments, updateDepartment, toggleDepartment } from '../../services/api';
@@ -69,10 +69,7 @@ export default function DepartmentsPage() {
   // Confirm deactivate/activate
   const [confirmTarget, setConfirmTarget] = useState(null); // { dept, newIsActive }
 
-  /* ── Load data ──────────────────────────────────────────── */
-  useEffect(() => { loadData(); }, [user]);
-
-  const loadData = () => {
+  const loadData = useCallback(() => {
     setLoading(true);
     setError(null);
 
@@ -96,7 +93,10 @@ export default function DepartmentsPage() {
         setError('Failed to load departments. Please try again.');
         setLoading(false);
       });
-  };
+  }, [user?.orgId]);
+
+  /* ── Load data ──────────────────────────────────────────── */
+  useEffect(() => { loadData(); }, [loadData]);
 
   /* ── Filtered list ──────────────────────────────────────── */
   const filtered =

@@ -21,7 +21,6 @@ export default function AssignedAssetsPage() {
   useEffect(() => {
     if (!user?.userId || !user?.orgId) return;
     let cancelled = false;
-    setLoading(true);
     api.get(`/Asset/user/${user.userId}?orgId=${user.orgId}`)
       .then(res => {
         if (!cancelled) setAssets(res.data);

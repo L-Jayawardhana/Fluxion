@@ -154,11 +154,8 @@ const AssetList = memo(function AssetList() {
 export default function DashboardPage() {
   const { user } = useAuth();
   
-  // If the user is an employee, return the dedicated employee dashboard immediately.
+  // Employee users render a dedicated dashboard view.
   const isEmployee = user?.role?.toLowerCase() === 'user';
-  if (isEmployee) {
-    return <EmployeeDashboardPage />;
-  }
 
   const [orgData, setOrgData] = useState({ totalUsers: 17, activeUsers: 17 });
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
@@ -222,6 +219,10 @@ export default function DashboardPage() {
 
   /* ── Donut gradient ────────────────────────────────────── */
   const donutGradient = `conic-gradient(var(--db-blue) 0% 46%, var(--db-green) 46% 65%, var(--db-rust) 65% 80%, var(--db-amber) 80% 100%)`;
+
+  if (isEmployee) {
+    return <EmployeeDashboardPage />;
+  }
 
   /* ── Render ────────────────────────────────────────────── */
   return (

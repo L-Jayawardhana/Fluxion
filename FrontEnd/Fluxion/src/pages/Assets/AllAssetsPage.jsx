@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { getOrganizations, getDepartments, getAssets, retireAsset, transferAsset } from '../../services/api';
@@ -76,10 +76,7 @@ export default function AllAssetsPage() {
   const [filterType, setFilterType] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
 
-  /* ── Load data ──────────────────────────────────────────── */
-  useEffect(() => { loadData(); }, [user]);
-
-  const loadData = () => {
+  const loadData = useCallback(() => {
     setLoading(true);
     setError(null);
 
@@ -105,7 +102,10 @@ export default function AllAssetsPage() {
         setError('Failed to load assets. Please try again.');
         setLoading(false);
       });
-  };
+  }, [user?.orgId]);
+
+  /* ── Load data ──────────────────────────────────────────── */
+  useEffect(() => { loadData(); }, [loadData]);
 
   /* ── Filtered list (client-side for instant interaction) ── */
   const filtered = useMemo(() => {
