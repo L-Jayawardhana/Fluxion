@@ -1,0 +1,198 @@
+/* ReportIssueModal.css */
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Syne:wght@400..800&family=Poppins:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --rim-border: rgba(13,13,13,.1);
+  --rim-rust: #C84B2F;
+  --rim-rust-bg: rgba(200,75,47,.08);
+}
+
+.rim-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(13,13,13,.6);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+  animation: rimFadeIn .3s ease both;
+}
+
+@keyframes rimFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.rim-modal {
+  background: #FFFFFF;
+  border-radius: 16px;
+  width: 100%; max-width: 540px;
+  box-shadow: 0 16px 48px rgba(0,0,0,.15), inset 0 1px 0 rgba(255,255,255,.5);
+  display: flex; flex-direction: column;
+  animation: rimSlideUp .4s cubic-bezier(.22,1,.36,1) both;
+  position: relative;
+  overflow: hidden;
+}
+
+@keyframes rimSlideUp {
+  from { opacity: 0; transform: translateY(20px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.rim-header {
+  padding: 32px 32px 24px;
+  display: flex; align-items: center; gap: 16px;
+  border-bottom: 1px solid var(--rim-border);
+}
+
+.rim-icon-blob {
+  width: 48px; height: 48px;
+  border-radius: 12px;
+  background: var(--rim-rust-bg);
+  border: 1px solid rgba(200,75,47,.2);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--rim-rust);
+  flex-shrink: 0;
+}
+.rim-icon-blob svg { width: 24px; height: 24px; }
+
+.rim-titles { flex: 1; }
+.rim-titles h2 {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800; font-size: 20px;
+  color: #0D0D0D; margin: 0 0 4px;
+  letter-spacing: -.02em;
+}
+.rim-titles p {
+  font-size: 13px; color: #6B7A8D;
+  margin: 0; line-height: 1.4;
+}
+
+.rim-close {
+  background: none; border: none;
+  font-size: 24px; color: #6B7A8D;
+  cursor: pointer; padding: 0; width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 8px; transition: all .2s;
+  align-self: flex-start;
+}
+.rim-close:hover { background: rgba(13,13,13,.05); color: #0D0D0D; }
+
+.rim-global-error {
+  margin: 24px 32px 0;
+  padding: 12px 16px;
+  background: rgba(200,75,47,.08);
+  border: 1px solid rgba(200,75,47,.2);
+  border-radius: 8px; color: var(--rim-rust);
+  font-size: 13px;
+}
+
+form { padding: 24px 32px 32px; display: flex; flex-direction: column; gap: 24px; }
+
+.rim-field label {
+  display: block; font-family: 'DM Mono', monospace;
+  font-size: 11px; font-weight: 500; letter-spacing: .12em;
+  text-transform: uppercase; color: #6B7A8D; margin-bottom: 8px;
+}
+.rim-req { color: var(--rim-rust); margin-left: 2px; }
+
+.rim-field input, .rim-field textarea {
+  width: 100%; box-sizing: border-box;
+  padding: 12px 14px;
+  background: #F7F5F1; border: 1.5px solid var(--rim-border);
+  border-radius: 9px; font-family: 'Poppins', sans-serif;
+  font-size: 14px; color: #1A1A1A; transition: all .2s;
+}
+.rim-field textarea { resize: vertical; min-height: 80px; }
+.rim-field input:focus, .rim-field textarea:focus {
+  outline: none; border-color: var(--rim-rust); background: #fff;
+  box-shadow: 0 0 0 3px rgba(200,75,47,.1);
+}
+.rim-field input:disabled, .rim-field textarea:disabled { opacity: .5; cursor: not-allowed; }
+
+.rim-field-error input, .rim-field-error textarea {
+  border-color: var(--rim-rust); background: rgba(200,75,47,.03);
+}
+
+.rim-field-footer {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-top: 6px; font-size: 11px;
+}
+.rim-err-text { color: var(--rim-rust); }
+.rim-char-count { font-family: 'DM Mono', monospace; color: #9DAAB7; margin-left: auto; }
+
+.rim-priority-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+}
+.rim-priority-card {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 12px 6px; border-radius: 9px;
+  border: 1.5px solid var(--rim-border); background: #F7F5F1;
+  cursor: pointer; transition: all .2s; color: #6B7A8D; box-sizing: border-box;
+}
+.rim-priority-card:hover:not(:disabled) {
+  border-color: rgba(13,13,13,.2); background: #fff; transform: translateY(-1px);
+}
+.rim-priority-card.active {
+  transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,.08);
+}
+.rim-p-emoji { font-size: 20px; line-height: 1; transition: transform .2s; }
+.rim-priority-card.active .rim-p-emoji { transform: scale(1.1); }
+.rim-p-label { font-size: 11px; font-weight: 600; font-family: 'DM Mono', monospace; }
+
+.rim-actions {
+  display: flex; justify-content: flex-end; gap: 12px;
+  margin-top: 8px;
+}
+.rim-btn-cancel, .rim-btn-primary {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 12px 24px; border-radius: 9px; font-family: 'Syne', sans-serif;
+  font-weight: 700; font-size: 14px; cursor: pointer; transition: all .2s; border: none;
+}
+.rim-btn-cancel {
+  background: transparent; color: #6B7A8D;
+}
+.rim-btn-cancel:hover:not(:disabled) { background: rgba(13,13,13,.05); color: #0D0D0D; }
+
+.rim-btn-primary {
+  background: var(--rim-rust); color: #fff; box-shadow: 0 4px 12px rgba(200,75,47,.2);
+}
+.rim-btn-primary:hover:not(:disabled) {
+  background: #A83A20; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(200,75,47,.3);
+}
+.rim-btn-primary:disabled { opacity: .6; cursor: not-allowed; }
+
+.rim-spinner {
+  width: 16px; height: 16px; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.3); border-top-color: #fff;
+  animation: rimSpin .6s linear infinite;
+}
+@keyframes rimSpin { to { transform: rotate(360deg); } }
+
+/* Success State */
+.rim-success-state {
+  padding: 64px 32px;
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+}
+.rim-success-anim { position: relative; width: 80px; height: 80px; margin-bottom: 24px; }
+.rim-success-ring {
+  position: absolute; inset: 0; border-radius: 50%;
+  border: 4px solid rgba(45,148,86,.25);
+  animation: rimRingPop .6s cubic-bezier(.22,1,.36,1) both;
+}
+.rim-success-ring::after {
+  content: ''; position: absolute; inset: 6px; border-radius: 50%;
+  background: rgba(45,148,86,.1); animation: rimRingPop .6s .1s cubic-bezier(.22,1,.36,1) both;
+}
+.rim-success-check {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  color: #2D9456; animation: rimCheckIn .5s .25s cubic-bezier(.22,1,.36,1) both;
+}
+.rim-success-check svg { width: 40px; height: 40px; }
+
+.rim-success-state h2 {
+  font-family: 'Syne', sans-serif; font-weight: 800; font-size: 24px; color: #0D0D0D; margin: 0 0 12px;
+}
+.rim-success-state p { color: #6B7A8D; font-size: 14px; margin: 0 0 32px; line-height: 1.5; }
+
+@keyframes rimRingPop { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes rimCheckIn { from { transform: scale(0) rotate(-30deg); opacity: 0; } to { transform: scale(1) rotate(0deg); opacity: 1; } }
