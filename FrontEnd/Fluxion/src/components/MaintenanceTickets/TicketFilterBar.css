@@ -1,0 +1,59 @@
+.ticket-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  background-color: #fff;
+  padding: 16px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  margin-bottom: 24px;
+}
+
+.ticket-filter-bar .filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 150px;
+  flex: 1;
+}
+
+.ticket-filter-bar .filter-group label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #555;
+}
+
+.ticket-filter-bar .filter-group input,
+.ticket-filter-bar .filter-group select {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  outline: none;
+}
+
+.ticket-filter-bar .filter-group input:focus,
+.ticket-filter-bar .filter-group select:focus {
+  border-color: #4a90e2;
+}
+
+.ticket-filter-bar .filter-actions {
+  display: flex;
+  align-items: flex-end;
+}
+
+.ticket-filter-bar .btn-clear {
+  padding: 8px 16px;
+  background-color: #f1f3f5;
+  color: #495057;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  height: 36px;
+}
+
+.ticket-filter-bar .btn-clear:hover {
+  background-color: #e9ecef;
+}

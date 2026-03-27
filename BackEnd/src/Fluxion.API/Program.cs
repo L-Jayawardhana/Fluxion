@@ -53,6 +53,9 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
     });
 
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<Fluxion.Application.Interfaces.ICurrentUserService, Fluxion.API.Services.CurrentUserService>();
+
 // ── Swagger / OpenAPI ─────────────────────────────────────
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

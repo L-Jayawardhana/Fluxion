@@ -1,0 +1,26 @@
+.all-tickets-page {
+  padding: 32px;
+  max-width: 1300px;
+  margin: 0 auto;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: #f8fafc;
+  min-height: 100vh;
+}
+
+.all-tickets-page .page-header {
+  margin-bottom: 32px;
+}
+
+.all-tickets-page .page-header h1 {
+  margin: 0 0 8px 0;
+  font-size: 32px;
+  color: #0f172a;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.all-tickets-page .page-header p {
+  margin: 0;
+  color: #64748b;
+  font-size: 16px;
+}

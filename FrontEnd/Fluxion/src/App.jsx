@@ -25,6 +25,7 @@ const NotFoundPage = lazy(() => import('./pages/NotFound/NotFoundPage'));
 const InviteUserPage = lazy(() => import('./pages/Users/InviteUserPage'));
 const UsersPage = lazy(() => import('./pages/Users/UsersPage'));
 const RaiseTicketPage = lazy(() => import('./pages/Maintenance/RaiseTicketPage'));
+const AllTicketsPage = lazy(() => import('./pages/Maintenance/AllTicketsPage'));
 
 function App() {
   const [splashDone, setSplashDone] = useState(
@@ -69,6 +70,7 @@ function App() {
                 <Route path="/assigned-assets" element={<AssignedAssetsPage />} />
                 <Route path="/assignments" element={<AdminAssetAssignmentsPage />} />
                 <Route path="/raise-ticket" element={<RaiseTicketPage />} />
+                <Route path="/tickets" element={<AllTicketsPage />} />
                 {/* Add more protected routes here */}
               </Route>
             </Route>

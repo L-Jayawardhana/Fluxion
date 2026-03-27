@@ -54,6 +54,17 @@ public class MaintenanceTicketsController : ControllerBase
             return BadRequest(new { message = ex.Message });
         }
     }
+    [HttpGet]
+    [Authorize] // All authenticated roles allowed
+    public async Task<IActionResult> GetTickets([FromQuery] GetMaintenanceTicketsQuery query)
+    {
+        var result = await _mediator.Send(query);
+        if (!result.IsSuccess)
+        {
+            return BadRequest(result);
+        }
+        return Ok(result);
+    }
 }
 
 public record CreateTicketRequest(
