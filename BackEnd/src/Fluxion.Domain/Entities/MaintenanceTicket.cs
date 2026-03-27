@@ -22,6 +22,9 @@ public class MaintenanceTicket : IAuditable
 
     public int? AssignedTo { get; set; }
 
+    [Required, MaxLength(200)]
+    public string Title { get; set; } = string.Empty;
+
     [Required]
     public string IssueDescription { get; set; } = string.Empty;
 

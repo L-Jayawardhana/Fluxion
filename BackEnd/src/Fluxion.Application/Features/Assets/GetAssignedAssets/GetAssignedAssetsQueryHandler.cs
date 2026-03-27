@@ -28,6 +28,7 @@ public class GetAssignedAssetsQueryHandler : IRequestHandler<GetAssignedAssetsQu
                 a.Asset.AssetTag ?? "N/A",
                 a.Asset.AssetType,
                 a.Asset.SerialNumber,
+                a.Asset.Status.ToString(),
                 a.Asset.Department != null ? a.Asset.Department.DepartmentName : null,
                 a.Asset.PurchaseDate,
                 a.Asset.WarrantyEndDate,
