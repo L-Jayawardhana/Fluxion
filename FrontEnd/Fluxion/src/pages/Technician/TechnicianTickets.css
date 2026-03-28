@@ -1,0 +1,147 @@
+/* ──────────────────────────────────────────────────────────
+   Ticket List page styles (TechnicianTicketsPage)
+   Ticket Detail page styles (TechnicianTicketDetailPage)
+   ────────────────────────────────────────────────────────── */
+
+/* ── Filter bar ──────────────────────────────────────────── */
+.tfl-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--tc-border);
+  border-radius: 12px;
+  padding: 14px 18px;
+}
+.tfl-group { flex: 1; min-width: 140px; }
+.tfl-input,
+.tfl-select {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1.5px solid var(--tc-border);
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-family: inherit;
+  background: #fafafa;
+  color: var(--tc-ink);
+  outline: none;
+  transition: border .2s;
+  box-sizing: border-box;
+}
+.tfl-input:focus, .tfl-select:focus { border-color: var(--tc-accent); background: #fff; }
+.tfl-clear { flex-shrink: 0; min-width: 70px; }
+
+/* ── Ticket list ─────────────────────────────────────────── */
+.ttl-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.ttl-card {
+  background: #fff;
+  border: 1.5px solid var(--tc-border);
+  border-radius: 12px;
+  padding: 16px 20px;
+  cursor: pointer;
+  transition: border-color .2s, transform .2s, box-shadow .2s;
+}
+.ttl-card:hover {
+  border-color: var(--tc-accent);
+  transform: translateX(3px);
+  box-shadow: 0 3px 12px rgba(200,75,47,.1);
+}
+.ttl-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.ttl-card-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--tc-ink);
+  flex: 1;
+}
+.ttl-card-badges { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.ttl-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  font-size: 12px;
+  color: var(--tc-muted);
+}
+.ttl-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 8px 0;
+}
+
+/* ── Detail layout ───────────────────────────────────────── */
+.td-layout {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: 20px;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .td-layout { grid-template-columns: 1fr; }
+}
+.td-main, .td-side {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* ── Ticket Info Panel internals ─────────────────────────── */
+.tip-label   { font-size: 10.5px; text-transform: uppercase; letter-spacing: .08em; color: var(--tc-dim); margin-bottom: 3px; }
+.tip-value   { font-size: 13px; color: var(--tc-ink); }
+.tip-row-2   { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 600px) { .tip-row-2 { grid-template-columns: 1fr; } }
+.tip-section { border-top: 1px solid var(--tc-border); padding-top: 14px; display: flex; flex-direction: column; gap: 12px; }
+.tip-section-title { font-size: 12px; font-weight: 700; color: var(--tc-muted); }
+
+/* ── Comments ────────────────────────────────────────────── */
+.cs-scroll {
+  max-height: 320px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-right: 4px;
+}
+.cs-scroll::-webkit-scrollbar { width: 4px; }
+.cs-scroll::-webkit-scrollbar-thumb { background: rgba(13,13,13,.08); border-radius: 2px; }
+.cs-comment { display: flex; gap: 10px; align-items: flex-start; }
+.cs-avatar {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--tc-accent), var(--tc-accent2));
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.cs-body { flex: 1; }
+.cs-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.cs-author { font-size: 12px; font-weight: 600; color: var(--tc-ink); }
+.cs-time   { font-size: 10.5px; color: var(--tc-dim); }
+.cs-text   { font-size: 12.5px; color: var(--tc-muted); line-height: 1.5; }
+
+/* ── Maintenance History ─────────────────────────────────── */
+.mhp-list { display: flex; flex-direction: column; gap: 0; }
+.mhp-item {
+  padding: 11px 0;
+  border-bottom: 1px solid var(--tc-border);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.mhp-item:last-child { border-bottom: none; }
+.mhp-title { font-size: 12.5px; font-weight: 500; color: var(--tc-ink); }
+.mhp-meta  { display: flex; align-items: center; gap: 10px; }
+.mhp-date  { font-size: 11px; color: var(--tc-dim); }

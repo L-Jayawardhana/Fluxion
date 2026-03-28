@@ -141,3 +141,52 @@
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
+
+/* Assignment Styles */
+.assignment-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.assign-select-wrapper {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.assign-select {
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1.5px solid #e2e8f0;
+  font-size: 13px;
+  outline: none;
+  background-color: #f8fafc;
+  transition: border-color 0.2s;
+}
+
+.assign-select:focus {
+  border-color: #3b82f6;
+}
+
+.btn-assign {
+  padding: 4px 12px;
+  border-radius: 4px;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+
+.btn-assign:hover:not(:disabled) {
+  background-color: #2563eb;
+}
+
+.btn-assign:disabled {
+  background-color: #cbd5e1;
+  cursor: not-allowed;
+}

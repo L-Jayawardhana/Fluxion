@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './TicketFilterBar.css';
 
-const TicketFilterBar = ({ filters, onFilterChange, onClearFilters }) => {
+const TicketFilterBar = ({ filters, onFilterChange, onClearFilters, technicians = [], showTechnicianFilter = false }) => {
   const [keyword, setKeyword] = useState(filters.keyword || '');
 
   // Debounce for keyword
@@ -58,6 +58,18 @@ const TicketFilterBar = ({ filters, onFilterChange, onClearFilters }) => {
           <option value="3">Critical</option>
         </select>
       </div>
+
+      {showTechnicianFilter && (
+        <div className="filter-group">
+          <label>Technician</label>
+          <select name="technicianId" value={filters.technicianId || ''} onChange={handleChange}>
+            <option value="">All</option>
+            {technicians.map(t => (
+              <option key={t.userId} value={t.userId}>{t.fullName}</option>
+            ))}
+          </select>
+        </div>
+      )}
 
       <div className="filter-group">
         <label>From Date</label>

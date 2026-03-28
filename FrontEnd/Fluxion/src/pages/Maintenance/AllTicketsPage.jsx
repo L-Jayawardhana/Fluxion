@@ -1,16 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import TicketFilterBar from '../../components/MaintenanceTickets/TicketFilterBar';
 import TicketList from '../../components/MaintenanceTickets/TicketList';
+import { getTechnicians } from '../../services/maintenanceService';
+import { useAuth } from '../../hooks/useAuth';
 import './AllTicketsPage.css';
 
 const AllTicketsPage = () => {
+  const { user } = useAuth();
+  const [technicians, setTechnicians] = useState([]);
   const [filters, setFilters] = useState({
     keyword: '',
     status: '',
     priority: '',
+    technicianId: '',
     dateFrom: '',
     dateTo: ''
   });
+
+  React.useEffect(() => {
+    if ((user?.role === 'owner' || user?.role === 'admin') && user?.orgId) {
+      getTechnicians(user.orgId).then(setTechnicians).catch(console.error);
+    }
+  }, [user]);
 
   const handleFilterChange = (newFilterChanges) => {
     setFilters(prev => ({
@@ -24,6 +35,7 @@ const AllTicketsPage = () => {
       keyword: '',
       status: '',
       priority: '',
+      technicianId: '',
       dateFrom: '',
       dateTo: ''
     });
@@ -40,6 +52,8 @@ const AllTicketsPage = () => {
         filters={filters} 
         onFilterChange={handleFilterChange} 
         onClearFilters={clearFilters}
+        technicians={technicians}
+        showTechnicianFilter={user?.role === 'owner' || user?.role === 'admin'}
       />
       
       <TicketList filters={filters} />

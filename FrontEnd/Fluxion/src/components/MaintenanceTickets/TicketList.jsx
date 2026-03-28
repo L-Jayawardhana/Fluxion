@@ -1,10 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { getMaintenanceTickets } from '../../services/maintenanceService';
+import { getMaintenanceTickets, assignTicket, getTechnicians } from '../../services/maintenanceService';
+import { useAuth } from '../../hooks/useAuth';
 import './TicketList.css';
 
 const TicketList = ({ filters }) => {
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const [technicians, setTechnicians] = useState([]);
+  const [assigningTech, setAssigningTech] = useState({});
+  const [assigningLoading, setAssigningLoading] = useState(false);
+  const canAssign = user?.role === 'owner' || user?.role === 'admin';
   const [pagination, setPagination] = useState({
     pageNumber: 1,
     pageSize: 10,
@@ -19,6 +25,27 @@ const TicketList = ({ filters }) => {
     fetchTickets(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters]);
+
+  useEffect(() => {
+    if (canAssign && user?.orgId) {
+      getTechnicians(user.orgId).then(setTechnicians).catch(console.error);
+    }
+  }, [canAssign, user]);
+
+  const handleAssign = async (ticketId) => {
+    const techId = assigningTech[ticketId];
+    if (!techId) return;
+    setAssigningLoading(true);
+    try {
+      await assignTicket(ticketId, techId);
+      fetchTickets(pagination.pageNumber);
+    } catch (error) {
+      console.error("Failed to assign ticket", error);
+    } finally {
+      setAssigningLoading(false);
+      setAssigningTech(prev => ({ ...prev, [ticketId]: '' }));
+    }
+  };
 
   const fetchTickets = async (pageToFetch = pagination.pageNumber) => {
     try {
@@ -36,6 +63,15 @@ const TicketList = ({ filters }) => {
           hasNextPage: response.data.hasNextPage,
           hasPreviousPage: response.data.hasPreviousPage,
         });
+
+        // Pre-set assigningTech with current values for unassigned or assigned tickets
+        const currentAssigns = {};
+        response.data.items.forEach(t => {
+          if (t.assignedTo) {
+            currentAssigns[t.ticketId] = t.assignedTo;
+          }
+        });
+        setAssigningTech(prev => ({ ...prev, ...currentAssigns }));
       }
     } catch (error) {
       console.error("Failed to fetch tickets", error);
@@ -138,7 +174,30 @@ const TicketList = ({ filters }) => {
             <div className="card-body">
               <p><strong>Asset:</strong> {ticket.assetName}</p>
               <p><strong>Reported By:</strong> {ticket.reportedByUserName}</p>
-              <p><strong>Assigned To:</strong> {ticket.assignedTechnicianName || 'Unassigned'}</p>
+              <div className="assignment-container">
+                <p style={{ margin: 0 }}><strong>Assigned To:</strong> {ticket.assignedTechnicianName || 'Unassigned'}</p>
+                {canAssign && (
+                  <div className="assign-select-wrapper">
+                    <select 
+                      className="assign-select"
+                      value={assigningTech[ticket.ticketId] || ''} 
+                      onChange={(e) => setAssigningTech(prev => ({ ...prev, [ticket.ticketId]: e.target.value }))}
+                    >
+                      <option value="">{ticket.assignedTo ? 'Reassign...' : 'Select Tech...'}</option>
+                      {technicians.map(t => (
+                        <option key={t.userId} value={t.userId}>{t.fullName}</option>
+                      ))}
+                    </select>
+                    <button 
+                      className="btn-assign"
+                      onClick={() => handleAssign(ticket.ticketId)}
+                      disabled={(assigningTech[ticket.ticketId] == (ticket.assignedTo || '')) || assigningLoading}
+                    >
+                      {ticket.assignedTo ? 'Change' : 'Assign'}
+                    </button>
+                  </div>
+                )}
+              </div>
               <p><strong>Created:</strong> {new Date(ticket.createdAt).toLocaleDateString()}</p>
             </div>
           </div>
