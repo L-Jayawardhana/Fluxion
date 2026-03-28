@@ -9,6 +9,7 @@ export default function InviteUserModal({ isOpen, onClose, orgId, onUserInvited 
     email: '',
     password: '',
     departmentId: '',
+    role: 'user',
   });
   
   const [departments, setDepartments] = useState([]);
@@ -47,7 +48,7 @@ export default function InviteUserModal({ isOpen, onClose, orgId, onUserInvited 
   // Reset form when modal closes
   useEffect(() => {
     if (!isOpen) {
-      setFormData({ firstName: '', lastName: '', email: '', password: '', departmentId: '' });
+      setFormData({ firstName: '', lastName: '', email: '', password: '', departmentId: '', role: 'user' });
       setErrorMsg('');
     }
   }, [isOpen]);
@@ -70,6 +71,7 @@ export default function InviteUserModal({ isOpen, onClose, orgId, onUserInvited 
         password: formData.password,
         orgId: parseInt(orgId, 10),
         departmentId: parseInt(formData.departmentId, 10),
+        role: formData.role,
       };
 
       await api.post('/User/employee', payload);
@@ -138,7 +140,14 @@ export default function InviteUserModal({ isOpen, onClose, orgId, onUserInvited 
           <div className="invite-form-row">
             <div className="invite-form-group">
               <label>Role</label>
-              <input type="text" value="Employee" disabled className="disabled-input" />
+              <select 
+                name="role" required
+                value={formData.role} onChange={handleChange}
+                disabled={isSubmitting}
+              >
+                <option value="user">Employee</option>
+                <option value="technician">Technician</option>
+              </select>
             </div>
             
             <div className="invite-form-group">

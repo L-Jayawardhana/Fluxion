@@ -42,7 +42,7 @@ export default function InviteUserPage() {
   const currentOrgId = user?.orgId;
 
   const [formData, setFormData] = useState({
-    firstName: '', lastName: '', email: '', password: '', departmentId: '',
+    firstName: '', lastName: '', email: '', password: '', departmentId: '', role: 'user',
   });
   const [showPw, setShowPw] = useState(false);
   const [departments, setDepartments] = useState([]);
@@ -87,6 +87,7 @@ export default function InviteUserPage() {
         password: formData.password,
         orgId: parseInt(currentOrgId, 10),
         departmentId: parseInt(formData.departmentId, 10),
+        role: formData.role,
       });
       const invitedName = `${formData.firstName} ${formData.lastName}`;
       const invitedEmail = formData.email;
@@ -95,7 +96,7 @@ export default function InviteUserPage() {
         { name: invitedName, email: invitedEmail, status: 'pending', time: 'Just now' },
         ...prev,
       ]);
-      setFormData({ firstName: '', lastName: '', email: '', password: '', departmentId: departments.length > 0 ? departments[0].departmentId : '' });
+      setFormData({ firstName: '', lastName: '', email: '', password: '', role: 'user', departmentId: departments.length > 0 ? departments[0].departmentId : '' });
     } catch (err) {
       setErrorMsg(err.response?.data?.message || 'Failed to send invitation. Please try again.');
     } finally {
@@ -222,10 +223,14 @@ export default function InviteUserPage() {
             {/* Role + Department */}
             <div className="iu-row">
               <div className="iu-field">
-                <label>Role</label>
-                <div className="iu-input-wrap disabled">
+                <label htmlFor="iu-role">Role</label>
+                <div className="iu-input-wrap">
                   <span className="iu-in-icon">{Icons.shield}</span>
-                  <input type="text" value="Employee" disabled />
+                  <select id="iu-role" name="role" required
+                    value={formData.role} onChange={handleChange} disabled={isSubmitting}>
+                    <option value="user">Employee</option>
+                    <option value="technician">Technician</option>
+                  </select>
                 </div>
               </div>
               <div className="iu-field">
