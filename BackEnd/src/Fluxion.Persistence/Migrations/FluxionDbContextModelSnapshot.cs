@@ -134,7 +134,7 @@ namespace Fluxion.Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AssetAssignments");
+                    b.ToTable("AssetAssignments", (string)null);
                 });
 
             modelBuilder.Entity("Fluxion.Domain.Entities.Department", b =>
@@ -212,7 +212,7 @@ namespace Fluxion.Persistence.Migrations
 
                     b.HasIndex("TicketId");
 
-                    b.ToTable("MaintenanceLogs");
+                    b.ToTable("MaintenanceLogs", (string)null);
                 });
 
             modelBuilder.Entity("Fluxion.Domain.Entities.MaintenanceTicket", b =>
@@ -265,7 +265,7 @@ namespace Fluxion.Persistence.Migrations
 
                     b.HasIndex("AssetId");
 
-                    b.ToTable("MaintenanceTickets");
+                    b.ToTable("MaintenanceTickets", (string)null);
                 });
 
             modelBuilder.Entity("Fluxion.Domain.Entities.OrgSubscription", b =>
@@ -312,7 +312,7 @@ namespace Fluxion.Persistence.Migrations
 
                     b.HasIndex("PlanId");
 
-                    b.ToTable("OrgSubscriptions");
+                    b.ToTable("OrgSubscriptions", (string)null);
                 });
 
             modelBuilder.Entity("Fluxion.Domain.Entities.Organization", b =>
@@ -355,7 +355,7 @@ namespace Fluxion.Persistence.Migrations
 
                     b.HasKey("OrgId");
 
-                    b.ToTable("Organizations");
+                    b.ToTable("Organizations", (string)null);
                 });
 
             modelBuilder.Entity("Fluxion.Domain.Entities.SubscriptionPlan", b =>
@@ -391,7 +391,7 @@ namespace Fluxion.Persistence.Migrations
 
                     b.HasKey("PlanId");
 
-                    b.ToTable("SubscriptionPlans");
+                    b.ToTable("SubscriptionPlans", (string)null);
                 });
 
             modelBuilder.Entity("Fluxion.Domain.Entities.User", b =>
@@ -453,7 +453,7 @@ namespace Fluxion.Persistence.Migrations
 
                     b.HasIndex("OrganizationOrgId");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("Fluxion.Domain.Entities.UserDepartment", b =>
@@ -482,7 +482,7 @@ namespace Fluxion.Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserDepartments");
+                    b.ToTable("UserDepartments", (string)null);
                 });
 
             modelBuilder.Entity("Fluxion.Domain.Entities.Asset", b =>
