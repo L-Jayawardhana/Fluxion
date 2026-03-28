@@ -135,6 +135,7 @@ public class GetMaintenanceTicketsQueryHandler : IRequestHandler<GetMaintenanceT
                                    AssetName = t.Asset.AssetName,
                                    ReportedByUserName = ru != null ? ru.FullName : string.Empty,
                                    AssignedTechnicianName = au != null ? au.FullName : null,
+                                   AssignedTo = t.AssignedTo,
                                    CreatedAt = t.CreatedAt,
                                    Cost = null // Fill in if needed, currently leaving null
                                }).ToListAsync(cancellationToken);

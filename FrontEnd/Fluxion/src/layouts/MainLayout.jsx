@@ -31,6 +31,8 @@ const I = {
   search: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="6.5" cy="6.5" r="4.5" /><path d="M11 11l3 3" /></svg>,
   bell: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M8 1a5 5 0 015 5v3l1.5 2.5H.5L2 9V6a6 6 0 016-5z" /><path d="M6 13a2 2 0 004 0" /></svg>,
   gear: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="8" cy="8" r="3" /><path d="M8 1v2M8 13v2M1 8h2M13 8h2" /></svg>,
+  perf: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M2 12l3-4 3 2 3-5 3 3"/><rect x="1" y="1" width="14" height="14" rx="1.5"/></svg>,
+  wrench: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M11.5 2.5a4 4 0 00-5.4 5.4L2 12l2 2 4.1-4.1A4 4 0 0011.5 2.5z"/></svg>,
 };
 
 /* ── Sidebar data ──────────────────────────────────────── */
@@ -74,6 +76,13 @@ const NAV = [
     ]
   },
   {
+    label: 'Technician', technicianOnly: true, items: [
+      { to: '/technician/dashboard',   icon: I.dashboard, text: 'Ticket Summary',    technicianOnly: true },
+      { to: '/technician/tickets',     icon: I.ticket,    text: 'My Tickets',   technicianOnly: true },
+      { to: '/technician/performance', icon: I.chart,     text: 'Performance',  technicianOnly: true },
+    ]
+  },
+  {
     label: 'Reports', ownerOnly: true, items: [
       { to: '/report-assets', icon: I.report, text: 'Asset Register' },
       { to: '/report-maintenance', icon: I.chart, text: 'Maintenance Cost' },
@@ -99,13 +108,24 @@ const pageName = (path) => {
 
 /* ── Filter nav by role ────────────────────────────────── */
 function getFilteredNav(role) {
-  const isOwner = role === 'owner' || role === 'systemAdmin';
-  const isEmployee = role === 'user';
+  const isOwner      = role === 'owner' || role === 'systemAdmin' || role === 'admin';
+  const isEmployee   = role === 'user';
+  const isTechnician = role === 'technician';
   return NAV
-    .filter(g => (!g.ownerOnly || isOwner) && (!g.userOnly || isEmployee))
+    .filter(g => {
+      if (g.ownerOnly      && !isOwner)      return false;
+      if (g.userOnly       && !isEmployee)   return false;
+      if (g.technicianOnly && !isTechnician) return false;
+      return true;
+    })
     .map(g => ({
       ...g,
-      items: g.items.filter(i => (!i.ownerOnly || isOwner) && (!i.userOnly || isEmployee))
+      items: g.items.filter(i => {
+        if (i.ownerOnly      && !isOwner)      return false;
+        if (i.userOnly       && !isEmployee)   return false;
+        if (i.technicianOnly && !isTechnician) return false;
+        return true;
+      })
     }))
     .filter(g => g.items.length > 0);
 }

@@ -26,6 +26,11 @@ const InviteUserPage = lazy(() => import('./pages/Users/InviteUserPage'));
 const UsersPage = lazy(() => import('./pages/Users/UsersPage'));
 const RaiseTicketPage = lazy(() => import('./pages/Maintenance/RaiseTicketPage'));
 const AllTicketsPage = lazy(() => import('./pages/Maintenance/AllTicketsPage'));
+/* ── Technician portal ── */
+const TechnicianDashboardPage   = lazy(() => import('./pages/Technician/TechnicianDashboardPage'));
+const TechnicianTicketsPage     = lazy(() => import('./pages/Technician/TechnicianTicketsPage'));
+const TechnicianTicketDetailPage= lazy(() => import('./pages/Technician/TechnicianTicketDetailPage'));
+const TechnicianPerformancePage = lazy(() => import('./pages/Technician/TechnicianPerformancePage'));
 
 function App() {
   const [splashDone, setSplashDone] = useState(
@@ -71,6 +76,11 @@ function App() {
                 <Route path="/assignments" element={<AdminAssetAssignmentsPage />} />
                 <Route path="/raise-ticket" element={<RaiseTicketPage />} />
                 <Route path="/tickets" element={<AllTicketsPage />} />
+                {/* Technician portal */}
+                <Route path="/technician/dashboard"    element={<TechnicianDashboardPage />} />
+                <Route path="/technician/tickets"       element={<TechnicianTicketsPage />} />
+                <Route path="/technician/tickets/:id"   element={<TechnicianTicketDetailPage />} />
+                <Route path="/technician/performance"   element={<TechnicianPerformancePage />} />
                 {/* Add more protected routes here */}
               </Route>
             </Route>

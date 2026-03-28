@@ -12,6 +12,7 @@ public class MaintenanceTicketSummaryDto
     public string AssetName { get; set; } = string.Empty;
     public string ReportedByUserName { get; set; } = string.Empty;
     public string? AssignedTechnicianName { get; set; }
+    public int? AssignedTo { get; set; }
     public DateTime CreatedAt { get; set; }
     public decimal? Cost { get; set; } // if applicable, might need to map from logs or similar, but adding as requested
 }

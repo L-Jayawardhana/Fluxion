@@ -65,6 +65,25 @@ public class MaintenanceTicketsController : ControllerBase
         }
         return Ok(result);
     }
+    [HttpPatch("{id:int}/assign")]
+    [Authorize(Roles = "owner,admin")]
+    public async Task<IActionResult> AssignTicket(int id, [FromBody] AssignTicketRequest request)
+    {
+        try
+        {
+            var result = await _mediator.Send(new AssignMaintenanceTicketCommand(id, request.TechnicianId));
+            if (!result) return BadRequest(new { message = "Failed to assign ticket." });
+            return Ok(new { message = "Ticket assigned successfully." });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
 }
 
 public record CreateTicketRequest(
@@ -74,3 +93,5 @@ public record CreateTicketRequest(
     string Description, 
     TicketPriority Priority
 );
+
+public record AssignTicketRequest(int TechnicianId);
