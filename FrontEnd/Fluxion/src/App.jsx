@@ -26,6 +26,7 @@ const InviteUserPage = lazy(() => import('./pages/Users/InviteUserPage'));
 const UsersPage = lazy(() => import('./pages/Users/UsersPage'));
 const RaiseTicketPage = lazy(() => import('./pages/Maintenance/RaiseTicketPage'));
 const AllTicketsPage = lazy(() => import('./pages/Maintenance/AllTicketsPage'));
+const MaintenanceLogPage = lazy(() => import('./pages/Maintenance/MaintenanceLogPage'));
 /* ── Technician portal ── */
 const TechnicianDashboardPage   = lazy(() => import('./pages/Technician/TechnicianDashboardPage'));
 const TechnicianTicketsPage     = lazy(() => import('./pages/Technician/TechnicianTicketsPage'));
@@ -76,6 +77,8 @@ function App() {
                 <Route path="/assignments" element={<AdminAssetAssignmentsPage />} />
                 <Route path="/raise-ticket" element={<RaiseTicketPage />} />
                 <Route path="/tickets" element={<AllTicketsPage />} />
+                <Route path="/maintenance-logs" element={<MaintenanceLogPage />} />
+                <Route path="/maintenance-logs/:assetId" element={<MaintenanceLogPage />} />
                 {/* Technician portal */}
                 <Route path="/technician/dashboard"    element={<TechnicianDashboardPage />} />
                 <Route path="/technician/tickets"       element={<TechnicianTicketsPage />} />

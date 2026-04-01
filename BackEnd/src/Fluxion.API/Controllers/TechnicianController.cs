@@ -55,15 +55,15 @@ public class TechnicianController : ControllerBase
 
         var stats = new
         {
-            totalAssigned  = tickets.Count,
-            openTickets    = tickets.Count(t => t.Status == TicketStatus.open || t.Status == TicketStatus.assigned),
-            inProgress     = tickets.Count(t => t.Status == TicketStatus.in_progress || t.Status == TicketStatus.waiting_parts),
-            resolved       = tickets.Count(t => t.Status == TicketStatus.resolved || t.Status == TicketStatus.closed),
+            totalAssigned = tickets.Count,
+            openTickets = tickets.Count(t => t.Status == TicketStatus.open || t.Status == TicketStatus.assigned),
+            inProgress = tickets.Count(t => t.Status == TicketStatus.in_progress || t.Status == TicketStatus.waiting_parts),
+            resolved = tickets.Count(t => t.Status == TicketStatus.resolved || t.Status == TicketStatus.closed),
             priorityCounts = new
             {
-                low      = tickets.Count(t => t.Priority == TicketPriority.low),
-                medium   = tickets.Count(t => t.Priority == TicketPriority.medium),
-                high     = tickets.Count(t => t.Priority == TicketPriority.high),
+                low = tickets.Count(t => t.Priority == TicketPriority.low),
+                medium = tickets.Count(t => t.Priority == TicketPriority.medium),
+                high = tickets.Count(t => t.Priority == TicketPriority.high),
                 critical = tickets.Count(t => t.Priority == TicketPriority.critical),
             },
             recentActivity
@@ -103,10 +103,10 @@ public class TechnicianController : ControllerBase
 
         return Ok(new
         {
-            totalResolved        = resolvedTickets.Count,
+            totalResolved = resolvedTickets.Count,
             resolvedThisMonth,
-            avgResolutionHours   = Math.Round(avgResolutionHours, 1),
-            totalRepairCost      = totalCost
+            avgResolutionHours = Math.Round(avgResolutionHours, 1),
+            totalRepairCost = totalCost
         });
     }
 
@@ -137,7 +137,7 @@ public class TechnicianController : ControllerBase
             query = query.Where(t => t.Priority == parsedPriority);
 
         if (dateFrom.HasValue) query = query.Where(t => t.CreatedAt >= dateFrom.Value);
-        if (dateTo.HasValue)   query = query.Where(t => t.CreatedAt <= dateTo.Value);
+        if (dateTo.HasValue) query = query.Where(t => t.CreatedAt <= dateTo.Value);
 
         if (!string.IsNullOrWhiteSpace(keyword))
         {
@@ -231,9 +231,9 @@ public class TechnicianController : ControllerBase
             .OrderBy(l => l.RepairDate)
             .Select(l => new
             {
-                logId      = l.LogId,
-                content    = l.RepairNotes,
-                createdAt  = l.RepairDate,
+                logId = l.LogId,
+                content = l.RepairNotes,
+                createdAt = l.RepairDate,
                 authorName = _db.Users.Where(u => u.UserId == l.TechnicianId).Select(u => u.FullName).FirstOrDefault() ?? "Technician"
             })
             .ToListAsync(ct);
@@ -248,27 +248,27 @@ public class TechnicianController : ControllerBase
 
         return Ok(new
         {
-            ticketId          = ticket.TicketId,
-            title             = ticket.Title,
-            issueDescription  = ticket.IssueDescription,
-            status            = ticket.Status,
-            priority          = ticket.Priority,
-            category          = ticket.Category,
-            createdAt         = ticket.CreatedAt,
-            closedAt          = ticket.ClosedAt,
+            ticketId = ticket.TicketId,
+            title = ticket.Title,
+            issueDescription = ticket.IssueDescription,
+            status = ticket.Status,
+            priority = ticket.Priority,
+            category = ticket.Category,
+            createdAt = ticket.CreatedAt,
+            closedAt = ticket.ClosedAt,
             asset = new
             {
-                assetId      = ticket.Asset.AssetId,
-                assetName    = ticket.Asset.AssetName,
+                assetId = ticket.Asset.AssetId,
+                assetName = ticket.Asset.AssetName,
                 serialNumber = ticket.Asset.SerialNumber,
-                assetType    = ticket.Asset.AssetType,
-                status       = ticket.Asset.Status,
-                department   = assetDept
+                assetType = ticket.Asset.AssetType,
+                status = ticket.Asset.Status,
+                department = assetDept
             },
             reporter = reporter == null ? null : new
             {
-                name       = reporter.FullName,
-                email      = reporter.Email,
+                name = reporter.FullName,
+                email = reporter.Email,
                 department = reporterDept
             },
             comments,
@@ -293,7 +293,7 @@ public class TechnicianController : ControllerBase
         if (!Enum.TryParse<TicketStatus>(req.Status, true, out var newStatus))
             return BadRequest(new { message = $"Invalid status '{req.Status}'." });
 
-        ticket.Status   = newStatus;
+        ticket.Status = newStatus;
         ticket.UpdatedAt = DateTime.UtcNow;
         if (newStatus == TicketStatus.resolved || newStatus == TicketStatus.closed)
             ticket.ClosedAt = DateTime.UtcNow;
@@ -321,13 +321,14 @@ public class TechnicianController : ControllerBase
 
         var log = new Fluxion.Domain.Entities.MaintenanceLog
         {
-            OrgId        = ticket.OrgId,
-            TicketId     = id,
-            AssetId      = ticket.AssetId,
+            OrgId = ticket.OrgId,
+            TicketId = id,
+            AssetId = ticket.AssetId,
             TechnicianId = techId,
-            RepairDate   = DateTime.UtcNow,
-            RepairCost   = req.Cost,
-            RepairNotes  = req.RepairDescription
+            RepairDate = DateTime.UtcNow,
+            RepairCost = req.Cost,
+            RepairNotes = req.RepairDescription,
+            IsVisibleToEmployee = null
         };
 
         _db.MaintenanceLogs.Add(log);
@@ -353,13 +354,14 @@ public class TechnicianController : ControllerBase
 
         var comment = new Fluxion.Domain.Entities.MaintenanceLog
         {
-            OrgId        = ticket.OrgId,
-            TicketId     = id,
-            AssetId      = ticket.AssetId,
+            OrgId = ticket.OrgId,
+            TicketId = id,
+            AssetId = ticket.AssetId,
             TechnicianId = techId,
-            RepairDate   = DateTime.UtcNow,
-            RepairCost   = null,
-            RepairNotes  = req.Content
+            RepairDate = DateTime.UtcNow,
+            RepairCost = null,
+            RepairNotes = req.Content,
+            IsVisibleToEmployee = req.IsVisibleToEmployee ?? true
         };
 
         _db.MaintenanceLogs.Add(comment);
@@ -369,9 +371,9 @@ public class TechnicianController : ControllerBase
 
         return Ok(new
         {
-            logId      = comment.LogId,
-            content    = comment.RepairNotes,
-            createdAt  = comment.RepairDate,
+            logId = comment.LogId,
+            content = comment.RepairNotes,
+            createdAt = comment.RepairDate,
             authorName = author ?? "Technician"
         });
     }
@@ -389,7 +391,7 @@ public class TechnicianController : ControllerBase
         if (!Enum.TryParse<AssetStatus>(req.Condition, true, out var newCondition))
             return BadRequest(new { message = $"Invalid condition '{req.Condition}'." });
 
-        asset.Status    = newCondition;
+        asset.Status = newCondition;
         asset.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync(ct);
 
@@ -400,5 +402,5 @@ public class TechnicianController : ControllerBase
 // ── Request DTOs ─────────────────────────────────────────────
 public record UpdateStatusRequest(string Status);
 public record LogRepairRequest(string RepairDescription, decimal? Cost);
-public record AddCommentRequest(string Content);
+public record AddCommentRequest(string Content, bool? IsVisibleToEmployee = null);
 public record UpdateConditionRequest(string Condition);
