@@ -224,6 +224,31 @@ public class AssetController : ControllerBase
             return Unauthorized(Result<WarrantyExpiryReportDto>.Failure(ex.Message));
         }
     }
+
+    // POST /api/Asset/{id}/reports/warranty/notify
+    /// <summary>Sends a warranty status email to the owner. Owner only.</summary>
+    [HttpPost("{id:int}/reports/warranty/notify")]
+    [Authorize(Roles = "owner,admin,systemadmin")]
+    public async Task<IActionResult> NotifyWarrantyExpiry(int id)
+    {
+        try
+        {
+            var result = await _mediator.Send(new SendWarrantyExpiryEmailCommand(id));
+            return Ok(result);
+        }
+        catch (ForbiddenException ex)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, Result<string>.Failure(ex.Message));
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(Result<string>.Failure(ex.Message));
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(Result<string>.Failure(ex.Message));
+        }
+    }
 }
 
 public record AssignAssetRequest(int UserId, int OrgId, int AssignedBy);

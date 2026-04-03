@@ -36,3 +36,17 @@ export const getWarrantyExpiryReport = async ({ daysAhead = 90, pageNumber = 1, 
     throw toStructuredError(error);
   }
 };
+
+/**
+ * POST /api/Asset/{id}/reports/warranty/notify
+ * @param {number} assetId
+ * @returns {Promise<Result<string>>}
+ */
+export const notifyWarrantyExpiry = async (assetId) => {
+  try {
+    const res = await api.post(`/Asset/${assetId}/reports/warranty/notify`);
+    return res.data;
+  } catch (error) {
+    throw toStructuredError(error);
+  }
+};

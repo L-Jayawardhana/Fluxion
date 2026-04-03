@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { getWarrantyExpiryReport } from '../../services/warrantyService';
+import { getWarrantyExpiryReport, notifyWarrantyExpiry } from '../../services/warrantyService';
 import './WarrantyExpiryPage.css';
 
 /* ── Helpers ─────────────────────────────────────────────── */
@@ -45,7 +45,7 @@ function StatCard({ label, value, type }) {
 }
 
 /* ── Asset row ───────────────────────────────────────────── */
-function AssetRow({ asset }) {
+function AssetRow({ asset, onNotify, notifyingId }) {
   const level = asset.urgencyLevel || 'Upcoming';
   const days = asset.daysUntilExpiry;
   const daysLabel = days < 0
@@ -75,8 +75,18 @@ function AssetRow({ asset }) {
           />
         </div>
       </td>
-      <td data-label="Status">
+      <td data-label="Urgency">
         <span className={`wr-urgency ${level}`}>{level}</span>
+      </td>
+      <td data-label="Actions">
+        <button
+          className="wr-btn"
+          onClick={() => onNotify(asset.assetId)}
+          disabled={notifyingId === asset.assetId}
+          style={{ padding: '6px 10px', fontSize: '11px' }}
+        >
+          {notifyingId === asset.assetId ? 'Wait...' : '✉️ Email'}
+        </button>
       </td>
     </tr>
   );
@@ -100,6 +110,29 @@ export default function WarrantyExpiryPage() {
   const [data, setData]       = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState('');
+  const [notifyingId, setNotifyingId] = useState(null);
+  const [toast, setToast]     = useState(null);
+
+  const pushToast = (type, message) => {
+    setToast({ type, message });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const handleNotify = async (assetId) => {
+    setNotifyingId(assetId);
+    try {
+      const res = await notifyWarrantyExpiry(assetId);
+      if (res?.isSuccess) {
+        pushToast('success', 'Warranty notice email sent.');
+      } else {
+        pushToast('error', res?.errorMessage || 'Failed to send email.');
+      }
+    } catch (err) {
+      pushToast('error', err.message || 'Failed to send email.');
+    } finally {
+      setNotifyingId(null);
+    }
+  };
 
   const load = useCallback(async (days, page) => {
     setLoading(true);
@@ -157,8 +190,16 @@ export default function WarrantyExpiryPage() {
         </div>
       </div>
 
-      {/* ── Error banner ── */}
+      {/* ── Error/Toast banner ── */}
       {error && <div className="wr-alert">{error}</div>}
+      {toast && (
+        <div className="wr-alert" style={{ 
+          borderColor: toast.type === 'success' ? 'rgba(34, 197, 94, 0.35)' : 'rgba(239, 68, 68, 0.35)', 
+          background: toast.type === 'success' ? 'rgba(34, 197, 94, 0.12)' : 'rgba(239, 68, 68, 0.12)' 
+        }}>
+          {toast.message}
+        </div>
+      )}
 
       {/* ── Summary stat cards ── */}
       <div className="wr-stats">
@@ -205,12 +246,13 @@ export default function WarrantyExpiryPage() {
                   <th>Warranty End</th>
                   <th>Days</th>
                   <th>Urgency</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {loading
                   ? <SkeletonRows count={5} />
-                  : expiring?.items?.map((a) => <AssetRow key={a.assetId} asset={a} />)
+                  : expiring?.items?.map((a) => <AssetRow key={a.assetId} asset={a} onNotify={handleNotify} notifyingId={notifyingId} />)
                 }
               </tbody>
             </table>
@@ -263,12 +305,13 @@ export default function WarrantyExpiryPage() {
                 <th>Warranty Ended</th>
                 <th>Days Overdue</th>
                 <th>Urgency</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {loading
                 ? <SkeletonRows count={4} />
-                : expired.map((a) => <AssetRow key={a.assetId} asset={a} />)
+                : expired.map((a) => <AssetRow key={a.assetId} asset={a} onNotify={handleNotify} notifyingId={notifyingId} />)
               }
             </tbody>
           </table>
