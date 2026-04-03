@@ -1,6 +1,10 @@
+using FluentValidation;
+using Fluxion.Application.DTOs.Common;
+using Fluxion.Application.Exceptions;
 using Fluxion.Application.Features.Assets;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Fluxion.API.Controllers;
@@ -184,9 +188,46 @@ public class AssetController : ControllerBase
             return StatusCode(500, new { message = $"Internal Error: {ex.Message} {ex.InnerException?.Message}" });
         }
     }
+
+    // GET /api/Asset/reports/warranty
+    /// <summary>Returns a paginated warranty expiry report for the caller's organisation. Owner only.</summary>
+    [HttpGet("reports/warranty")]
+    [Authorize(Roles = "owner,admin,systemadmin")]
+    public async Task<IActionResult> GetWarrantyExpiryReport(
+        [FromQuery] int daysAhead = 90,
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken ct = default)
+    {
+        try
+        {
+            var query = new GetWarrantyExpiryReportQuery
+            {
+                DaysAhead = daysAhead,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
+            var result = await _mediator.Send(query, ct);
+            return Ok(result);
+        }
+        catch (ValidationException ex)
+        {
+            var msg = string.Join("; ", ex.Errors.Select(e => e.ErrorMessage).Distinct());
+            return UnprocessableEntity(Result<WarrantyExpiryReportDto>.Failure(msg));
+        }
+        catch (ForbiddenException ex)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, Result<WarrantyExpiryReportDto>.Failure(ex.Message));
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(Result<WarrantyExpiryReportDto>.Failure(ex.Message));
+        }
+    }
 }
 
 public record AssignAssetRequest(int UserId, int OrgId, int AssignedBy);
 public record UnassignAssetRequest(int UserId, int OrgId);
 public record RetireAssetRequest(int OrgId, int RetiredBy);
 public record TransferAssetRequest(int OrgId, int NewDepartmentId, int TransferredBy);
+
