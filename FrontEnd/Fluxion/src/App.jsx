@@ -32,6 +32,8 @@ const TechnicianDashboardPage   = lazy(() => import('./pages/Technician/Technici
 const TechnicianTicketsPage     = lazy(() => import('./pages/Technician/TechnicianTicketsPage'));
 const TechnicianTicketDetailPage= lazy(() => import('./pages/Technician/TechnicianTicketDetailPage'));
 const TechnicianPerformancePage = lazy(() => import('./pages/Technician/TechnicianPerformancePage'));
+/* ── Reports ── */
+const WarrantyExpiryPage = lazy(() => import('./pages/Reports/WarrantyExpiryPage'));
 
 function App() {
   const [splashDone, setSplashDone] = useState(
@@ -84,6 +86,8 @@ function App() {
                 <Route path="/technician/tickets"       element={<TechnicianTicketsPage />} />
                 <Route path="/technician/tickets/:id"   element={<TechnicianTicketDetailPage />} />
                 <Route path="/technician/performance"   element={<TechnicianPerformancePage />} />
+                {/* Reports */}
+                <Route path="/report-warranty" element={<WarrantyExpiryPage />} />
                 {/* Add more protected routes here */}
               </Route>
             </Route>
