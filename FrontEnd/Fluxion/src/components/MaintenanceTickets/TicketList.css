@@ -61,7 +61,9 @@
 .badge.low { background: #dcfce7; color: #15803d; }
 
 .badge.status-open { background: #e0f2fe; color: #0369a1; }
+.badge.status-assigned { background: #f3e8ff; color: #6b21a8; }
 .badge.status-progress { background: #fef3c7; color: #b45309; }
+.badge.status-waiting { background: #fee2e2; color: #991b1b; }
 .badge.status-resolved { background: #d1fae5; color: #047857; }
 .badge.status-closed { background: #f3f4f6; color: #374151; }
 

@@ -43,3 +43,13 @@ export const addComment = async (ticketId, { content, isVisibleToEmployee }) => 
     throw toStructuredError(error);
   }
 };
+
+export const getMaintenanceCostReport = async ({ startDate, endDate, pageNumber, pageSize } = {}) => {
+  try {
+    const params = cleanParams({ startDate, endDate, pageNumber, pageSize });
+    const res = await api.get('/maintenance/reports/cost', { params });
+    return res.data;
+  } catch (error) {
+    throw toStructuredError(error);
+  }
+};

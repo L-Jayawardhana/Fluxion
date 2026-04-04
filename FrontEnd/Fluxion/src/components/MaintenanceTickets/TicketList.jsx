@@ -114,18 +114,22 @@ const TicketList = ({ filters }) => {
       case '0':
       case 'open': return 'badge status-open';
       case '1':
-      case 'in_progress': return 'badge status-progress';
+      case 'assigned': return 'badge status-assigned';
       case '2':
-      case 'resolved': return 'badge status-resolved';
+      case 'in_progress': return 'badge status-progress';
       case '3':
+      case 'waiting_parts': return 'badge status-waiting';
+      case '4':
+      case 'resolved': return 'badge status-resolved';
+      case '5':
       case 'closed': return 'badge status-closed';
       default: return 'badge';
     }
   };
 
   const STATUS_MAP = {
-    0: 'OPEN', 1: 'IN PROGRESS', 2: 'RESOLVED', 3: 'CLOSED',
-    'open': 'OPEN', 'in_progress': 'IN PROGRESS', 'resolved': 'RESOLVED', 'closed': 'CLOSED'
+    0: 'OPEN', 1: 'ASSIGNED', 2: 'IN PROGRESS', 3: 'WAITING PARTS', 4: 'RESOLVED', 5: 'CLOSED',
+    'open': 'OPEN', 'assigned': 'ASSIGNED', 'in_progress': 'IN PROGRESS', 'waiting_parts': 'WAITING PARTS', 'resolved': 'RESOLVED', 'closed': 'CLOSED'
   };
 
   const PRIORITY_MAP = {

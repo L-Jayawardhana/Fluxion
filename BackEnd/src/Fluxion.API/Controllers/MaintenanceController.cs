@@ -91,6 +91,43 @@ public class MaintenanceController : ControllerBase
         }
     }
 
+    // GET /api/maintenance/reports/cost
+    [HttpGet("reports/cost")]
+    [Authorize(Roles = "owner,admin,systemadmin,manager")]
+    public async Task<IActionResult> GetMaintenanceCostReport(
+        [FromQuery] DateTime? startDate,
+        [FromQuery] DateTime? endDate,
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken ct = default)
+    {
+        try
+        {
+            var query = new GetMaintenanceCostReportQuery
+            {
+                StartDate = startDate,
+                EndDate = endDate,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
+
+            var result = await _mediator.Send(query, ct);
+            return Ok(result);
+        }
+        catch (ValidationException ex)
+        {
+            return UnprocessableEntity(Result<MaintenanceCostReportDto>.Failure(BuildValidationMessage(ex)));
+        }
+        catch (ForbiddenException ex)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, Result<MaintenanceCostReportDto>.Failure(ex.Message));
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(Result<MaintenanceCostReportDto>.Failure(ex.Message));
+        }
+    }
+
     private static string BuildValidationMessage(ValidationException ex)
     {
         return string.Join("; ", ex.Errors.Select(e => e.ErrorMessage).Distinct());

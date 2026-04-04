@@ -137,7 +137,11 @@ public class TechnicianController : ControllerBase
             query = query.Where(t => t.Priority == parsedPriority);
 
         if (dateFrom.HasValue) query = query.Where(t => t.CreatedAt >= dateFrom.Value);
-        if (dateTo.HasValue) query = query.Where(t => t.CreatedAt <= dateTo.Value);
+        if (dateTo.HasValue)
+        {
+            var dt = dateTo.Value.Date.AddDays(1).AddTicks(-1);
+            query = query.Where(t => t.CreatedAt <= dt);
+        }
 
         if (!string.IsNullOrWhiteSpace(keyword))
         {
