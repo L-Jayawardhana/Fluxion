@@ -42,9 +42,11 @@ const TicketFilterBar = ({ filters, onFilterChange, onClearFilters, technicians 
         <select name="status" value={filters.status || ''} onChange={handleChange}>
           <option value="">All</option>
           <option value="0">Open</option>
-          <option value="1">In Progress</option>
-          <option value="2">Resolved</option>
-          <option value="3">Closed</option>
+          <option value="1">Assigned</option>
+          <option value="2">In Progress</option>
+          <option value="3">Waiting Parts</option>
+          <option value="4">Resolved</option>
+          <option value="5">Closed</option>
         </select>
       </div>
 

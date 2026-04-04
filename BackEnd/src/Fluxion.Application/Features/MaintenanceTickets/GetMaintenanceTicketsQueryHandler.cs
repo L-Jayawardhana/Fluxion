@@ -41,7 +41,7 @@ public class GetMaintenanceTicketsQueryHandler : IRequestHandler<GetMaintenanceT
         // 1. Apply role-based scoping
         if (role == "employee" || role == "user")
         {
-            query = query.Where(t => t.Asset.Assignments != null && 
+            query = query.Where(t => t.Asset.Assignments != null &&
                                      t.Asset.Assignments.Any(a => a.UserId == userId.Value && a.ReturnDate == null));
         }
         else if (role == "technician")
@@ -95,7 +95,8 @@ public class GetMaintenanceTicketsQueryHandler : IRequestHandler<GetMaintenanceT
 
         if (request.DateTo.HasValue)
         {
-            query = query.Where(t => t.CreatedAt <= request.DateTo.Value); // If needed, can make it entire day
+            var dateTo = request.DateTo.Value.Date.AddDays(1).AddTicks(-1);
+            query = query.Where(t => t.CreatedAt <= dateTo);
         }
 
         if (!string.IsNullOrEmpty(request.Keyword))
