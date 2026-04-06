@@ -99,11 +99,11 @@ export default function MaintenanceCostPage() {
     setLoading(true);
     setError('');
     try {
-      const res = await getMaintenanceCostReport({ 
-        startDate: start || undefined, 
-        endDate: end || undefined, 
-        pageNumber: page, 
-        pageSize: PAGE_SIZE 
+      const res = await getMaintenanceCostReport({
+        startDate: start || undefined,
+        endDate: end || undefined,
+        pageNumber: page,
+        pageSize: PAGE_SIZE
       });
       if (res?.isSuccess) {
         setData(res.data);
@@ -149,7 +149,7 @@ export default function MaintenanceCostPage() {
         <div className="mc-filters">
           <div className="mc-filter-item">
             <label htmlFor="start-date-input">Start Date</label>
-            <input 
+            <input
               type="date"
               id="start-date-input"
               value={startDate}
@@ -159,7 +159,7 @@ export default function MaintenanceCostPage() {
           </div>
           <div className="mc-filter-item">
             <label htmlFor="end-date-input">End Date</label>
-            <input 
+            <input
               type="date"
               id="end-date-input"
               value={endDate}
@@ -194,8 +194,8 @@ export default function MaintenanceCostPage() {
                 {loading
                   ? <SkeletonRows count={5} />
                   : reportData?.items?.map((item) => (
-                      <AssetCostRow key={item.assetId} item={item} />
-                    ))
+                    <AssetCostRow key={item.assetId} item={item} />
+                  ))
                 }
               </tbody>
             </table>
