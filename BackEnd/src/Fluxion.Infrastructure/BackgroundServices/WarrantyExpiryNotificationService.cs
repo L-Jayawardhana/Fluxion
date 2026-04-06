@@ -44,41 +44,52 @@ public class WarrantyExpiryNotificationService : BackgroundService
         var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
 
         var today = DateTime.UtcNow.Date;
+        var reminderDate = today.AddMonths(1);
 
-        // Find assets where warranty has ended, and Notified is false.
-        var expiredAssetsRaw = await db.Assets
+        // Find assets where warranty has ended (and not notified), OR exactly 1 month away (and not notified)
+        var assetsToProcess = await db.Assets
             .Include(a => a.Assignments)
             .Where(a => a.WarrantyEndDate.HasValue 
-                     && a.WarrantyEndDate.Value.Date < today 
-                     && !a.IsWarrantyExpiryNotified)
+                     && (
+                         (a.WarrantyEndDate.Value.Date < today && !a.IsWarrantyExpiryNotified) ||
+                         (a.WarrantyEndDate.Value.Date == reminderDate && !a.IsWarrantyReminderNotified)
+                     ))
             .ToListAsync(cancellationToken);
 
-        if (!expiredAssetsRaw.Any())
+        if (!assetsToProcess.Any())
         {
-            _logger.LogInformation("No new expired warranties to notify.");
+            _logger.LogInformation("No new warranty expirations or reminders to notify.");
             return;
         }
 
-        var orgIds = expiredAssetsRaw.Select(a => a.OrgId).Distinct().ToList();
+        var orgIds = assetsToProcess.Select(a => a.OrgId).Distinct().ToList();
         var owners = await db.Users
             .Where(u => u.OrgId.HasValue && orgIds.Contains(u.OrgId.Value) && (u.Role == Domain.Enums.UserRole.owner || u.Role == Domain.Enums.UserRole.admin))
             .ToListAsync(cancellationToken);
 
         int sentCount = 0;
 
-        foreach (var asset in expiredAssetsRaw)
+        foreach (var asset in assetsToProcess)
         {
+            bool isReminder = asset.WarrantyEndDate!.Value.Date == reminderDate;
+            bool isExpired = asset.WarrantyEndDate.Value.Date < today;
+
             var assignment = asset.Assignments?.OrderByDescending(x => x.AssignedDate).FirstOrDefault(x => x.ReturnDate == null);
             var assignee = assignment != null ? await db.Users.FindAsync(new object[] { assignment.UserId }, cancellationToken) : null;
             
             // Collect owner emails for this asset's organization
             var relevantOwners = owners.Where(u => u.OrgId == asset.OrgId && !string.IsNullOrEmpty(u.Email)).ToList();
 
-            string subject = $"[Automated Notice] Warranty Expired: {asset.AssetName} ({asset.SerialNumber ?? "No SN"})";
+            string headerText = isReminder ? "Automated Warranty Expiry Reminder (1 Month)" : "Automated Warranty Expiry Notice";
+            string introText = isReminder ? "The warranty for the following asset will expire in exactly 1 month:" : "The warranty for the following asset has ended:";
+            string subject = isReminder 
+                ? $"[Reminder] Warranty Expiring Soon: {asset.AssetName} ({asset.SerialNumber ?? "No SN"})"
+                : $"[Automated Notice] Warranty Expired: {asset.AssetName} ({asset.SerialNumber ?? "No SN"})";
+
             string body = $@"
                 <div style=""font-family: sans-serif; max-width: 600px; margin: auto;"">
-                    <h2 style=""color: #c84b2f;"">Automated Warranty Expiry Notice</h2>
-                    <p>The warranty for the following asset has ended:</p>
+                    <h2 style=""color: #c84b2f;"">{headerText}</h2>
+                    <p>{introText}</p>
                     <div style=""background: #f4f4f4; padding: 15px; border-radius: 8px;"">
                         <ul style=""list-style-type: none; padding: 0; margin: 0;"">
                             <li style=""margin-bottom: 8px;""><strong>Asset Name:</strong> {asset.AssetName}</li>
@@ -116,11 +127,19 @@ public class WarrantyExpiryNotificationService : BackgroundService
                 await emailService.SendEmailAsync(assignee.Email, subject, body);
             }
 
-            asset.IsWarrantyExpiryNotified = true;
+            if (isReminder)
+            {
+                asset.IsWarrantyReminderNotified = true;
+            }
+            if (isExpired)
+            {
+                asset.IsWarrantyExpiryNotified = true;
+            }
+            
             sentCount++;
         }
 
         await db.SaveChangesAsync(cancellationToken);
-        _logger.LogInformation($"Processed auto-notifications for {sentCount} expired warranties.");
+        _logger.LogInformation($"Processed auto-notifications for {sentCount} warranties (including 1-month reminders).");
     }
 }

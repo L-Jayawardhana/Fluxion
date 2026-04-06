@@ -27,7 +27,7 @@ public class InvitationService : IInvitationService
 
     public async Task SendInvitationEmailAsync(string toEmail, string employeeName, string invitationToken, string temporaryPassword)
     {
-        var frontendUrl = _configuration["FrontendUrl"] ?? "https://fluxion-nu.vercel.app/";
+        var frontendUrl = _configuration["FrontendUrl"] ?? "http://localhost:5173";
         var inviteLink = $"{frontendUrl}/accept-invite?token={invitationToken}";
 
         var htmlBody = $@"
