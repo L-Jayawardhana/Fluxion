@@ -19,7 +19,7 @@ Write-Host "  Technician: $env:SELENIUM_TECHNICIAN_EMAIL"
 Write-Host "  Headless:   $env:SELENIUM_HEADLESS"
 Write-Host "----------------------------------------------------------------"
 Write-Host "  8.  Update Ticket Status -> in_progress"
-Write-Host "  9.  Log Repair (cost: $175.50)"
+Write-Host '  9.  Log Repair (cost: $175.50)'
 Write-Host "  10. Add Comment"
 Write-Host "  11. Update Asset Condition"
 Write-Host "----------------------------------------------------------------"

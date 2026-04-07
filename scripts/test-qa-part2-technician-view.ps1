@@ -8,8 +8,12 @@ $RepoRoot  = Split-Path -Parent $ScriptDir
 $TestProj  = Join-Path $RepoRoot "tests/Fluxion.SeleniumTests"
 
 # ── Technician credentials ───────────────────────────────────────────
-if (-not $env:SELENIUM_TECHNICIAN_EMAIL)    { $env:SELENIUM_TECHNICIAN_EMAIL    = "it23746664@my.sliit.lk" }
-if (-not $env:SELENIUM_TECHNICIAN_PASSWORD) { $env:SELENIUM_TECHNICIAN_PASSWORD = "gunarathna2003" }
+if (-not $env:SELENIUM_TECHNICIAN_EMAIL) {
+    throw "SELENIUM_TECHNICIAN_EMAIL must be set in the environment before running this script."
+}
+if (-not $env:SELENIUM_TECHNICIAN_PASSWORD) {
+    throw "SELENIUM_TECHNICIAN_PASSWORD must be set in the environment before running this script."
+}
 if (-not $env:SELENIUM_HEADLESS)            { $env:SELENIUM_HEADLESS            = "false" }
 
 Write-Host "================================================================" -ForegroundColor Cyan

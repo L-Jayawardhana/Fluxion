@@ -341,7 +341,7 @@ grep -r "CreateMaintenanceTicketCommandValidator" BackEnd/src/
 
 ## Test Data Requirements
 
-### Initial Setup Foods
+### Initial Setup
 
 For tests to pass, ensure these exist in test database:
 
