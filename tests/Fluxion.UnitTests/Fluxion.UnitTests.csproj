@@ -30,6 +30,7 @@
     <ProjectReference Include="../../BackEnd/src/Fluxion.Application/Fluxion.Application.csproj" />
     <ProjectReference Include="../../BackEnd/src/Fluxion.Infrastructure/Fluxion.Infrastructure.csproj" />
     <ProjectReference Include="../../BackEnd/src/Fluxion.Persistence/Fluxion.Persistence.csproj" />
+    <ProjectReference Include="..\..\BackEnd\src\Fluxion.API\Fluxion.API.csproj" />
   </ItemGroup>
 
 </Project>
