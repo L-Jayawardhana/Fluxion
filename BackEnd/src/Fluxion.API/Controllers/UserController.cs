@@ -18,7 +18,7 @@ public class UserController : ControllerBase
     }
 
     [HttpPost("employee")]
-    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "owner,admin")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "owner,admin,manager")]
     public async Task<IActionResult> CreateEmployee([FromBody] CreateEmployeeCommand command)
     {
         try

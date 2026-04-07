@@ -23,7 +23,7 @@ public class AssetController : ControllerBase
 
     /// <summary>Lists all assets for an organisation, optionally filtered by department and/or asset type.</summary>
     [HttpGet]
-    [Authorize(Roles = "user,admin,owner,technician")]
+    [Authorize(Roles = "user,admin,owner,technician,manager")]
     public async Task<IActionResult> GetAll(
         [FromQuery] int orgId,
         [FromQuery] int? departmentId = null,
@@ -38,7 +38,7 @@ public class AssetController : ControllerBase
 
     /// <summary>Gets a single asset by id, scoped to the given organisation.</summary>
     [HttpGet("{id:int}")]
-    [Authorize(Roles = "user,admin,owner,technician")]
+    [Authorize(Roles = "user,admin,owner,technician,manager")]
     public async Task<IActionResult> GetById(int id, [FromQuery] int orgId)
     {
         if (orgId <= 0)
@@ -54,7 +54,7 @@ public class AssetController : ControllerBase
 
     /// <summary>Creates a new asset with QR code generation.</summary>
     [HttpPost]
-    [Authorize(Roles = "admin,owner")]
+    [Authorize(Roles = "admin,owner,manager")]
     public async Task<IActionResult> Create([FromBody] CreateAssetCommand command)
     {
         try
@@ -72,7 +72,7 @@ public class AssetController : ControllerBase
 
     /// <summary>Lists all assets currently assigned to a user.</summary>
     [HttpGet("user/{userId:int}")]
-    [Authorize(Roles = "user,admin,owner,technician")]
+    [Authorize(Roles = "user,admin,owner,technician,manager")]
     public async Task<IActionResult> GetAssignedToUser(int userId, [FromQuery] int orgId)
     {
         var currentUserIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value 
@@ -94,7 +94,7 @@ public class AssetController : ControllerBase
 
     /// <summary>Assigns an asset to a user.</summary>
     [HttpPut("{id:int}/assign")]
-    [Authorize(Roles = "admin,owner")]
+    [Authorize(Roles = "admin,owner,manager")]
     public async Task<IActionResult> Assign(int id, [FromBody] AssignAssetRequest request)
     {
         try
@@ -113,7 +113,7 @@ public class AssetController : ControllerBase
 
     /// <summary>Unassigns an asset from a user, making it available again.</summary>
     [HttpPut("{id:int}/unassign")]
-    [Authorize(Roles = "admin,owner")]
+    [Authorize(Roles = "admin,owner,manager")]
     public async Task<IActionResult> Unassign(int id, [FromBody] UnassignAssetRequest request)
     {
         try
@@ -137,7 +137,7 @@ public class AssetController : ControllerBase
 
     /// <summary>Retires an asset, making it permanently unavailable.</summary>
     [HttpPut("{id:int}/retire")]
-    [Authorize(Roles = "admin,owner")]
+    [Authorize(Roles = "admin,owner,manager")]
     public async Task<IActionResult> Retire(int id, [FromBody] RetireAssetRequest request)
     {
         try
@@ -164,7 +164,7 @@ public class AssetController : ControllerBase
 
     /// <summary>Transfers an asset to a different department.</summary>
     [HttpPut("{id:int}/transfer")]
-    [Authorize(Roles = "admin,owner")]
+    [Authorize(Roles = "admin,owner,manager")]
     public async Task<IActionResult> Transfer(int id, [FromBody] TransferAssetRequest request)
     {
         try
@@ -192,7 +192,7 @@ public class AssetController : ControllerBase
     // GET /api/Asset/reports/warranty
     /// <summary>Returns a paginated warranty expiry report for the caller's organisation. Owner only.</summary>
     [HttpGet("reports/warranty")]
-    [Authorize(Roles = "owner,admin,systemadmin")]
+    [Authorize(Roles = "owner,admin,systemadmin,manager")]
     public async Task<IActionResult> GetWarrantyExpiryReport(
         [FromQuery] int daysAhead = 90,
         [FromQuery] int pageNumber = 1,
@@ -228,7 +228,7 @@ public class AssetController : ControllerBase
     // POST /api/Asset/{id}/reports/warranty/notify
     /// <summary>Sends a warranty status email to the owner. Owner only.</summary>
     [HttpPost("{id:int}/reports/warranty/notify")]
-    [Authorize(Roles = "owner,admin,systemadmin")]
+    [Authorize(Roles = "owner,admin,systemadmin,manager")]
     public async Task<IActionResult> NotifyWarrantyExpiry(int id)
     {
         try

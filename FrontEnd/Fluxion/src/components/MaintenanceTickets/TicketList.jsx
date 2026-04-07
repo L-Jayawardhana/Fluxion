@@ -10,7 +10,7 @@ const TicketList = ({ filters }) => {
   const [technicians, setTechnicians] = useState([]);
   const [assigningTech, setAssigningTech] = useState({});
   const [assigningLoading, setAssigningLoading] = useState(false);
-  const canAssign = user?.role === 'owner' || user?.role === 'admin';
+  const canAssign = user?.role === 'owner' || user?.role === 'admin' || user?.role === 'manager';
   const [pagination, setPagination] = useState({
     pageNumber: 1,
     pageSize: 10,

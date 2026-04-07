@@ -108,7 +108,7 @@ const pageName = (path) => {
 
 /* ── Filter nav by role ────────────────────────────────── */
 function getFilteredNav(role) {
-  const isOwner      = role === 'owner' || role === 'systemAdmin' || role === 'admin';
+  const isOwner      = role === 'owner' || role === 'systemAdmin' || role === 'admin' || role === 'manager';
   const isEmployee   = role === 'user';
   const isTechnician = role === 'technician';
   return NAV

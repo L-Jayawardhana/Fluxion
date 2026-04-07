@@ -17,8 +17,8 @@ export default function MaintenanceLogPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const role = String(user?.role || '').toLowerCase();
-  const showSummary = role === 'owner' || role === 'admin' || role === 'systemadmin';
-  const isOwner = role === 'owner' || role === 'admin' || role === 'systemadmin';
+  const showSummary = role === 'owner' || role === 'admin' || role === 'systemadmin' || role === 'manager';
+  const isOwner = role === 'owner' || role === 'admin' || role === 'systemadmin' || role === 'manager';
   const isTechnician = role === 'technician';
   const isEmployee = role === 'user' || role === 'employee';
 
