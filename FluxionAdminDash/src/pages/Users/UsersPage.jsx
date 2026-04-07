@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef } from 'react';
+﻿import { useState, useEffect, useRef, useCallback } from 'react';
 import { getUsers, deleteUser, updateUser } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
 import ConfirmModal from '../../components/ConfirmModal';
@@ -85,7 +85,7 @@ export default function UsersPage() {
   const { addToast } = useToast();
 
   /* ── Fetch ─────────────────────────────────────────────── */
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       const data = await getUsers();
@@ -105,11 +105,9 @@ export default function UsersPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [addToast]);
 
-  useEffect(() => { fetchData(); }, []);
-
-useEffect(() => { fetchData(); }, []);
+  useEffect(() => { fetchData(); }, [fetchData]);
 
 /* ── Stats ─────────────────────────────────────────────── */
 const totalUsers    = users.length;

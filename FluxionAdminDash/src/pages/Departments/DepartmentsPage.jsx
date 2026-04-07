@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getOrganizations, getDepartments, createDepartment, updateDepartment, toggleDepartment } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
 import ConfirmModal from '../../components/ConfirmModal';
@@ -32,25 +32,7 @@ export default function DepartmentsPage() {
 
   const { addToast } = useToast();
 
-  // Load orgs on mount
-  useEffect(() => {
-    setOrgsLoading(true);
-    getOrganizations()
-      .then(data => {
-        setOrgs(data);
-        if (data.length > 0) setSelectedOrgId(String(data[0].orgId));
-      })
-      .catch(() => addToast('Failed to load organisations', 'error'))
-      .finally(() => setOrgsLoading(false));
-  }, []);
-
-  // Load departments when selected org changes
-  useEffect(() => {
-    if (!selectedOrgId) return;
-    fetchDepts();
-  }, [selectedOrgId]);
-
-  const fetchDepts = async () => {
+  const fetchDepts = useCallback(async () => {
     if (!selectedOrgId) return;
     try {
       setLoading(true);
@@ -61,7 +43,25 @@ export default function DepartmentsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedOrgId, addToast]);
+
+  // Load orgs on mount
+  useEffect(() => {
+    setOrgsLoading(true);
+    getOrganizations()
+      .then(data => {
+        setOrgs(data);
+        if (data.length > 0) setSelectedOrgId(String(data[0].orgId));
+      })
+      .catch(() => addToast('Failed to load organisations', 'error'))
+      .finally(() => setOrgsLoading(false));
+  }, [addToast]);
+
+  // Load departments when selected org changes
+  useEffect(() => {
+    if (!selectedOrgId) return;
+    fetchDepts();
+  }, [selectedOrgId, fetchDepts]);
 
   // ── Filtered list ────────────────────────────────────────────────
 
