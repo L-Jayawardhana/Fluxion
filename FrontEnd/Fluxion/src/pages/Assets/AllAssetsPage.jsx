@@ -3,7 +3,14 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { getOrganizations, getDepartments, getAssets, retireAsset, transferAsset } from '../../services/api';
 import { QRCodeCanvas } from 'qrcode.react';
+import ReportIssueModal from '../../components/MaintenanceTickets/ReportIssueModal';
 import './AllAssetsPage.css';
+
+const WrenchIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
+    <path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
 
 /* ── SVG Icons ───────────────────────────────────────────── */
 const PlusIcon = () => (
@@ -70,6 +77,7 @@ export default function AllAssetsPage() {
   const [retireTarget, setRetireTarget] = useState(null);
   const [transferTarget, setTransferTarget] = useState(null);
   const [transferDeptId, setTransferDeptId] = useState('');
+  const [reportTarget, setReportTarget] = useState(null);
 
   // Filters
   const [filterDept, setFilterDept] = useState('');
@@ -238,6 +246,7 @@ export default function AllAssetsPage() {
 
       {/* ── Transfer modal ────────────────────────────────── */}
       {transferTarget && (
+
         <div className="aa-overlay" onClick={() => setTransferTarget(null)}>
           <div className="aa-confirm-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 420 }}>
             <div className="aa-confirm-icon">🔄</div>
@@ -276,6 +285,20 @@ export default function AllAssetsPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ── Report Issue modal ──────────────────────────── */}
+      {reportTarget && (
+        <ReportIssueModal
+          asset={reportTarget}
+          onClose={() => setReportTarget(null)}
+          onSuccess={() => {
+            setSuccessMsg(`Maintenance ticket raised for "${reportTarget.assetName}" successfully.`);
+            setTimeout(() => setSuccessMsg(null), 4000);
+            setReportTarget(null);
+            loadData();
+          }}
+        />
       )}
 
       {/* ── Page header ─────────────────────────────────── */}
@@ -488,6 +511,15 @@ export default function AllAssetsPage() {
                         </button>
                         {isOwner && asset.status !== 'retired' && (
                           <>
+                            <button
+                              className="aa-btn-refresh aa-btn-icon-only"
+                              style={{ padding: '6px', minWidth: 0, color: '#C84B2F', borderColor: 'rgba(200,75,47,.3)', backgroundColor: 'rgba(200,75,47,.06)' }}
+                              onClick={() => setReportTarget(asset)}
+                              title="Report Issue"
+                              disabled={asset.status === 'under_maintenance'}
+                            >
+                              <WrenchIcon />
+                            </button>
                             <button
                               className="aa-btn-refresh aa-btn-icon-only"
                               style={{ padding: '6px', minWidth: 0, color: asset.status === 'assigned' ? '#999' : 'var(--aa-blue)', borderColor: asset.status === 'assigned' ? '#ccc' : 'rgba(42,111,200,.3)', backgroundColor: asset.status === 'assigned' ? '#f3f4f6' : 'rgba(42,111,200,.06)' }}

@@ -19,7 +19,7 @@ public class DepartmentController : ControllerBase
 
     /// <summary>Gets all departments for the specified organisation.</summary>
     [HttpGet]
-    [Authorize(Roles = "admin,owner")]
+    [Authorize(Roles = "user,admin,owner,technician")]
     public async Task<IActionResult> GetAll([FromQuery] int orgId)
     {
         if (orgId <= 0)
@@ -31,7 +31,7 @@ public class DepartmentController : ControllerBase
 
     /// <summary>Gets a single department by id, scoped to the given organisation.</summary>
     [HttpGet("{id:int}")]
-    [Authorize(Roles = "user,admin,owner")]
+    [Authorize(Roles = "user,admin,owner,technician")]
     public async Task<IActionResult> GetById(int id, [FromQuery] int orgId)
     {
         if (orgId <= 0)

@@ -56,6 +56,12 @@ namespace Fluxion.Persistence.Migrations
                     b.Property<int?>("DepartmentId")
                         .HasColumnType("int");
 
+                    b.Property<bool>("IsWarrantyExpiryNotified")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsWarrantyReminderNotified")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<int>("OrgId")
                         .HasColumnType("int");
 
@@ -190,6 +196,9 @@ namespace Fluxion.Persistence.Migrations
                     b.Property<int>("AssetId")
                         .HasColumnType("int");
 
+                    b.Property<bool?>("IsVisibleToEmployee")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<int>("OrgId")
                         .HasColumnType("int");
 
@@ -257,6 +266,11 @@ namespace Fluxion.Persistence.Migrations
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime(6)");
@@ -442,6 +456,12 @@ namespace Fluxion.Persistence.Migrations
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("longtext");
+
+                    b.Property<string>("ResetPasswordToken")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("ResetPasswordTokenExpiresAt")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<int>("Role")
                         .HasColumnType("int");

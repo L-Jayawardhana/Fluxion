@@ -33,6 +33,9 @@ public static class DependencyInjection
         services.Configure<Fluxion.Infrastructure.Images.CloudinarySettings>(configuration.GetSection("CloudinarySettings"));
         services.AddScoped<IImageService, Fluxion.Infrastructure.Images.CloudinaryService>();
 
+        // Background services
+        services.AddHostedService<BackgroundServices.WarrantyExpiryNotificationService>();
+
         return services;
     }
 }

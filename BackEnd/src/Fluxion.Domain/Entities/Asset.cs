@@ -29,6 +29,8 @@ public class Asset : IAuditable
 
     public DateTime? PurchaseDate { get; set; }
     public DateTime? WarrantyEndDate { get; set; }
+    public bool IsWarrantyExpiryNotified { get; set; } = false;
+    public bool IsWarrantyReminderNotified { get; set; } = false;
 
     [Column(TypeName = "decimal(10,2)")]
     public decimal? Cost { get; set; }

@@ -18,6 +18,8 @@ public static class DependencyInjection
         services.AddScoped<IApplicationDbContext>(provider =>
             provider.GetRequiredService<FluxionDbContext>());
 
+        services.AddScoped<IMaintenanceTicketRepository, Fluxion.Persistence.Repositories.MaintenanceTicketRepository>();
+
         return services;
     }
 }

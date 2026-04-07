@@ -1,0 +1,194 @@
+.ticket-list-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.ticket-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.ticket-card {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s, box-shadow 0.2s;
+  border: 1px solid #eee;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ticket-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.card-header h3 {
+  margin: 0;
+  font-size: 16px;
+  color: #333;
+  line-height: 1.4;
+}
+
+.card-header .badges {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-end;
+}
+
+.badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.badge.critical { background: #fee2e2; color: #b91c1c; }
+.badge.high { background: #fdba74; color: #c2410c; }
+.badge.medium { background: #fef08a; color: #854d0e; }
+.badge.low { background: #dcfce7; color: #15803d; }
+
+.badge.status-open { background: #e0f2fe; color: #0369a1; }
+.badge.status-assigned { background: #f3e8ff; color: #6b21a8; }
+.badge.status-progress { background: #fef3c7; color: #b45309; }
+.badge.status-waiting { background: #fee2e2; color: #991b1b; }
+.badge.status-resolved { background: #d1fae5; color: #047857; }
+.badge.status-closed { background: #f3f4f6; color: #374151; }
+
+.card-body p {
+  margin: 4px 0;
+  font-size: 14px;
+  color: #555;
+  line-height: 1.5;
+}
+
+.empty-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 20px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  color: #666;
+  font-size: 16px;
+  text-align: center;
+  border: 1px dashed #ddd;
+}
+
+.pagination-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  padding: 10px 0;
+}
+
+.btn-page {
+  padding: 8px 16px;
+  border: none;
+  background-color: #3b82f6;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.btn-page:hover:not(:disabled) {
+  background-color: #2563eb;
+}
+
+.btn-page:disabled {
+  background-color: #d1d5db;
+  cursor: not-allowed;
+}
+
+.page-info {
+  font-size: 14px;
+  color: #4b5563;
+  font-weight: 500;
+}
+
+/* Skeleton loader */
+.skeleton-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 4px;
+}
+
+.skeleton.title { height: 24px; width: 70%; }
+.skeleton.text { height: 16px; width: 100%; margin-top: 8px; }
+.skeleton.text.short { width: 50%; }
+
+@keyframes loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Assignment Styles */
+.assignment-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.assign-select-wrapper {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.assign-select {
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1.5px solid #e2e8f0;
+  font-size: 13px;
+  outline: none;
+  background-color: #f8fafc;
+  transition: border-color 0.2s;
+}
+
+.assign-select:focus {
+  border-color: #3b82f6;
+}
+
+.btn-assign {
+  padding: 4px 12px;
+  border-radius: 4px;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+
+.btn-assign:hover:not(:disabled) {
+  background-color: #2563eb;
+}
+
+.btn-assign:disabled {
+  background-color: #cbd5e1;
+  cursor: not-allowed;
+}

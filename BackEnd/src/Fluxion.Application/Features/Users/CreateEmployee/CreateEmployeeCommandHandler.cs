@@ -45,14 +45,22 @@ public class CreateEmployeeCommandHandler : IRequestHandler<CreateEmployeeComman
         // 3. Generate invitation token via Infrastructure service
         var token = _invitationService.GenerateInvitationToken();
 
-        // 4. Create User with Employee role
+        // 4. Validate and parse Role
+        if (string.IsNullOrWhiteSpace(request.Role) || 
+            !Enum.TryParse<UserRole>(request.Role, true, out var parsedRole) || 
+            (parsedRole != UserRole.user && parsedRole != UserRole.technician))
+        {
+            throw new InvalidOperationException("Invalid role specified. Only 'user' or 'technician' are allowed.");
+        }
+
+        // 5. Create User with the specified role
         var user = new User
         {
             OrgId = request.OrgId,
             FullName = $"{request.FirstName} {request.LastName}".Trim(),
             Email = request.Email,
             PasswordHash = _passwordHasher.Hash(request.Password),
-            Role = UserRole.user,
+            Role = parsedRole,
             MustChangePassword = true,
             IsActive = true,
             InvitationAccepted = false,
@@ -68,7 +76,7 @@ public class CreateEmployeeCommandHandler : IRequestHandler<CreateEmployeeComman
         _context.Users.Add(user);
         await _context.SaveChangesAsync(cancellationToken);
 
-        // 5. Send invitation email via Infrastructure service
+        // 6. Send invitation email via Infrastructure service
         await _invitationService.SendInvitationEmailAsync(user.Email, user.FullName, token, request.Password);
 
         return new RegisterResponse(

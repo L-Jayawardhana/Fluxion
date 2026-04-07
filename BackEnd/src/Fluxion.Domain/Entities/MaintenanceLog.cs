@@ -26,5 +26,7 @@ public class MaintenanceLog
 
     public string? RepairNotes { get; set; }
 
+    public bool? IsVisibleToEmployee { get; set; }
+
     public MaintenanceTicket Ticket { get; set; } = null!;
 }

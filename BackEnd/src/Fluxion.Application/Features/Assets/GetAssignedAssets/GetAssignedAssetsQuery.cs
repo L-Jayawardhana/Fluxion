@@ -11,6 +11,7 @@ public record AssignedAssetDto(
     string AssetTag,
     string AssetType,
     string? SerialNumber,
+    string Status,
     string? DepartmentName,
     DateTime? PurchaseDate,
     DateTime? WarrantyEndDate,

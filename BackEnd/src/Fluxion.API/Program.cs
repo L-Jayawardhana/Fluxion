@@ -51,7 +51,11 @@ builder.Services.AddControllers()
     {
         options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
         options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
     });
+
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<Fluxion.Application.Interfaces.ICurrentUserService, Fluxion.API.Services.CurrentUserService>();
 
 // ── Swagger / OpenAPI ─────────────────────────────────────
 builder.Services.AddEndpointsApiExplorer();

@@ -24,6 +24,17 @@ const WelcomePage = lazy(() => import('./pages/Welcome/WelcomePage'));
 const NotFoundPage = lazy(() => import('./pages/NotFound/NotFoundPage'));
 const InviteUserPage = lazy(() => import('./pages/Users/InviteUserPage'));
 const UsersPage = lazy(() => import('./pages/Users/UsersPage'));
+const RaiseTicketPage = lazy(() => import('./pages/Maintenance/RaiseTicketPage'));
+const AllTicketsPage = lazy(() => import('./pages/Maintenance/AllTicketsPage'));
+const MaintenanceLogPage = lazy(() => import('./pages/Maintenance/MaintenanceLogPage'));
+/* ── Technician portal ── */
+const TechnicianDashboardPage   = lazy(() => import('./pages/Technician/TechnicianDashboardPage'));
+const TechnicianTicketsPage     = lazy(() => import('./pages/Technician/TechnicianTicketsPage'));
+const TechnicianTicketDetailPage= lazy(() => import('./pages/Technician/TechnicianTicketDetailPage'));
+const TechnicianPerformancePage = lazy(() => import('./pages/Technician/TechnicianPerformancePage'));
+/* ── Reports ── */
+const WarrantyExpiryPage = lazy(() => import('./pages/Reports/WarrantyExpiryPage'));
+const MaintenanceCostPage = lazy(() => import('./pages/Reports/MaintenanceCostPage'));
 
 function App() {
   const [splashDone, setSplashDone] = useState(
@@ -67,6 +78,18 @@ function App() {
                 <Route path="/assets" element={<AllAssetsPage />} />
                 <Route path="/assigned-assets" element={<AssignedAssetsPage />} />
                 <Route path="/assignments" element={<AdminAssetAssignmentsPage />} />
+                <Route path="/raise-ticket" element={<RaiseTicketPage />} />
+                <Route path="/tickets" element={<AllTicketsPage />} />
+                <Route path="/maintenance-logs" element={<MaintenanceLogPage />} />
+                <Route path="/maintenance-logs/:assetId" element={<MaintenanceLogPage />} />
+                {/* Technician portal */}
+                <Route path="/technician/dashboard"    element={<TechnicianDashboardPage />} />
+                <Route path="/technician/tickets"       element={<TechnicianTicketsPage />} />
+                <Route path="/technician/tickets/:id"   element={<TechnicianTicketDetailPage />} />
+                <Route path="/technician/performance"   element={<TechnicianPerformancePage />} />
+                {/* Reports */}
+                <Route path="/report-warranty" element={<WarrantyExpiryPage />} />
+                <Route path="/report-maintenance-cost" element={<MaintenanceCostPage />} />
                 {/* Add more protected routes here */}
               </Route>
             </Route>

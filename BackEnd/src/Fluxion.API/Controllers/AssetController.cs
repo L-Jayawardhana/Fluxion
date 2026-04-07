@@ -1,6 +1,10 @@
+using FluentValidation;
+using Fluxion.Application.DTOs.Common;
+using Fluxion.Application.Exceptions;
 using Fluxion.Application.Features.Assets;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Fluxion.API.Controllers;
@@ -19,7 +23,7 @@ public class AssetController : ControllerBase
 
     /// <summary>Lists all assets for an organisation, optionally filtered by department and/or asset type.</summary>
     [HttpGet]
-    [Authorize(Roles = "user,admin,owner")]
+    [Authorize(Roles = "user,admin,owner,technician")]
     public async Task<IActionResult> GetAll(
         [FromQuery] int orgId,
         [FromQuery] int? departmentId = null,
@@ -34,7 +38,7 @@ public class AssetController : ControllerBase
 
     /// <summary>Gets a single asset by id, scoped to the given organisation.</summary>
     [HttpGet("{id:int}")]
-    [Authorize(Roles = "user,admin,owner")]
+    [Authorize(Roles = "user,admin,owner,technician")]
     public async Task<IActionResult> GetById(int id, [FromQuery] int orgId)
     {
         if (orgId <= 0)
@@ -68,7 +72,7 @@ public class AssetController : ControllerBase
 
     /// <summary>Lists all assets currently assigned to a user.</summary>
     [HttpGet("user/{userId:int}")]
-    [Authorize(Roles = "user,admin,owner")]
+    [Authorize(Roles = "user,admin,owner,technician")]
     public async Task<IActionResult> GetAssignedToUser(int userId, [FromQuery] int orgId)
     {
         var currentUserIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value 
@@ -184,9 +188,71 @@ public class AssetController : ControllerBase
             return StatusCode(500, new { message = $"Internal Error: {ex.Message} {ex.InnerException?.Message}" });
         }
     }
+
+    // GET /api/Asset/reports/warranty
+    /// <summary>Returns a paginated warranty expiry report for the caller's organisation. Owner only.</summary>
+    [HttpGet("reports/warranty")]
+    [Authorize(Roles = "owner,admin,systemadmin")]
+    public async Task<IActionResult> GetWarrantyExpiryReport(
+        [FromQuery] int daysAhead = 90,
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken ct = default)
+    {
+        try
+        {
+            var query = new GetWarrantyExpiryReportQuery
+            {
+                DaysAhead = daysAhead,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
+            var result = await _mediator.Send(query, ct);
+            return Ok(result);
+        }
+        catch (ValidationException ex)
+        {
+            var msg = string.Join("; ", ex.Errors.Select(e => e.ErrorMessage).Distinct());
+            return UnprocessableEntity(Result<WarrantyExpiryReportDto>.Failure(msg));
+        }
+        catch (ForbiddenException ex)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, Result<WarrantyExpiryReportDto>.Failure(ex.Message));
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(Result<WarrantyExpiryReportDto>.Failure(ex.Message));
+        }
+    }
+
+    // POST /api/Asset/{id}/reports/warranty/notify
+    /// <summary>Sends a warranty status email to the owner. Owner only.</summary>
+    [HttpPost("{id:int}/reports/warranty/notify")]
+    [Authorize(Roles = "owner,admin,systemadmin")]
+    public async Task<IActionResult> NotifyWarrantyExpiry(int id)
+    {
+        try
+        {
+            var result = await _mediator.Send(new SendWarrantyExpiryEmailCommand(id));
+            return Ok(result);
+        }
+        catch (ForbiddenException ex)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, Result<string>.Failure(ex.Message));
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(Result<string>.Failure(ex.Message));
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(Result<string>.Failure(ex.Message));
+        }
+    }
 }
 
 public record AssignAssetRequest(int UserId, int OrgId, int AssignedBy);
 public record UnassignAssetRequest(int UserId, int OrgId);
 public record RetireAssetRequest(int OrgId, int RetiredBy);
 public record TransferAssetRequest(int OrgId, int NewDepartmentId, int TransferredBy);
+
