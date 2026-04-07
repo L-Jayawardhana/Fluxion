@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import api from '../../services/api';
 import '../Users/UsersPage.css';
@@ -28,7 +28,7 @@ export default function AdminAssetAssignmentsPage() {
   const [unassignTarget, setUnassignTarget] = useState(null);
 
   /* ── Fetch initial data ── */
-  const fetchInitialData = async () => {
+  const fetchInitialData = useCallback(async () => {
     if (!user?.orgId) return;
     try {
       setLoading(true);
@@ -46,12 +46,12 @@ export default function AdminAssetAssignmentsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.orgId]);
 
-  useEffect(() => { fetchInitialData(); }, [user?.orgId]);
+  useEffect(() => { fetchInitialData(); }, [fetchInitialData]);
 
   /* ── Fetch user assignments ── */
-  const fetchUserAssignments = async (userId) => {
+  const fetchUserAssignments = useCallback(async (userId) => {
     if (!userId || !user?.orgId) return;
     try {
       setLoadingAssignments(true);
@@ -62,7 +62,7 @@ export default function AdminAssetAssignmentsPage() {
     } finally {
       setLoadingAssignments(false);
     }
-  };
+  }, [user?.orgId]);
 
   useEffect(() => {
     if (selectedUserId) {
@@ -71,7 +71,7 @@ export default function AdminAssetAssignmentsPage() {
     } else {
       setAssignedAssets([]);
     }
-  }, [selectedUserId, user?.orgId]);
+  }, [selectedUserId, fetchUserAssignments]);
 
   /* ── Assign ── */
   const handleAssign = async (e) => {

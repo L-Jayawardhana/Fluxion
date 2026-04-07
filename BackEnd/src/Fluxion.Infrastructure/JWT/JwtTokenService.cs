@@ -28,13 +28,15 @@ public class JwtTokenService : IJwtTokenService
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.SecretKey));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
         var expiryMinutes = rememberMe ? _settings.RememberMeExpiryMinutes : _settings.ExpiryMinutes;
+        var email = user.Email ?? string.Empty;
+        var orgId = user.OrgId?.ToString() ?? string.Empty;
 
         var claims = new[]
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.UserId.ToString()),
-            new Claim(JwtRegisteredClaimNames.Email, user.Email),
+            new Claim(JwtRegisteredClaimNames.Email, email),
             new Claim(ClaimTypes.Role, user.Role.ToString()),
-            new Claim("OrgId", user.OrgId.ToString()),
+            new Claim("OrgId", orgId),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 

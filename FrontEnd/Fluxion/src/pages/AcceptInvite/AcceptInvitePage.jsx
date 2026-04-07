@@ -8,19 +8,14 @@ export default function AcceptInvitePage() {
   const token = searchParams.get('token');
   const navigate = useNavigate();
   
-  const [status, setStatus] = useState('processing'); // checking, processing, error, success
+  const [status, setStatus] = useState(token ? 'processing' : 'error'); // processing, error, success
   const processed = useRef(false);
 
   useEffect(() => {
-    if (!token) {
-      setStatus('error');
-      return;
-    }
+    if (!token) return;
 
     if (processed.current) return;
     processed.current = true;
-
-    setStatus('processing');
     
     api.post('/User/accept-invite', { token })
       .then(() => {

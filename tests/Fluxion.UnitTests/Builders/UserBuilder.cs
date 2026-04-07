@@ -16,7 +16,6 @@ public class UserBuilder
     private UserRole _role = UserRole.user;
     private bool _mustChangePassword = false;
     private bool _isActive = true;
-    private bool _isGoogleUser = false;
     private DateTime? _lastLoginAt = null;
     private DateTime _createdAt = new(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
@@ -29,7 +28,7 @@ public class UserBuilder
     public UserBuilder WithMustChangePassword(bool val) { _mustChangePassword = val; return this; }
     public UserBuilder WithIsActive(bool active) { _isActive = active; return this; }
     public UserBuilder WithLastLoginAt(DateTime? dt) { _lastLoginAt = dt; return this; }
-    public UserBuilder AsGoogleUser() { _isGoogleUser = true; _passwordHash = ""; return this; }
+    public UserBuilder AsGoogleUser() { _passwordHash = ""; return this; }
     public UserBuilder AsDeactivated() { _isActive = false; return this; }
 
     public User Build() => new()

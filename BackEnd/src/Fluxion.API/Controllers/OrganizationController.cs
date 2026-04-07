@@ -123,6 +123,6 @@ public class OrganizationController : ControllerBase
 
 public class UploadLogoBase64Dto
 {
-    public string Name { get; set; }
-    public string Base64 { get; set; }
+    public string? Name { get; set; }
+    public string Base64 { get; set; } = string.Empty;
 }

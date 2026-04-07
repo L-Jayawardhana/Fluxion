@@ -47,7 +47,7 @@ public class DepartmentController : ControllerBase
 
     /// <summary>Creates a new department.</summary>
     [HttpPost]
-    [Authorize(Roles = "user,admin,owner")]
+    [Authorize(Roles = "admin,owner")]
     public async Task<IActionResult> Create([FromBody] CreateDepartmentCommand command)
     {
         try
