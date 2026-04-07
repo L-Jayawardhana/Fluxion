@@ -26,7 +26,7 @@ Before merging `dev → main`, verify:
 - [ ] **Integration Tests** pass (`dotnet test` — Fluxion.IntegrationTests)
 - [ ] **Selenium Smoke Tests** pass (`mvn test` — Java/JUnit 5, tagged `smoke`)
 - [ ] **JMeter smoke** completes with 0% error rate
-- [ ] **Code coverage** ≥ 70% on Application + Infrastructure layers
+- [ ] **Code coverage** ≥ 70% on Application + Infrastructure layers.
 - [ ] **Manual smoke test** for Google Sign-In (see section below)
 - [ ] No new security warnings in `dotnet list package --vulnerable`
 
