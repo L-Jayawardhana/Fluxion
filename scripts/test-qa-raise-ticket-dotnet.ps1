@@ -32,6 +32,7 @@ Write-Host "--------------------------------------------------------"
 Set-Location $RepoRoot
 
 dotnet test $TestProject `
+  --filter "FullyQualifiedName~RaiseTicketSeleniumTests" `
   --configuration Release `
   --logger "console;verbosity=normal" `
   @args
