@@ -507,3 +507,6 @@ obj/
 Thumbs.db
 ehthumbs.db
 Desktop.ini
+
+# Selenium test artifacts (screenshots, Python scripts)
+tests/selenium_tests/
