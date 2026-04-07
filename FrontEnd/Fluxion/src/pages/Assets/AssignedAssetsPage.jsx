@@ -27,7 +27,7 @@ export default function AssignedAssetsPage() {
   const rawName = user?.email?.split('@')[0] || 'User';
   const userName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
 
-  const loadAssets = (cancelled = false) => {
+  const loadAssets = useCallback((cancelled = false) => {
     if (!user?.userId || !user?.orgId) return;
     setLoading(true);
     api.get(`/Asset/user/${user.userId}?orgId=${user.orgId}`)
@@ -38,13 +38,13 @@ export default function AssignedAssetsPage() {
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
-  };
+  }, [user]);
 
   useEffect(() => {
     let cancelled = false;
     loadAssets(cancelled);
     return () => { cancelled = true; };
-  }, [user]);
+  }, [loadAssets]);
 
   return (
     <div className="page db-page">

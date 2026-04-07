@@ -10,6 +10,15 @@ const formatCurrency = (value) => {
 };
 
 export default function SummaryStatsBar({ summaryStats, loading }) {
+  const mostActiveTech = useMemo(() => {
+    if (!summaryStats?.costPerTechnician || summaryStats.costPerTechnician.length === 0) return 'No activity';
+    const sorted = [...summaryStats.costPerTechnician].sort((a, b) => {
+      if (b.eventsCount !== a.eventsCount) return b.eventsCount - a.eventsCount;
+      return b.totalCost - a.totalCost;
+    });
+    return sorted[0]?.technicianName || 'No activity';
+  }, [summaryStats]);
+
   if (loading) {
     return (
       <div className="ml-summary">
@@ -31,15 +40,6 @@ export default function SummaryStatsBar({ summaryStats, loading }) {
   }
 
   if (!summaryStats) return null;
-
-  const mostActiveTech = useMemo(() => {
-    if (!summaryStats.costPerTechnician || summaryStats.costPerTechnician.length === 0) return 'No activity';
-    const sorted = [...summaryStats.costPerTechnician].sort((a, b) => {
-      if (b.eventsCount !== a.eventsCount) return b.eventsCount - a.eventsCount;
-      return b.totalCost - a.totalCost;
-    });
-    return sorted[0]?.technicianName || 'No activity';
-  }, [summaryStats]);
 
   return (
     <div className="ml-summary">
