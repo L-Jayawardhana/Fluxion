@@ -12,7 +12,7 @@ namespace Fluxion.API.Controllers;
 
 [ApiController]
 [Route("api/maintenance")]
-[Authorize(Roles = "owner,technician,user,admin,systemadmin")]
+[Authorize(Roles = "owner,technician,user,admin,systemadmin,manager")]
 public class MaintenanceController : ControllerBase
 {
     private readonly IMediator _mediator;

@@ -51,7 +51,7 @@ const fmtDate = (iso) =>
 /* ████████████████████████████████████████████████████████ */
 export default function DepartmentsPage() {
   const { user } = useAuth();
-  const isOwner = user?.role === 'owner' || user?.role === 'systemAdmin' || user?.role === 'admin';
+  const isOwner = user?.role === 'owner' || user?.role === 'systemAdmin' || user?.role === 'admin' || user?.role === 'manager';
 
   const [userOrg, setUserOrg]         = useState(null);
   const [departments, setDepartments] = useState([]);

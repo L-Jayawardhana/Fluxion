@@ -230,6 +230,9 @@ export default function InviteUserPage() {
                     value={formData.role} onChange={handleChange} disabled={isSubmitting}>
                     <option value="user">Employee</option>
                     <option value="technician">Technician</option>
+                    {(user?.role === 'owner' || user?.role === 'admin' || user?.role === 'systemadmin') && (
+                      <option value="manager">Manager</option>
+                    )}
                   </select>
                 </div>
               </div>

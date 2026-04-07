@@ -19,7 +19,7 @@ public class MaintenanceTicketsController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "user,owner,admin")]
+    [Authorize(Roles = "user,owner,admin,manager")]
     public async Task<IActionResult> CreateTicket([FromBody] CreateTicketRequest request)
     {
         var currentUserIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
@@ -66,7 +66,7 @@ public class MaintenanceTicketsController : ControllerBase
         return Ok(result);
     }
     [HttpPatch("{id:int}/assign")]
-    [Authorize(Roles = "owner,admin")]
+    [Authorize(Roles = "owner,admin,manager")]
     public async Task<IActionResult> AssignTicket(int id, [FromBody] AssignTicketRequest request)
     {
         try

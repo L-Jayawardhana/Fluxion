@@ -22,7 +22,7 @@ const truncate = (text, length = 140) => {
 
 export default function MaintenanceLogTable({ maintenanceLogs, role, loading, onPageChange }) {
   const [expanded, setExpanded] = useState(() => new Set());
-  const isOwner = role === 'owner' || role === 'admin' || role === 'systemadmin';
+  const isOwner = role === 'owner' || role === 'admin' || role === 'systemadmin' || role === 'manager';
   const isTechnician = role === 'technician';
   const isEmployee = role === 'user' || role === 'employee';
 
