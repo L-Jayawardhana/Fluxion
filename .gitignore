@@ -511,3 +511,6 @@ Desktop.ini
 # Selenium test artifacts (screenshots, Python scripts)
 tests/selenium_tests/
 tests/Fluxion.SeleniumTests/
+
+# QA test runner scripts
+scripts/test-qa-*.ps1
