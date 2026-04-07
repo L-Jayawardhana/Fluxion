@@ -107,7 +107,7 @@ export default function MaintenanceLogPage() {
           assets = await getAssets(user.orgId);
         }
         if (!cancelled) setAssetOptions(assets || []);
-      } catch (err) {
+      } catch {
         if (!cancelled) setAssetError('Failed to load assets.');
       } finally {
         if (!cancelled) setAssetLoading(false);

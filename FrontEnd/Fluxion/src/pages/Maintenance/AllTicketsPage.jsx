@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import TicketFilterBar from '../../components/MaintenanceTickets/TicketFilterBar';
 import TicketList from '../../components/MaintenanceTickets/TicketList';
 import { getTechnicians } from '../../services/maintenanceService';

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import api from '../../services/api';
 import ReportIssueModal from '../../components/MaintenanceTickets/ReportIssueModal';
@@ -42,6 +42,7 @@ export default function AssignedAssetsPage() {
 
   useEffect(() => {
     let cancelled = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadAssets(cancelled);
     return () => { cancelled = true; };
   }, [loadAssets]);

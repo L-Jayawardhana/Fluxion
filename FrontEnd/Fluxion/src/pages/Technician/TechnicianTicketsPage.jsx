@@ -137,6 +137,7 @@ export default function TechnicianTicketsPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { load(filters, page); }, [filters, page, load]);
 
   const handleFilterChange = (changes) => {
