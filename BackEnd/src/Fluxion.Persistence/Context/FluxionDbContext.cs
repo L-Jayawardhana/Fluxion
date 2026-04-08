@@ -20,6 +20,7 @@ public class FluxionDbContext : DbContext, IApplicationDbContext
     public DbSet<AssetAssignment> AssetAssignments => Set<AssetAssignment>();
     public DbSet<MaintenanceTicket> MaintenanceTickets => Set<MaintenanceTicket>();
     public DbSet<MaintenanceLog> MaintenanceLogs => Set<MaintenanceLog>();
+    public DbSet<Notification> Notifications => Set<Notification>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
