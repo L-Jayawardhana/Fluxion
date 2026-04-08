@@ -3,6 +3,7 @@ using Fluxion.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Fluxion.API.Controllers;
 
@@ -13,11 +14,22 @@ public class TechnicianController : ControllerBase
 {
     private readonly IApplicationDbContext _db;
     private readonly ICurrentUserService _currentUser;
+    private readonly ITicketAlertEmailService _alertEmailService;
+    private readonly INotificationService _notificationService;
+    private readonly ILogger<TechnicianController> _logger;
 
-    public TechnicianController(IApplicationDbContext db, ICurrentUserService currentUser)
+    public TechnicianController(
+        IApplicationDbContext db,
+        ICurrentUserService currentUser,
+        ITicketAlertEmailService alertEmailService,
+        INotificationService notificationService,
+        ILogger<TechnicianController> logger)
     {
         _db = db;
         _currentUser = currentUser;
+        _alertEmailService = alertEmailService;
+        _notificationService = notificationService;
+        _logger = logger;
     }
 
     // ── helper ───────────────────────────────────────────────
@@ -289,6 +301,7 @@ public class TechnicianController : ControllerBase
         int techId = GetTechnicianId();
 
         var ticket = await _db.MaintenanceTickets
+            .Include(t => t.Asset)
             .FirstOrDefaultAsync(t => t.TicketId == id && t.AssignedTo == techId, ct);
 
         if (ticket is null)
@@ -297,12 +310,61 @@ public class TechnicianController : ControllerBase
         if (!Enum.TryParse<TicketStatus>(req.Status, true, out var newStatus))
             return BadRequest(new { message = $"Invalid status '{req.Status}'." });
 
+        var oldStatus = ticket.Status;
         ticket.Status = newStatus;
         ticket.UpdatedAt = DateTime.UtcNow;
         if (newStatus == TicketStatus.resolved || newStatus == TicketStatus.closed)
             ticket.ClosedAt = DateTime.UtcNow;
 
         await _db.SaveChangesAsync(ct);
+
+        // ── Send email notification to the user who raised the ticket ──
+        try
+        {
+            var reporter = await _db.Users
+                .FirstOrDefaultAsync(u => u.UserId == ticket.RaisedBy, ct);
+            var technician = await _db.Users
+                .FirstOrDefaultAsync(u => u.UserId == techId, ct);
+
+            if (reporter != null)
+            {
+                await _alertEmailService.SendTicketStatusUpdatedEmailAsync(
+                    toEmail:        reporter.Email,
+                    recipientName:  reporter.FullName,
+                    ticketId:       ticket.TicketId,
+                    ticketTitle:    ticket.Title,
+                    oldStatus:      oldStatus.ToString(),
+                    newStatus:      newStatus.ToString(),
+                    technicianName: technician?.FullName ?? "A technician",
+                    assetName:      ticket.Asset?.AssetName ?? "Unknown Asset"
+                );
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send ticket status update email for ticket {TicketId}", id);
+        }
+
+        // ── Persist in-app notification ──
+        {
+            var reporter = await _db.Users.FirstOrDefaultAsync(u => u.UserId == ticket.RaisedBy, ct);
+            var techUser = await _db.Users.FirstOrDefaultAsync(u => u.UserId == techId, ct);
+            if (reporter != null)
+            {
+                var statusLabel = newStatus.ToString().Replace("_", " ");
+                await _notificationService.CreateNotificationAsync(
+                    orgId:    ticket.OrgId,
+                    userId:   reporter.UserId,
+                    type:     "ticket_status_updated",
+                    title:    "Ticket Status Updated",
+                    message:  $"Your ticket \"{ticket.Title}\" has been updated to {statusLabel} by {techUser?.FullName ?? "a technician"}.",
+                    ticketId: ticket.TicketId,
+                    assetId:  ticket.AssetId,
+                    ct:       ct
+                );
+            }
+        }
+
         return Ok(new { message = "Status updated.", status = ticket.Status });
     }
 
@@ -388,6 +450,8 @@ public class TechnicianController : ControllerBase
     [HttpPatch("assets/{assetId:int}/condition")]
     public async Task<IActionResult> UpdateAssetCondition(int assetId, [FromBody] UpdateConditionRequest req, CancellationToken ct)
     {
+        int techId = GetTechnicianId();
+
         var asset = await _db.Assets.FirstOrDefaultAsync(a => a.AssetId == assetId, ct);
         if (asset is null)
             return NotFound(new { message = "Asset not found." });
@@ -395,9 +459,64 @@ public class TechnicianController : ControllerBase
         if (!Enum.TryParse<AssetStatus>(req.Condition, true, out var newCondition))
             return BadRequest(new { message = $"Invalid condition '{req.Condition}'." });
 
+        var oldCondition = asset.Status;
         asset.Status = newCondition;
         asset.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync(ct);
+
+        // ── Send email to the currently assigned user ──
+        try
+        {
+            var currentAssignment = await _db.AssetAssignments
+                .Include(aa => aa.User)
+                .Where(aa => aa.AssetId == assetId && aa.ReturnDate == null)
+                .OrderByDescending(aa => aa.AssignedDate)
+                .FirstOrDefaultAsync(ct);
+
+            var technician = await _db.Users
+                .FirstOrDefaultAsync(u => u.UserId == techId, ct);
+
+            if (currentAssignment?.User != null)
+            {
+                await _alertEmailService.SendAssetConditionUpdatedEmailAsync(
+                    toEmail:        currentAssignment.User.Email,
+                    recipientName:  currentAssignment.User.FullName,
+                    assetName:      asset.AssetName,
+                    assetType:      asset.AssetType,
+                    serialNumber:   asset.SerialNumber,
+                    oldCondition:   oldCondition.ToString(),
+                    newCondition:   newCondition.ToString(),
+                    technicianName: technician?.FullName ?? "A technician"
+                );
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send asset condition update email for asset {AssetId}", assetId);
+        }
+
+        // ── Persist in-app notification ──
+        {
+            var currentAssign = await _db.AssetAssignments
+                .Where(aa => aa.AssetId == assetId && aa.ReturnDate == null)
+                .OrderByDescending(aa => aa.AssignedDate)
+                .FirstOrDefaultAsync(ct);
+            var techUser = await _db.Users.FirstOrDefaultAsync(u => u.UserId == techId, ct);
+
+            if (currentAssign != null)
+            {
+                var condLabel = newCondition.ToString().Replace("_", " ");
+                await _notificationService.CreateNotificationAsync(
+                    orgId:   asset.OrgId,
+                    userId:  currentAssign.UserId,
+                    type:    "asset_condition_updated",
+                    title:   "Asset Condition Updated",
+                    message: $"The condition of {asset.AssetName} has been updated to {condLabel} by {techUser?.FullName ?? "a technician"}.",
+                    assetId: asset.AssetId,
+                    ct:      ct
+                );
+            }
+        }
 
         return Ok(new { message = "Asset condition updated.", condition = asset.Status });
     }
