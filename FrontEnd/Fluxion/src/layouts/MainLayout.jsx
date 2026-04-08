@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Outlet, NavLink, Link, useLocation } from 'react-router-dom';
+import { Outlet, NavLink, Link, useLocation, useNavigate } from 'react-router-dom';
+import { getUnreadCount } from '../services/notificationService';
 import { useAuth } from '../hooks/useAuth';
 import './MainLayout.css';
 
@@ -42,6 +43,7 @@ const NAV = [
     label: 'Home', items: [
       { to: '/welcome', icon: I.welcome, text: 'Welcome' },
       { to: '/dashboard', icon: I.dashboard, text: 'Dashboard' },
+      { to: '/notifications', icon: I.bell, text: 'Notifications' },
     ]
   },
   {
@@ -134,7 +136,9 @@ function getFilteredNav(role) {
 export default function MainLayout() {
   const { user, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const [clock, setClock] = useState('');
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const rawName = user?.email?.split('@')[0] || 'User';
   const userName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
@@ -152,6 +156,23 @@ export default function MainLayout() {
     const id = setInterval(tick, 10_000);
     return () => clearInterval(id);
   }, []);
+
+  /* Unread notifications tracker */
+  useEffect(() => {
+    const fetchUnread = async () => {
+      if (!user) return;
+      try {
+        const data = await getUnreadCount();
+        setUnreadCount(data.unreadCount || 0);
+      } catch (err) {
+        console.error('Failed to fetch unread count', err);
+      }
+    };
+    
+    fetchUnread();
+    const id = setInterval(fetchUnread, 60_000);
+    return () => clearInterval(id);
+  }, [user, location.pathname]);
 
   return (
     <div className="ml-shell">
@@ -229,9 +250,9 @@ export default function MainLayout() {
               {I.search}
               Search
             </button>
-            <button className="ml-tb-notif">
+            <button className="ml-tb-notif" onClick={() => navigate('/notifications')}>
               {I.bell}
-              <span className="ml-tb-nd" />
+              {unreadCount > 0 && <span className="ml-tb-nd" title={`${unreadCount} unread`} />}
             </button>
           </div>
         </header>
