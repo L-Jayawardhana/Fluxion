@@ -7,6 +7,16 @@ using Fluxion.Domain.Enums;
 using Fluxion.Persistence.Context;
 using Fluxion.UnitTests.Helpers;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using Moq;
+using FluentAssertions;
+using Fluxion.API.Controllers;
+using Fluxion.Application.Interfaces;
+using Fluxion.Domain.Entities;
+using Fluxion.Domain.Enums;
+using Fluxion.Persistence.Context;
+using Fluxion.UnitTests.Helpers;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Fluxion.UnitTests.Controllers;
 
@@ -61,7 +71,12 @@ public class TechnicianControllerTests
         );
         await db.SaveChangesAsync();
 
-        var controller = new TechnicianController(db, new FakeCurrentUserService { UserId = techId, Role = "technician" });
+        var controller = new TechnicianController(
+            db, 
+            new FakeCurrentUserService { UserId = techId, Role = "technician" },
+            new Mock<ITicketAlertEmailService>().Object,
+            new Mock<INotificationService>().Object,
+            new Mock<ILogger<TechnicianController>>().Object);
 
         var action = await controller.GetDashboardStats(CancellationToken.None);
 
@@ -96,7 +111,12 @@ public class TechnicianControllerTests
         });
         await db.SaveChangesAsync();
 
-        var controller = new TechnicianController(db, new FakeCurrentUserService { UserId = techId, Role = "technician" });
+        var controller = new TechnicianController(
+            db, 
+            new FakeCurrentUserService { UserId = techId, Role = "technician" },
+            new Mock<ITicketAlertEmailService>().Object,
+            new Mock<INotificationService>().Object,
+            new Mock<ILogger<TechnicianController>>().Object);
 
         var action = await controller.UpdateStatus(20, new UpdateStatusRequest("not_a_real_status"), CancellationToken.None);
 
@@ -126,7 +146,12 @@ public class TechnicianControllerTests
         });
         await db.SaveChangesAsync();
 
-        var controller = new TechnicianController(db, new FakeCurrentUserService { UserId = techId, Role = "technician" });
+        var controller = new TechnicianController(
+            db, 
+            new FakeCurrentUserService { UserId = techId, Role = "technician" },
+            new Mock<ITicketAlertEmailService>().Object,
+            new Mock<INotificationService>().Object,
+            new Mock<ILogger<TechnicianController>>().Object);
 
         var action = await controller.LogRepair(30, new LogRepairRequest("replaced part", 120m), CancellationToken.None);
 
@@ -155,7 +180,12 @@ public class TechnicianControllerTests
         });
         await db.SaveChangesAsync();
 
-        var controller = new TechnicianController(db, new FakeCurrentUserService { UserId = 703, Role = "technician" });
+        var controller = new TechnicianController(
+            db, 
+            new FakeCurrentUserService { UserId = 703, Role = "technician" },
+            new Mock<ITicketAlertEmailService>().Object,
+            new Mock<INotificationService>().Object,
+            new Mock<ILogger<TechnicianController>>().Object);
 
         var action = await controller.AddComment(40, new AddCommentRequest("working on it"), CancellationToken.None);
 
@@ -168,7 +198,12 @@ public class TechnicianControllerTests
         using var db = CreateDb();
 
         await SeedBaseAsync(db, orgId: 4, assetId: 41);
-        var controller = new TechnicianController(db, new FakeCurrentUserService { UserId = 704, Role = "technician" });
+        var controller = new TechnicianController(
+            db, 
+            new FakeCurrentUserService { UserId = 704, Role = "technician" },
+            new Mock<ITicketAlertEmailService>().Object,
+            new Mock<INotificationService>().Object,
+            new Mock<ILogger<TechnicianController>>().Object);
 
         var action = await controller.UpdateAssetCondition(41, new UpdateConditionRequest("broken_forever"), CancellationToken.None);
 
