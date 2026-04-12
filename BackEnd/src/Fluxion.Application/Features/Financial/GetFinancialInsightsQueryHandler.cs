@@ -71,9 +71,13 @@ public class GetFinancialInsightsQueryHandler : IRequestHandler<GetFinancialInsi
 
         const int UnassignedDeptKey = -1;
 
-        var maintenanceByDepartment = logs
+        var laborByDepartment = logs
             .GroupBy(l => assetDeptMap.TryGetValue(l.AssetId, out var deptId) ? (deptId ?? UnassignedDeptKey) : UnassignedDeptKey)
             .ToDictionary(g => g.Key, g => g.Sum(l => l.RepairCost ?? 0));
+
+        var partsByDepartment = logs
+            .GroupBy(l => assetDeptMap.TryGetValue(l.AssetId, out var deptId) ? (deptId ?? UnassignedDeptKey) : UnassignedDeptKey)
+            .ToDictionary(g => g.Key, g => g.Sum(l => l.ExternalPartsCost ?? 0));
 
         var assetCostByDepartment = orgAssets
             .GroupBy(a => a.DepartmentId ?? UnassignedDeptKey)
@@ -82,17 +86,25 @@ public class GetFinancialInsightsQueryHandler : IRequestHandler<GetFinancialInsi
         var spendByDepartment = orgDepartments
             .Select(d =>
             {
-                var maintenanceSpend = maintenanceByDepartment.TryGetValue(d.DepartmentId, out var ms) ? ms : 0m;
+                var laborSpend = laborByDepartment.TryGetValue(d.DepartmentId, out var ls) ? ls : 0m;
+                var partsSpend = partsByDepartment.TryGetValue(d.DepartmentId, out var ps) ? ps : 0m;
+                var maintenanceSpend = laborSpend + partsSpend;
                 var assetSpend = assetCostByDepartment.TryGetValue(d.DepartmentId, out var ac) ? ac : 0m;
                 return new DepartmentSpendDto
                 {
                     DepartmentName = d.DepartmentName,
+                    LaborSpend = laborSpend,
+                    PartsSpend = partsSpend,
+                    MaintenanceSpend = maintenanceSpend,
+                    AssetSpend = assetSpend,
                     TotalSpend = maintenanceSpend + assetSpend
                 };
             })
             .ToList();
 
-        var unassignedMaintenance = maintenanceByDepartment.TryGetValue(UnassignedDeptKey, out var ums) ? ums : 0m;
+        var unassignedLabor = laborByDepartment.TryGetValue(UnassignedDeptKey, out var uls) ? uls : 0m;
+        var unassignedParts = partsByDepartment.TryGetValue(UnassignedDeptKey, out var ups) ? ups : 0m;
+        var unassignedMaintenance = unassignedLabor + unassignedParts;
         var unassignedAssetCost = assetCostByDepartment.TryGetValue(UnassignedDeptKey, out var uas) ? uas : 0m;
         var unassignedTotal = unassignedMaintenance + unassignedAssetCost;
         if (unassignedTotal > 0)
@@ -100,6 +112,10 @@ public class GetFinancialInsightsQueryHandler : IRequestHandler<GetFinancialInsi
             spendByDepartment.Add(new DepartmentSpendDto
             {
                 DepartmentName = "Unassigned",
+                LaborSpend = unassignedLabor,
+                PartsSpend = unassignedParts,
+                MaintenanceSpend = unassignedMaintenance,
+                AssetSpend = unassignedAssetCost,
                 TotalSpend = unassignedTotal
             });
         }
@@ -109,20 +125,31 @@ public class GetFinancialInsightsQueryHandler : IRequestHandler<GetFinancialInsi
             .ToList();
 
         // 2. Cost Per Asset
-        var maintenanceCostByAsset = logs
+        var laborCostByAsset = logs
             .GroupBy(l => l.AssetId)
             .ToDictionary(g => g.Key, g => g.Sum(l => l.RepairCost ?? 0));
+
+        var partsCostByAsset = logs
+            .GroupBy(l => l.AssetId)
+            .ToDictionary(g => g.Key, g => g.Sum(l => l.ExternalPartsCost ?? 0));
 
         dto.CostPerAsset = orgAssets
             .GroupBy(a => a.AssetId)
             .Select(g =>
             {
                 var asset = g.First();
-                var maintenanceCost = maintenanceCostByAsset.TryGetValue(asset.AssetId, out var mc) ? mc : 0m;
+                var laborCost = laborCostByAsset.TryGetValue(asset.AssetId, out var lc) ? lc : 0m;
+                var partsCost = partsCostByAsset.TryGetValue(asset.AssetId, out var pc) ? pc : 0m;
+                var maintenanceCost = laborCost + partsCost;
+                var purchaseCost = asset.Cost ?? 0m;
                 return new AssetCostDto
                 {
                     AssetName = asset.AssetName ?? $"Asset #{asset.AssetId}",
-                    TotalCost = (asset.Cost ?? 0) + maintenanceCost
+                    PurchaseCost = purchaseCost,
+                    LaborCost = laborCost,
+                    PartsCost = partsCost,
+                    MaintenanceCost = maintenanceCost,
+                    TotalCost = purchaseCost + maintenanceCost
                 };
             })
             .OrderByDescending(a => a.TotalCost)
@@ -139,7 +166,9 @@ public class GetFinancialInsightsQueryHandler : IRequestHandler<GetFinancialInsi
             .Select(g => new TechnicianCostDto
             {
                 TechnicianName = technicians.TryGetValue(g.Key, out var name) ? name : "Unknown",
-                TotalCost = g.Sum(l => l.RepairCost ?? 0)
+                LaborCost = g.Sum(l => l.RepairCost ?? 0),
+                PartsCost = g.Sum(l => l.ExternalPartsCost ?? 0),
+                TotalCost = g.Sum(l => (l.RepairCost ?? 0) + (l.ExternalPartsCost ?? 0))
             })
             .OrderByDescending(t => t.TotalCost)
             .ToList();
@@ -150,14 +179,16 @@ public class GetFinancialInsightsQueryHandler : IRequestHandler<GetFinancialInsi
             .Select(g => new MonthlyTrendDto
             {
                 Month = $"{g.Key.Year}-{g.Key.Month:D2}",
-                Spend = g.Sum(l => l.RepairCost ?? 0)
+                LaborSpend = g.Sum(l => l.RepairCost ?? 0),
+                PartsSpend = g.Sum(l => l.ExternalPartsCost ?? 0),
+                Spend = g.Sum(l => (l.RepairCost ?? 0) + (l.ExternalPartsCost ?? 0))
             })
             .OrderBy(m => m.Month)
             .ToList();
 
         // 5. Budget vs Actual
         // As a simple example, assuming a flat monthly budget of $10,000 per active department, or just $50,000 organizational total.
-        var totalMaintenanceCost = logs.Sum(l => l.RepairCost ?? 0);
+        var totalMaintenanceCost = logs.Sum(l => (l.RepairCost ?? 0) + (l.ExternalPartsCost ?? 0));
         var totalAssetCost = orgAssets.Sum(a => a.Cost ?? 0);
         var totalActual = totalMaintenanceCost + totalAssetCost;
         var activeDeptsCount = await _db.Departments.CountAsync(d => d.OrgId == orgId && d.IsActive, cancellationToken);

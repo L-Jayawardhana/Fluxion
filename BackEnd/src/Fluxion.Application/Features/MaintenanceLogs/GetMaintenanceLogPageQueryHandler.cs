@@ -113,7 +113,9 @@ public class GetMaintenanceLogPageQueryHandler : IRequestHandler<GetMaintenanceL
                                       TicketTitle = t.Title,
                                       TechnicianName = u != null ? u.FullName : "Technician",
                                       RepairDescription = l != null ? l.RepairNotes : t.IssueDescription,
-                                      CostRaw = l != null ? l.RepairCost : (decimal?)null,
+                                      LaborCostRaw = l != null ? l.RepairCost : (decimal?)null,
+                                      PartsCostRaw = l != null ? l.ExternalPartsCost : (decimal?)null,
+                                      CostRaw = l != null ? (l.RepairCost ?? 0m) + (l.ExternalPartsCost ?? 0m) : (decimal?)null,
                                       LoggedAt = l != null ? l.RepairDate : t.CreatedAt,
                                       ResolvedAt = t.ClosedAt
                                   })
@@ -128,6 +130,8 @@ public class GetMaintenanceLogPageQueryHandler : IRequestHandler<GetMaintenanceL
             TicketTitle = l.TicketTitle,
             TechnicianName = l.TechnicianName,
             RepairDescription = l.RepairDescription,
+            LaborCost = isEmployee ? null : l.LaborCostRaw,
+            PartsCost = isEmployee ? null : l.PartsCostRaw,
             Cost = isEmployee ? null : l.CostRaw,
             ConditionAfterRepair = condition,
             LoggedAt = l.LoggedAt,
@@ -179,15 +183,21 @@ public class GetMaintenanceLogPageQueryHandler : IRequestHandler<GetMaintenanceL
                 .Where(l => l.AssetId == request.AssetId && l.IsVisibleToEmployee == null);
 
             var totalMaintenanceCount = await summaryQuery.CountAsync(cancellationToken);
-            var totalCost = await summaryQuery
+            var laborCost = await summaryQuery
                 .SumAsync(l => l.RepairCost ?? 0m, cancellationToken);
+            var partsCost = await summaryQuery
+                .SumAsync(l => l.ExternalPartsCost ?? 0m, cancellationToken);
+            var totalCost = await summaryQuery
+                .SumAsync(l => (l.RepairCost ?? 0m) + (l.ExternalPartsCost ?? 0m), cancellationToken);
 
             var costPerTechRaw = await summaryQuery
                 .GroupBy(l => l.TechnicianId)
                 .Select(g => new
                 {
                     TechnicianId = g.Key,
-                    TotalCost = g.Sum(x => x.RepairCost ?? 0m),
+                    LaborCost = g.Sum(x => x.RepairCost ?? 0m),
+                    PartsCost = g.Sum(x => x.ExternalPartsCost ?? 0m),
+                    TotalCost = g.Sum(x => (x.RepairCost ?? 0m) + (x.ExternalPartsCost ?? 0m)),
                     EventsCount = g.Count()
                 })
                 .ToListAsync(cancellationToken);
@@ -207,6 +217,8 @@ public class GetMaintenanceLogPageQueryHandler : IRequestHandler<GetMaintenanceL
                     TechnicianName = c.TechnicianId.HasValue && techNameMap.TryGetValue(c.TechnicianId.Value, out var name)
                         ? name
                         : "Technician",
+                    LaborCost = c.LaborCost,
+                    PartsCost = c.PartsCost,
                     TotalCost = c.TotalCost,
                     EventsCount = c.EventsCount
                 })
@@ -225,6 +237,8 @@ public class GetMaintenanceLogPageQueryHandler : IRequestHandler<GetMaintenanceL
             summary = new MaintenanceLogSummaryDto
             {
                 TotalMaintenanceCount = totalMaintenanceCount,
+                LaborCost = laborCost,
+                PartsCost = partsCost,
                 TotalCost = totalCost,
                 CostPerTechnician = costPerTech,
                 AverageResolutionTimeHours = Math.Round(avgResolutionHours, 1)
