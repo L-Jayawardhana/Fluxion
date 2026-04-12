@@ -35,7 +35,6 @@ const TechnicianPerformancePage = lazy(() => import('./pages/Technician/Technici
 /* ── Reports ── */
 const WarrantyExpiryPage = lazy(() => import('./pages/Reports/WarrantyExpiryPage'));
 const MaintenanceCostPage = lazy(() => import('./pages/Reports/MaintenanceCostPage'));
-const FinancialInsightsPage = lazy(() => import('./pages/Reports/FinancialInsightsPage'));
 /* ── Notifications ── */
 const NotificationsPage = lazy(() => import('./pages/Notifications/NotificationsPage'));
 
@@ -93,7 +92,6 @@ function App() {
                 {/* Reports */}
                 <Route path="/report-warranty" element={<WarrantyExpiryPage />} />
                 <Route path="/report-maintenance-cost" element={<MaintenanceCostPage />} />
-                <Route path="/financial-insights" element={<FinancialInsightsPage />} />
                 {/* Notifications */}
                 <Route path="/notifications" element={<NotificationsPage />} />
                 {/* Add more protected routes here */}
