@@ -145,9 +145,65 @@ public class TechnicianControllerTests
             new Mock<INotificationService>().Object,
             new Mock<ILogger<TechnicianController>>().Object);
 
-        var action = await controller.LogRepair(30, new LogRepairRequest("replaced part", 120m), CancellationToken.None);
+        var action = await controller.LogRepair(30, new LogRepairRequest("replaced part", 120m, 30m), CancellationToken.None);
 
         action.Should().BeOfType<BadRequestObjectResult>();
+    }
+
+    [Fact]
+    public async Task LogRepair_WhenTicketAssigned_SavesRepairDetailsIncludingPartsCost_ReturnsOk()
+    {
+        using var db = CreateDb();
+        const int techId = 703;
+
+        await SeedBaseAsync(db, orgId: 2, assetId: 22);
+        db.MaintenanceTickets.Add(new MaintenanceTicket
+        {
+            TicketId = 31,
+            OrgId = 2,
+            AssetId = 22,
+            RaisedBy = 10,
+            AssignedTo = techId,
+            Title = "Repair test details",
+            IssueDescription = "desc details",
+            Priority = TicketPriority.medium,
+            Status = TicketStatus.assigned,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        });
+        await db.SaveChangesAsync();
+
+        var controller = new TechnicianController(
+            db, 
+            new FakeCurrentUserService { UserId = techId, Role = "technician" },
+            new Mock<ITicketAlertEmailService>().Object,
+            new Mock<INotificationService>().Object,
+            new Mock<ILogger<TechnicianController>>().Object);
+
+        var action = await controller.LogRepair(31, new LogRepairRequest("replaced parts successfully", 120m, 50m), CancellationToken.None);
+
+        var okResult = action.Should().BeOfType<OkObjectResult>().Subject;
+        var responseValue = okResult.Value;
+
+        responseValue.Should().NotBeNull();
+        
+        var jsonText = JsonSerializer.Serialize(responseValue);
+        var jsonDoc = JsonDocument.Parse(jsonText);
+        
+        jsonDoc.RootElement.GetProperty("message").GetString().Should().Be("Repair log saved.");
+        jsonDoc.RootElement.GetProperty("laborCost").GetDecimal().Should().Be(120m);
+        jsonDoc.RootElement.GetProperty("externalPartsCost").GetDecimal().Should().Be(50m);
+        jsonDoc.RootElement.GetProperty("totalMaintenanceCost").GetDecimal().Should().Be(170m);
+
+        var ticket = db.MaintenanceTickets.Find(31);
+        ticket.Should().NotBeNull();
+        ticket!.Status.Should().Be(TicketStatus.in_progress);
+        
+        var log = db.MaintenanceLogs.FirstOrDefault(l => l.TicketId == 31);
+        log.Should().NotBeNull();
+        log!.RepairCost.Should().Be(120m);
+        log.ExternalPartsCost.Should().Be(50m);
+        log.RepairNotes.Should().Be("replaced parts successfully");
     }
 
     [Fact]
