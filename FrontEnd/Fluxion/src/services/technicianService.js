@@ -32,8 +32,12 @@ export const updateTicketStatus = async (id, status) => {
   return res.data;
 };
 
-export const logRepair = async (id, repairDescription, cost) => {
-  const res = await api.put(`/technician/tickets/${id}/repair`, { repairDescription, cost });
+export const logRepair = async (id, repairDescription, cost, externalPartsCost) => {
+  const res = await api.put(`/technician/tickets/${id}/repair`, {
+    repairDescription,
+    cost,
+    externalPartsCost,
+  });
   return res.data;
 };
 

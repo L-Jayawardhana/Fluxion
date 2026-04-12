@@ -90,6 +90,56 @@ export default function FinancialInsightsPage() {
 
   const formatCurrency = (val) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val || 0);
 
+  const spendByDepartment = (data?.spendByDepartment || []).map((d) => {
+    const maintenance = Number(d?.maintenanceSpend ?? 0);
+    const fallbackLabour = d?.laborSpend == null && d?.partsSpend == null ? maintenance : 0;
+    return {
+      ...d,
+      laborSpend: Number(d?.laborSpend ?? fallbackLabour),
+      partsSpend: Number(d?.partsSpend ?? 0),
+      maintenanceSpend: Number(d?.maintenanceSpend ?? Number(d?.laborSpend ?? 0) + Number(d?.partsSpend ?? 0)),
+      totalSpend: Number(d?.totalSpend ?? 0),
+    };
+  });
+
+  const costPerTechnician = (data?.costPerTechnician || []).map((t) => {
+    const total = Number(t?.totalCost ?? 0);
+    const fallbackLabour = t?.laborCost == null && t?.partsCost == null ? total : 0;
+    return {
+      ...t,
+      laborCost: Number(t?.laborCost ?? fallbackLabour),
+      partsCost: Number(t?.partsCost ?? 0),
+      totalCost: total,
+    };
+  });
+
+  const costPerAsset = (data?.costPerAsset || []).map((a) => {
+    const labor = Number(a?.laborCost ?? 0);
+    const parts = Number(a?.partsCost ?? 0);
+    const maintenance = Number(a?.maintenanceCost ?? (labor + parts));
+    const total = Number(a?.totalCost ?? 0);
+    const initial = Number(a?.purchaseCost ?? Math.max(total - maintenance, 0));
+    return {
+      ...a,
+      laborCost: labor,
+      partsCost: parts,
+      maintenanceCost: maintenance,
+      purchaseCost: initial,
+      totalCost: total,
+    };
+  });
+
+  const monthlyTrends = (data?.monthlyTrends || []).map((m) => {
+    const total = Number(m?.spend ?? 0);
+    const fallbackLabour = m?.laborSpend == null && m?.partsSpend == null ? total : 0;
+    return {
+      ...m,
+      laborSpend: Number(m?.laborSpend ?? fallbackLabour),
+      partsSpend: Number(m?.partsSpend ?? 0),
+      spend: total,
+    };
+  });
+
   return (
     <div className="page fi-page">
       <div className="fi-header">
@@ -140,12 +190,18 @@ export default function FinancialInsightsPage() {
             <div className="fi-card">
               <h2>Spend by Department</h2>
               <table className="fi-table">
-                <thead><tr><th>Department</th><th>Total Spend</th></tr></thead>
+                <thead><tr><th>Department</th><th>Labour</th><th>Parts</th><th>Total Maintenance</th><th>Total Spend</th></tr></thead>
                 <tbody>
-                  {data.spendByDepartment?.map((d, i) => (
-                    <tr key={i}><td>{d.departmentName}</td><td className="fi-num">{formatCurrency(d.totalSpend)}</td></tr>
+                  {spendByDepartment.map((d, i) => (
+                    <tr key={i}>
+                      <td>{d.departmentName}</td>
+                      <td className="fi-num">{formatCurrency(d.laborSpend)}</td>
+                      <td className="fi-num">{formatCurrency(d.partsSpend)}</td>
+                      <td className="fi-num">{formatCurrency(d.maintenanceSpend)}</td>
+                      <td className="fi-num">{formatCurrency(d.totalSpend)}</td>
+                    </tr>
                   ))}
-                  {(!data.spendByDepartment || data.spendByDepartment.length === 0) && <tr><td colSpan="2">No data</td></tr>}
+                  {spendByDepartment.length === 0 && <tr><td colSpan="5">No data</td></tr>}
                 </tbody>
               </table>
             </div>
@@ -154,12 +210,17 @@ export default function FinancialInsightsPage() {
             <div className="fi-card">
               <h2>Cost per Technician</h2>
               <table className="fi-table">
-                <thead><tr><th>Technician</th><th>Total Cost</th></tr></thead>
+                <thead><tr><th>Technician</th><th>Labour</th><th>Parts</th><th>Total</th></tr></thead>
                 <tbody>
-                  {data.costPerTechnician?.map((t, i) => (
-                    <tr key={i}><td>{t.technicianName}</td><td className="fi-num">{formatCurrency(t.totalCost)}</td></tr>
+                  {costPerTechnician.map((t, i) => (
+                    <tr key={i}>
+                      <td>{t.technicianName}</td>
+                      <td className="fi-num">{formatCurrency(t.laborCost)}</td>
+                      <td className="fi-num">{formatCurrency(t.partsCost)}</td>
+                      <td className="fi-num">{formatCurrency(t.totalCost)}</td>
+                    </tr>
                   ))}
-                  {(!data.costPerTechnician || data.costPerTechnician.length === 0) && <tr><td colSpan="2">No data</td></tr>}
+                  {costPerTechnician.length === 0 && <tr><td colSpan="4">No data</td></tr>}
                 </tbody>
               </table>
             </div>
@@ -168,12 +229,19 @@ export default function FinancialInsightsPage() {
             <div className="fi-card">
               <h2>Cost per Asset (Top 10)</h2>
               <table className="fi-table">
-                <thead><tr><th>Asset Name</th><th>Total Cost</th></tr></thead>
+                <thead><tr><th>Asset Name</th><th>Initial Cost</th><th>Labour</th><th>Parts</th><th>Total Maintenance</th><th>Total Cost</th></tr></thead>
                 <tbody>
-                  {data.costPerAsset?.map((a, i) => (
-                    <tr key={i}><td>{a.assetName}</td><td className="fi-num">{formatCurrency(a.totalCost)}</td></tr>
+                  {costPerAsset.map((a, i) => (
+                    <tr key={i}>
+                      <td>{a.assetName}</td>
+                      <td className="fi-num">{formatCurrency(a.purchaseCost)}</td>
+                      <td className="fi-num">{formatCurrency(a.laborCost)}</td>
+                      <td className="fi-num">{formatCurrency(a.partsCost)}</td>
+                      <td className="fi-num">{formatCurrency(a.maintenanceCost)}</td>
+                      <td className="fi-num">{formatCurrency(a.totalCost)}</td>
+                    </tr>
                   ))}
-                  {(!data.costPerAsset || data.costPerAsset.length === 0) && <tr><td colSpan="2">No data</td></tr>}
+                  {costPerAsset.length === 0 && <tr><td colSpan="6">No data</td></tr>}
                 </tbody>
               </table>
             </div>
@@ -182,12 +250,17 @@ export default function FinancialInsightsPage() {
             <div className="fi-card">
               <h2>Monthly Spend Trends</h2>
               <table className="fi-table">
-                <thead><tr><th>Month</th><th>Spend</th></tr></thead>
+                <thead><tr><th>Month</th><th>Labour</th><th>Parts</th><th>Total</th></tr></thead>
                 <tbody>
-                  {data.monthlyTrends?.map((m, i) => (
-                    <tr key={i}><td>{m.month}</td><td className="fi-num">{formatCurrency(m.spend)}</td></tr>
+                  {monthlyTrends.map((m, i) => (
+                    <tr key={i}>
+                      <td>{m.month}</td>
+                      <td className="fi-num">{formatCurrency(m.laborSpend)}</td>
+                      <td className="fi-num">{formatCurrency(m.partsSpend)}</td>
+                      <td className="fi-num">{formatCurrency(m.spend)}</td>
+                    </tr>
                   ))}
-                  {(!data.monthlyTrends || data.monthlyTrends.length === 0) && <tr><td colSpan="2">No data</td></tr>}
+                  {monthlyTrends.length === 0 && <tr><td colSpan="4">No data</td></tr>}
                 </tbody>
               </table>
             </div>

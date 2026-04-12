@@ -66,10 +66,58 @@ const FinancialInsights = memo(function FinancialInsights({ insights, loading, e
     ?? insights?.costPerAsset?.reduce((sum, item) => sum + (item.totalCost || 0), 0)
     ?? 0;
 
-  const costPerAsset = insights?.costPerAsset || [];
-  const spendByDepartment = insights?.spendByDepartment || [];
-  const costPerTechnician = insights?.costPerTechnician || [];
-  const monthlyTrends = insights?.monthlyTrends || [];
+  const costPerAsset = (insights?.costPerAsset || []).map((a) => {
+    const labor = Number(a?.laborCost ?? 0);
+    const parts = Number(a?.partsCost ?? 0);
+    const maintenance = Number(a?.maintenanceCost ?? (labor + parts));
+    const total = Number(a?.totalCost ?? 0);
+    const initial = Number(
+      a?.purchaseCost ?? Math.max(total - maintenance, 0)
+    );
+
+    return {
+      ...a,
+      laborCost: labor,
+      partsCost: parts,
+      maintenanceCost: maintenance,
+      purchaseCost: initial,
+      totalCost: total,
+    };
+  });
+
+  const spendByDepartment = (insights?.spendByDepartment || []).map((d) => {
+    const maintenance = Number(d?.maintenanceSpend ?? 0);
+    const fallbackLabour = d?.laborSpend == null && d?.partsSpend == null ? maintenance : 0;
+    return {
+      ...d,
+      laborSpend: Number(d?.laborSpend ?? fallbackLabour),
+      partsSpend: Number(d?.partsSpend ?? 0),
+      maintenanceSpend: Number(d?.maintenanceSpend ?? Number(d?.laborSpend ?? 0) + Number(d?.partsSpend ?? 0)),
+      totalSpend: Number(d?.totalSpend ?? 0),
+    };
+  });
+
+  const costPerTechnician = (insights?.costPerTechnician || []).map((t) => {
+    const total = Number(t?.totalCost ?? 0);
+    const fallbackLabour = t?.laborCost == null && t?.partsCost == null ? total : 0;
+    return {
+      ...t,
+      laborCost: Number(t?.laborCost ?? fallbackLabour),
+      partsCost: Number(t?.partsCost ?? 0),
+      totalCost: total,
+    };
+  });
+
+  const monthlyTrends = (insights?.monthlyTrends || []).map((m) => {
+    const total = Number(m?.spend ?? 0);
+    const fallbackLabour = m?.laborSpend == null && m?.partsSpend == null ? total : 0;
+    return {
+      ...m,
+      laborSpend: Number(m?.laborSpend ?? fallbackLabour),
+      partsSpend: Number(m?.partsSpend ?? 0),
+      spend: total,
+    };
+  });
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -86,7 +134,7 @@ const FinancialInsights = memo(function FinancialInsights({ insights, loading, e
           <div className="db-kpi-icon">💰</div>
           <div className="db-kpi-label">Total Organization Spend</div>
           <div className="db-kpi-value"><AnimVal val={totalCost} suffix="" /></div>
-          <div className="db-kpi-sub">Lifetime maintenance cost</div>
+          <div className="db-kpi-sub">Lifetime maintenance cost (includes external parts)</div>
         </div>
       </div>
 
@@ -105,6 +153,10 @@ const FinancialInsights = memo(function FinancialInsights({ insights, loading, e
             <thead>
               <tr>
                 <th>Asset Name</th>
+                <th>Initial Cost</th>
+                <th>Labour</th>
+                <th>Parts</th>
+                <th>Total Maintenance</th>
                 <th>Total Cost</th>
               </tr>
             </thead>
@@ -112,11 +164,15 @@ const FinancialInsights = memo(function FinancialInsights({ insights, loading, e
               {costPerAsset.map((r, idx) => (
                 <tr key={`${r.assetName}-${idx}`}>
                   <td>{r.assetName}</td>
+                  <td>${(r.purchaseCost || 0).toFixed(2)}</td>
+                  <td>${(r.laborCost || 0).toFixed(2)}</td>
+                  <td>${(r.partsCost || 0).toFixed(2)}</td>
+                  <td>${(r.maintenanceCost || 0).toFixed(2)}</td>
                   <td style={{color: 'var(--db-rust)', fontWeight: 600}}>${r.totalCost?.toFixed(2)}</td>
                 </tr>
               ))}
               {costPerAsset.length === 0 && !loading && (
-                <tr><td colSpan="2" style={{textAlign: 'center', padding: '20px'}}>No financial data available.</td></tr>
+                <tr><td colSpan="6" style={{textAlign: 'center', padding: '20px'}}>No financial data available.</td></tr>
               )}
             </tbody>
           </table>
@@ -130,15 +186,18 @@ const FinancialInsights = memo(function FinancialInsights({ insights, loading, e
           </div>
           <div className="db-panel-body" style={{ paddingTop: 8 }}>
             <table className="db-ticket-table">
-              <thead><tr><th>Department</th><th>Total Spend</th></tr></thead>
+              <thead><tr><th>Department</th><th>Labour</th><th>Parts</th><th>Total Maintenance</th><th>Total Spend</th></tr></thead>
               <tbody>
                 {spendByDepartment.map((d, idx) => (
                   <tr key={`${d.departmentName}-${idx}`}>
                     <td>{d.departmentName}</td>
+                    <td>${(d.laborSpend || 0).toFixed(2)}</td>
+                    <td>${(d.partsSpend || 0).toFixed(2)}</td>
+                    <td>${(d.maintenanceSpend || 0).toFixed(2)}</td>
                     <td>${(d.totalSpend || 0).toFixed(2)}</td>
                   </tr>
                 ))}
-                {spendByDepartment.length === 0 && !loading && <tr><td colSpan="2" style={{textAlign:'center'}}>No data</td></tr>}
+                {spendByDepartment.length === 0 && !loading && <tr><td colSpan="5" style={{textAlign:'center'}}>No data</td></tr>}
               </tbody>
             </table>
           </div>
@@ -150,15 +209,17 @@ const FinancialInsights = memo(function FinancialInsights({ insights, loading, e
           </div>
           <div className="db-panel-body" style={{ paddingTop: 8 }}>
             <table className="db-ticket-table">
-              <thead><tr><th>Technician</th><th>Total Cost</th></tr></thead>
+              <thead><tr><th>Technician</th><th>Labour</th><th>Parts</th><th>Total</th></tr></thead>
               <tbody>
                 {costPerTechnician.map((t, idx) => (
                   <tr key={`${t.technicianName}-${idx}`}>
                     <td>{t.technicianName}</td>
+                    <td>${(t.laborCost || 0).toFixed(2)}</td>
+                    <td>${(t.partsCost || 0).toFixed(2)}</td>
                     <td>${(t.totalCost || 0).toFixed(2)}</td>
                   </tr>
                 ))}
-                {costPerTechnician.length === 0 && !loading && <tr><td colSpan="2" style={{textAlign:'center'}}>No data</td></tr>}
+                {costPerTechnician.length === 0 && !loading && <tr><td colSpan="4" style={{textAlign:'center'}}>No data</td></tr>}
               </tbody>
             </table>
           </div>
@@ -167,19 +228,21 @@ const FinancialInsights = memo(function FinancialInsights({ insights, loading, e
 
       <div className="db-panel">
         <div className="db-panel-head">
-          <span className="db-panel-title">Monthly Trends</span>
+          <span className="db-panel-title">Monthly Maintenance Trends (incl. external parts)</span>
         </div>
         <div className="db-panel-body" style={{ paddingTop: 8 }}>
           <table className="db-ticket-table">
-            <thead><tr><th>Month</th><th>Spend</th></tr></thead>
+            <thead><tr><th>Month</th><th>Labour</th><th>Parts</th><th>Total</th></tr></thead>
             <tbody>
               {monthlyTrends.map((m, idx) => (
                 <tr key={`${m.month}-${idx}`}>
                   <td>{m.month}</td>
+                  <td>${(m.laborSpend || 0).toFixed(2)}</td>
+                  <td>${(m.partsSpend || 0).toFixed(2)}</td>
                   <td>${(m.spend || 0).toFixed(2)}</td>
                 </tr>
               ))}
-              {monthlyTrends.length === 0 && !loading && <tr><td colSpan="2" style={{textAlign:'center'}}>No data</td></tr>}
+              {monthlyTrends.length === 0 && !loading && <tr><td colSpan="4" style={{textAlign:'center'}}>No data</td></tr>}
             </tbody>
           </table>
         </div>
