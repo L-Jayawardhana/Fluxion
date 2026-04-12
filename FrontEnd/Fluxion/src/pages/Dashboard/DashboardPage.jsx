@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo, memo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import api from '../../services/api';
 import { getFinancialInsightsReport } from '../../services/maintenanceLogService';
@@ -310,6 +311,7 @@ const EmployeeDashboardPage = () => (
 /* ████████████████████████████████████████████████████████████ */
 export default function DashboardPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   
   // Employee users render a dedicated dashboard view.
   const isEmployee = user?.role?.toLowerCase() === 'user';
@@ -683,7 +685,7 @@ export default function DashboardPage() {
         <div className="db-panel">
           <div className="db-panel-head">
             <span className="db-panel-title">Monthly Maintenance Cost</span>
-            <button className="db-panel-action" onClick={() => setActiveTab('financial')}>View report →</button>
+            <button className="db-panel-action" onClick={() => navigate('/financial-insights')}>View report →</button>
           </div>
           <div className="db-panel-body">
             <div className="db-cost-header">
@@ -717,7 +719,7 @@ export default function DashboardPage() {
         <div className="db-panel">
           <div className="db-panel-head">
             <span className="db-panel-title">Asset Breakdown</span>
-            <button className="db-panel-action">All assets →</button>
+            <button className="db-panel-action" onClick={() => navigate('/maintenance-logs')}>All assets →</button>
           </div>
           <div className="db-panel-body">
             <div className="db-donut-wrap">
@@ -747,7 +749,7 @@ export default function DashboardPage() {
         <div className="db-panel">
           <div className="db-panel-head">
             <span className="db-panel-title">Recent Tickets</span>
-            <button className="db-panel-action">All tickets →</button>
+            <button className="db-panel-action" onClick={() => navigate('/tickets')}>All tickets →</button>
           </div>
           <div className="db-panel-body" style={{ paddingTop: 8 }}>
             <TicketTable tickets={dashboardData.tickets.filter(t => t.status < 3).slice(0, 5)} />
@@ -757,7 +759,7 @@ export default function DashboardPage() {
         <div className="db-panel">
           <div className="db-panel-head">
             <span className="db-panel-title">Recent Assets</span>
-            <button className="db-panel-action">All assets →</button>
+            <button className="db-panel-action" onClick={() => navigate('/assets')}>All assets →</button>
           </div>
           <div className="db-panel-body" style={{ paddingTop: 8 }}>
             <AssetList assets={dashboardData.assets} />
@@ -770,7 +772,7 @@ export default function DashboardPage() {
         <div className="db-panel">
           <div className="db-panel-head">
             <span className="db-panel-title">Team Structure</span>
-            <button className="db-panel-action" onClick={() => setIsInviteModalOpen(true)}>Manage users →</button>
+            <button className="db-panel-action" onClick={() => navigate('/users')}>Manage users →</button>
           </div>
           <div className="db-panel-body" style={{ paddingTop: 12 }}>
             <div className="db-team-grid">
@@ -805,7 +807,7 @@ export default function DashboardPage() {
         <div className="db-panel">
           <div className="db-panel-head">
             <span className="db-panel-title">Assets by Department</span>
-            <button className="db-panel-action">Departments →</button>
+            <button className="db-panel-action" onClick={() => navigate('/departments')}>Departments →</button>
           </div>
           <div className="db-panel-body" style={{ paddingTop: 14 }}>
             <div className="db-dept-bars">
@@ -830,35 +832,12 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Activity + Warranty col restored */}
         <div className="db-stacked-col">
-          {/* Activity Feed */}
-          <div className="db-panel db-panel-flex">
-            <div className="db-panel-head">
-              <span className="db-panel-title">Recent Activity</span>
-              <button className="db-panel-action">View all →</button>
-            </div>
-            <div className="db-panel-body" style={{ paddingTop: 8 }}>
-              <div className="db-activity">
-                {activityDataRaw.map((a, i) => (
-                  <div className="db-act-item" key={i}>
-                    <div className="db-act-icon" style={{ background: a.bg }}>{a.icon}</div>
-                    <div className="db-act-body">
-                      <div className="db-act-text">{a.text}</div>
-                      <div className="db-act-time">{a.time}</div>
-                    </div>
-                  </div>
-                ))}
-                {activityDataRaw.length === 0 && <div style={{textAlign: 'center', opacity: 0.5}}>No recent ticket activity</div>}
-              </div>
-            </div>
-          </div>
-
           {/* Warranty Alerts */}
           <div className="db-panel">
             <div className="db-panel-head">
               <span className="db-panel-title">Warranty Expiry</span>
-              <button className="db-panel-action">Full report →</button>
+              <button className="db-panel-action" onClick={() => navigate('/report-warranty')}>Full report →</button>
             </div>
             <div className="db-panel-body" style={{ paddingTop: 8 }}>
               <div className="db-warranty-list">
