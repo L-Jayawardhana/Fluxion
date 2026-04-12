@@ -132,6 +132,29 @@ public class MaintenanceController : ControllerBase
     {
         return string.Join("; ", ex.Errors.Select(e => e.ErrorMessage).Distinct());
     }
+
+    [HttpGet("financial-insights")]
+    public async Task<IActionResult> GetFinancialInsights([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate, CancellationToken ct)
+    {
+        try {
+            var query = new Fluxion.Application.Features.Financial.GetFinancialInsightsQuery {
+                StartDate = startDate,
+                EndDate = endDate
+            };
+            var result = await _mediator.Send(query, ct);
+            if (!result.IsSuccess) return BadRequest(result);
+            return Ok(result);
+        }
+        catch (Fluxion.Application.Exceptions.ForbiddenException ex) {
+            return StatusCode(StatusCodes.Status403Forbidden, Fluxion.Application.DTOs.Common.Result<Fluxion.Application.Features.Financial.FinancialInsightsDto>.Failure(ex.Message));
+        }
+        catch (UnauthorizedAccessException ex) {
+            return Unauthorized(Fluxion.Application.DTOs.Common.Result<Fluxion.Application.Features.Financial.FinancialInsightsDto>.Failure(ex.Message));
+        }
+        catch (Exception ex) {
+            return StatusCode(StatusCodes.Status500InternalServerError, Fluxion.Application.DTOs.Common.Result<Fluxion.Application.Features.Financial.FinancialInsightsDto>.Failure(ex.Message));
+        }
+    }
 }
 
 public record AddMaintenanceCommentRequest(string Content, bool? IsVisibleToEmployee);
