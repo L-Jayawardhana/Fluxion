@@ -134,10 +134,11 @@ public class MaintenanceController : ControllerBase
     }
 
     [HttpGet("financial-insights")]
-    public async Task<IActionResult> GetFinancialInsights([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate, CancellationToken ct)
+    public async Task<IActionResult> GetFinancialInsights([FromQuery] int? orgId, [FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate, CancellationToken ct)
     {
         try {
             var query = new Fluxion.Application.Features.Financial.GetFinancialInsightsQuery {
+                OrgId = orgId,
                 StartDate = startDate,
                 EndDate = endDate
             };

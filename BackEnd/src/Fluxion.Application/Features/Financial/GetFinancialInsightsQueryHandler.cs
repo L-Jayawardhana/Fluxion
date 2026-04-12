@@ -34,15 +34,17 @@ public class GetFinancialInsightsQueryHandler : IRequestHandler<GetFinancialInsi
         if (!isOwnerOrAdmin)
             throw new ForbiddenException("Financial insights are only available to admins and owners.");
 
-        var orgId = await _db.Users
+        var userOrgId = await _db.Users
             .Where(u => u.UserId == userId.Value)
             .Select(u => (int?)u.OrgId)
-            .FirstOrDefaultAsync(cancellationToken)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        var orgId = request.OrgId ?? userOrgId
             ?? throw new UnauthorizedAccessException("User organisation not found.");
 
         var query = _db.MaintenanceLogs
             .Include(m => m.Ticket).ThenInclude(t => t.Asset).ThenInclude(a => a.Department)
-            .Where(m => m.OrgId == orgId && m.RepairCost.HasValue);
+            .Where(m => m.OrgId == orgId);
 
         if (request.StartDate.HasValue)
             query = query.Where(x => x.RepairDate >= request.StartDate.Value);
@@ -52,26 +54,76 @@ public class GetFinancialInsightsQueryHandler : IRequestHandler<GetFinancialInsi
 
         var logs = await query.ToListAsync(cancellationToken);
 
+        var orgDepartments = await _db.Departments
+            .Where(d => d.OrgId == orgId)
+            .Select(d => new { d.DepartmentId, d.DepartmentName })
+            .ToListAsync(cancellationToken);
+
+        var orgAssets = await _db.Assets
+            .Where(a => a.OrgId == orgId)
+            .Select(a => new { a.AssetId, a.DepartmentId, a.Cost, a.AssetName })
+            .ToListAsync(cancellationToken);
+
         var dto = new FinancialInsightsDto();
 
         // 1. Spend by Department
-        dto.SpendByDepartment = logs
-            .GroupBy(l => l.Ticket.Asset.Department?.DepartmentName ?? "Unassigned")
-            .Select(g => new DepartmentSpendDto
+        var assetDeptMap = orgAssets.ToDictionary(a => a.AssetId, a => a.DepartmentId);
+
+        const int UnassignedDeptKey = -1;
+
+        var maintenanceByDepartment = logs
+            .GroupBy(l => assetDeptMap.TryGetValue(l.AssetId, out var deptId) ? (deptId ?? UnassignedDeptKey) : UnassignedDeptKey)
+            .ToDictionary(g => g.Key, g => g.Sum(l => l.RepairCost ?? 0));
+
+        var assetCostByDepartment = orgAssets
+            .GroupBy(a => a.DepartmentId ?? UnassignedDeptKey)
+            .ToDictionary(g => g.Key, g => g.Sum(a => a.Cost ?? 0));
+
+        var spendByDepartment = orgDepartments
+            .Select(d =>
             {
-                DepartmentName = g.Key,
-                TotalSpend = g.Sum(l => l.RepairCost!.Value)
+                var maintenanceSpend = maintenanceByDepartment.TryGetValue(d.DepartmentId, out var ms) ? ms : 0m;
+                var assetSpend = assetCostByDepartment.TryGetValue(d.DepartmentId, out var ac) ? ac : 0m;
+                return new DepartmentSpendDto
+                {
+                    DepartmentName = d.DepartmentName,
+                    TotalSpend = maintenanceSpend + assetSpend
+                };
             })
+            .ToList();
+
+        var unassignedMaintenance = maintenanceByDepartment.TryGetValue(UnassignedDeptKey, out var ums) ? ums : 0m;
+        var unassignedAssetCost = assetCostByDepartment.TryGetValue(UnassignedDeptKey, out var uas) ? uas : 0m;
+        var unassignedTotal = unassignedMaintenance + unassignedAssetCost;
+        if (unassignedTotal > 0)
+        {
+            spendByDepartment.Add(new DepartmentSpendDto
+            {
+                DepartmentName = "Unassigned",
+                TotalSpend = unassignedTotal
+            });
+        }
+
+        dto.SpendByDepartment = spendByDepartment
             .OrderByDescending(d => d.TotalSpend)
             .ToList();
 
         // 2. Cost Per Asset
-        dto.CostPerAsset = logs
-            .GroupBy(l => l.Ticket.Asset.AssetName)
-            .Select(g => new AssetCostDto
+        var maintenanceCostByAsset = logs
+            .GroupBy(l => l.AssetId)
+            .ToDictionary(g => g.Key, g => g.Sum(l => l.RepairCost ?? 0));
+
+        dto.CostPerAsset = orgAssets
+            .GroupBy(a => a.AssetId)
+            .Select(g =>
             {
-                AssetName = g.Key,
-                TotalCost = g.Sum(l => l.RepairCost!.Value)
+                var asset = g.First();
+                var maintenanceCost = maintenanceCostByAsset.TryGetValue(asset.AssetId, out var mc) ? mc : 0m;
+                return new AssetCostDto
+                {
+                    AssetName = asset.AssetName ?? $"Asset #{asset.AssetId}",
+                    TotalCost = (asset.Cost ?? 0) + maintenanceCost
+                };
             })
             .OrderByDescending(a => a.TotalCost)
             .Take(10)
@@ -87,7 +139,7 @@ public class GetFinancialInsightsQueryHandler : IRequestHandler<GetFinancialInsi
             .Select(g => new TechnicianCostDto
             {
                 TechnicianName = technicians.TryGetValue(g.Key, out var name) ? name : "Unknown",
-                TotalCost = g.Sum(l => l.RepairCost!.Value)
+                TotalCost = g.Sum(l => l.RepairCost ?? 0)
             })
             .OrderByDescending(t => t.TotalCost)
             .ToList();
@@ -98,14 +150,16 @@ public class GetFinancialInsightsQueryHandler : IRequestHandler<GetFinancialInsi
             .Select(g => new MonthlyTrendDto
             {
                 Month = $"{g.Key.Year}-{g.Key.Month:D2}",
-                Spend = g.Sum(l => l.RepairCost!.Value)
+                Spend = g.Sum(l => l.RepairCost ?? 0)
             })
             .OrderBy(m => m.Month)
             .ToList();
 
         // 5. Budget vs Actual
         // As a simple example, assuming a flat monthly budget of $10,000 per active department, or just $50,000 organizational total.
-        var totalActual = logs.Sum(l => l.RepairCost!.Value);
+        var totalMaintenanceCost = logs.Sum(l => l.RepairCost ?? 0);
+        var totalAssetCost = orgAssets.Sum(a => a.Cost ?? 0);
+        var totalActual = totalMaintenanceCost + totalAssetCost;
         var activeDeptsCount = await _db.Departments.CountAsync(d => d.OrgId == orgId && d.IsActive, cancellationToken);
         var totalBudget = activeDeptsCount * 5000m; // Example: $5000 per department budget
 
