@@ -110,8 +110,8 @@ public class TechnicianController : ControllerBase
 
         // Total repair cost from maintenance logs
         var totalCost = await _db.MaintenanceLogs
-            .Where(l => l.TechnicianId == techId && l.RepairCost.HasValue)
-            .SumAsync(l => l.RepairCost!.Value, ct);
+            .Where(l => l.TechnicianId == techId)
+            .SumAsync(l => (l.RepairCost ?? 0m) + (l.ExternalPartsCost ?? 0m), ct);
 
         return Ok(new
         {
@@ -182,9 +182,9 @@ public class TechnicianController : ControllerBase
         // Enrich with cost from maintenance logs
         var ticketIds = tickets.Select(t => t.TicketId).ToList();
         var costs = await _db.MaintenanceLogs
-            .Where(l => ticketIds.Contains(l.TicketId) && l.RepairCost.HasValue)
+            .Where(l => ticketIds.Contains(l.TicketId))
             .GroupBy(l => l.TicketId)
-            .Select(g => new { ticketId = g.Key, totalCost = g.Sum(l => l.RepairCost!.Value) })
+            .Select(g => new { ticketId = g.Key, totalCost = g.Sum(l => (l.RepairCost ?? 0m) + (l.ExternalPartsCost ?? 0m)) })
             .ToListAsync(ct);
 
         var costMap = costs.ToDictionary(c => c.ticketId, c => c.totalCost);
@@ -382,8 +382,19 @@ public class TechnicianController : ControllerBase
         if (ticket is null)
             return NotFound(new { message = "Ticket not found or not assigned to you." });
 
-        if (ticket.Status != TicketStatus.in_progress)
-            return BadRequest(new { message = "Repair log can only be submitted for In Progress tickets." });
+        if (ticket.Status != TicketStatus.assigned && ticket.Status != TicketStatus.in_progress && ticket.Status != TicketStatus.waiting_parts)
+            return BadRequest(new { message = "Repair log can only be submitted for Assigned, In Progress, or Waiting Parts tickets." });
+
+        if (ticket.Status == TicketStatus.assigned)
+            ticket.Status = TicketStatus.in_progress;
+
+        var laborCost = req.Cost ?? 0m;
+        var externalPartsCost = req.ExternalPartsCost ?? 0m;
+
+        if (laborCost < 0 || externalPartsCost < 0)
+            return BadRequest(new { message = "Cost values cannot be negative." });
+
+        var totalMaintenanceCost = laborCost + externalPartsCost;
 
         var log = new Fluxion.Domain.Entities.MaintenanceLog
         {
@@ -392,7 +403,8 @@ public class TechnicianController : ControllerBase
             AssetId = ticket.AssetId,
             TechnicianId = techId,
             RepairDate = DateTime.UtcNow,
-            RepairCost = req.Cost,
+            RepairCost = laborCost,
+            ExternalPartsCost = externalPartsCost,
             RepairNotes = req.RepairDescription,
             IsVisibleToEmployee = null
         };
@@ -401,7 +413,14 @@ public class TechnicianController : ControllerBase
         ticket.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync(ct);
 
-        return Ok(new { message = "Repair log saved.", logId = log.LogId });
+        return Ok(new
+        {
+            message = "Repair log saved.",
+            logId = log.LogId,
+            laborCost,
+            externalPartsCost,
+            totalMaintenanceCost
+        });
     }
 
     // ─────────────────────────────────────────────────────────
@@ -426,6 +445,7 @@ public class TechnicianController : ControllerBase
             TechnicianId = techId,
             RepairDate = DateTime.UtcNow,
             RepairCost = null,
+            ExternalPartsCost = null,
             RepairNotes = req.Content,
             IsVisibleToEmployee = req.IsVisibleToEmployee ?? true
         };
@@ -570,6 +590,6 @@ public class TechnicianController : ControllerBase
 
 // ── Request DTOs ─────────────────────────────────────────────
 public record UpdateStatusRequest(string Status);
-public record LogRepairRequest(string RepairDescription, decimal? Cost);
+public record LogRepairRequest(string RepairDescription, decimal? Cost, decimal? ExternalPartsCost);
 public record AddCommentRequest(string Content, bool? IsVisibleToEmployee = null);
 public record UpdateConditionRequest(string Condition);

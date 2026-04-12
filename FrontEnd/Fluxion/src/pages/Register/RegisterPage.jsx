@@ -35,6 +35,7 @@ export default function RegisterPage() {
     const ringRef = useRef(null);
     const fileInputRef = useRef(null);
     const googleBtnRef = useRef(null);
+    const gsiInitializedRef = useRef(false);
 
     // Custom cursor
     useEffect(() => {
@@ -123,10 +124,14 @@ export default function RegisterPage() {
 
     useEffect(() => {
         if (window.google && step === 1 && googleBtnRef.current) {
-            window.google.accounts.id.initialize({
-                client_id: GOOGLE_CLIENT_ID,
-                callback: handleGoogleSignUp,
-            });
+            if (!gsiInitializedRef.current) {
+                window.google.accounts.id.initialize({
+                    client_id: GOOGLE_CLIENT_ID,
+                    callback: handleGoogleSignUp,
+                });
+                gsiInitializedRef.current = true;
+            }
+            googleBtnRef.current.innerHTML = '';
             window.google.accounts.id.renderButton(
                 googleBtnRef.current,
                 {
