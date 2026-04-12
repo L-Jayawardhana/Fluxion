@@ -54,7 +54,11 @@ public class GetMaintenanceLogPageQueryHandler : IRequestHandler<GetMaintenanceL
                 .Select(t => t.TicketId)
                 .ToListAsync(cancellationToken);
 
-            if (assignedTicketIds.Count == 0)
+            // Also allow access if the technician has logged repairs for this asset
+            var hasRepairLogs = await _db.MaintenanceLogs
+                .AnyAsync(l => l.AssetId == request.AssetId && l.TechnicianId == userId.Value, cancellationToken);
+
+            if (assignedTicketIds.Count == 0 && !hasRepairLogs)
                 throw new ForbiddenException("Access denied");
         }
         else if (!isOwner)
@@ -88,28 +92,29 @@ public class GetMaintenanceLogPageQueryHandler : IRequestHandler<GetMaintenanceL
             DepartmentName = isOwner ? asset.Department?.DepartmentName : null
         };
 
-        var logsQuery = _db.MaintenanceLogs
-            .Where(l => l.AssetId == request.AssetId && l.IsVisibleToEmployee == null);
+        // Primary source is Tickets to ensure all maintenance history is shown,
+        // even if the technician resolved it without an explicit 'Repair Log' form submission.
+        var ticketsQuery = _db.MaintenanceTickets
+            .Where(t => t.AssetId == request.AssetId);
 
-        if (isTechnician)
-            logsQuery = logsQuery.Where(l => l.TechnicianId == userId.Value);
+        var totalCount = await ticketsQuery.CountAsync(cancellationToken);
 
-        var totalCount = await logsQuery.CountAsync(cancellationToken);
-
-        var pagedLogsRaw = await (from l in logsQuery
-                                  join t in _db.MaintenanceTickets on l.TicketId equals t.TicketId
-                                  join u in _db.Users on l.TechnicianId equals u.UserId into uGroup
+        var pagedLogsRaw = await (from t in ticketsQuery
+                                  join l in _db.MaintenanceLogs.Where(x => x.IsVisibleToEmployee == null)
+                                      on t.TicketId equals l.TicketId into lGroup
+                                  from l in lGroup.DefaultIfEmpty()
+                                  join u in _db.Users on (l != null ? l.TechnicianId : t.AssignedTo) equals u.UserId into uGroup
                                   from u in uGroup.DefaultIfEmpty()
-                                  orderby l.RepairDate descending
+                                  orderby (l != null ? l.RepairDate : t.CreatedAt) descending
                                   select new
                                   {
-                                      LogId = l.LogId,
-                                      TicketId = l.TicketId,
+                                      LogId = l != null ? l.LogId : t.TicketId,
+                                      TicketId = t.TicketId,
                                       TicketTitle = t.Title,
                                       TechnicianName = u != null ? u.FullName : "Technician",
-                                      RepairDescription = l.RepairNotes,
-                                      CostRaw = l.RepairCost,
-                                      LoggedAt = l.RepairDate,
+                                      RepairDescription = l != null ? l.RepairNotes : t.IssueDescription,
+                                      CostRaw = l != null ? l.RepairCost : (decimal?)null,
+                                      LoggedAt = l != null ? l.RepairDate : t.CreatedAt,
                                       ResolvedAt = t.ClosedAt
                                   })
             .Skip((request.PageNumber - 1) * request.PageSize)
@@ -133,9 +138,6 @@ public class GetMaintenanceLogPageQueryHandler : IRequestHandler<GetMaintenanceL
 
         var commentsQuery = _db.MaintenanceLogs
             .Where(l => l.AssetId == request.AssetId && l.IsVisibleToEmployee.HasValue);
-
-        if (isTechnician)
-            commentsQuery = commentsQuery.Where(l => assignedTicketIds.Contains(l.TicketId));
 
         if (isEmployee)
             commentsQuery = commentsQuery.Where(l => l.IsVisibleToEmployee == true);
