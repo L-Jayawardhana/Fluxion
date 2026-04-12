@@ -9,14 +9,6 @@ using Fluxion.UnitTests.Helpers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
-using FluentAssertions;
-using Fluxion.API.Controllers;
-using Fluxion.Application.Interfaces;
-using Fluxion.Domain.Entities;
-using Fluxion.Domain.Enums;
-using Fluxion.Persistence.Context;
-using Fluxion.UnitTests.Helpers;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Fluxion.UnitTests.Controllers;
 
@@ -190,6 +182,111 @@ public class TechnicianControllerTests
         var action = await controller.AddComment(40, new AddCommentRequest("working on it"), CancellationToken.None);
 
         action.Should().BeOfType<NotFoundObjectResult>();
+    }
+
+    [Fact]
+    public async Task GetTechnicianAssets_ReturnsDistinctAssetsFromTicketsAndRepairLogs()
+    {
+        using var db = CreateDb();
+        const int techId = 710;
+
+        db.Organizations.Add(new Organization
+        {
+            OrgId = 10,
+            OrgName = "Org-10",
+            Slug = "org-10",
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        });
+
+        db.Assets.AddRange(
+            new Asset
+            {
+                AssetId = 51,
+                OrgId = 10,
+                AssetName = "Asset-A",
+                AssetType = "Laptop",
+                SerialNumber = "SN-51",
+                Status = AssetStatus.assigned,
+                CreatedBy = 1,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            },
+            new Asset
+            {
+                AssetId = 52,
+                OrgId = 10,
+                AssetName = "Asset-B",
+                AssetType = "Printer",
+                SerialNumber = "SN-52",
+                Status = AssetStatus.under_maintenance,
+                CreatedBy = 1,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            });
+
+        db.MaintenanceTickets.Add(new MaintenanceTicket
+        {
+            TicketId = 501,
+            OrgId = 10,
+            AssetId = 51,
+            RaisedBy = 1,
+            AssignedTo = techId,
+            Title = "Assigned ticket",
+            IssueDescription = "desc",
+            Priority = TicketPriority.low,
+            Status = TicketStatus.open,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        });
+
+        db.MaintenanceLogs.AddRange(
+            new MaintenanceLog
+            {
+                LogId = 601,
+                OrgId = 10,
+                TicketId = 501,
+                AssetId = 51,
+                TechnicianId = techId,
+                RepairDate = DateTime.UtcNow,
+                RepairNotes = "note",
+                IsVisibleToEmployee = null
+            },
+            new MaintenanceLog
+            {
+                LogId = 602,
+                OrgId = 10,
+                TicketId = 501,
+                AssetId = 52,
+                TechnicianId = techId,
+                RepairDate = DateTime.UtcNow,
+                RepairNotes = "another note",
+                IsVisibleToEmployee = null
+            });
+
+        await db.SaveChangesAsync();
+
+        var controller = new TechnicianController(
+            db,
+            new FakeCurrentUserService { UserId = techId, Role = "technician" },
+            new Mock<ITicketAlertEmailService>().Object,
+            new Mock<INotificationService>().Object,
+            new Mock<ILogger<TechnicianController>>().Object);
+
+        var action = await controller.GetTechnicianAssets(CancellationToken.None);
+
+        var ok = action.Should().BeOfType<OkObjectResult>().Subject;
+        using var doc = JsonDocument.Parse(JsonSerializer.Serialize(ok.Value));
+
+        doc.RootElement.GetArrayLength().Should().Be(2);
+
+        var assetIds = doc.RootElement
+            .EnumerateArray()
+            .Select(x => x.GetProperty("assetId").GetInt32())
+            .OrderBy(x => x)
+            .ToArray();
+
+        assetIds.Should().Equal(51, 52);
     }
 
     [Fact]

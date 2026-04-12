@@ -445,6 +445,52 @@ public class TechnicianController : ControllerBase
     }
 
     // ─────────────────────────────────────────────────────────
+    // GET /api/technician/assets
+    // Returns distinct assets this technician has been assigned to
+    // (via tickets or direct repair logs) — used by the maintenance
+    // log asset picker.
+    // ─────────────────────────────────────────────────────────
+    [HttpGet("assets")]
+    public async Task<IActionResult> GetTechnicianAssets(CancellationToken ct)
+    {
+        int techId = GetTechnicianId();
+
+        // Asset IDs from assigned tickets
+        var assetIdsFromTickets = await _db.MaintenanceTickets
+            .Where(t => t.AssignedTo == techId)
+            .Select(t => t.AssetId)
+            .Distinct()
+            .ToListAsync(ct);
+
+        // Asset IDs from direct repair logs
+        var assetIdsFromLogs = await _db.MaintenanceLogs
+            .Where(l => l.TechnicianId == techId)
+            .Select(l => l.AssetId)
+            .Distinct()
+            .ToListAsync(ct);
+
+        var allAssetIds = assetIdsFromTickets.Union(assetIdsFromLogs).Distinct().ToList();
+
+        if (allAssetIds.Count == 0)
+            return Ok(Array.Empty<object>());
+
+        var assets = await _db.Assets
+            .Where(a => allAssetIds.Contains(a.AssetId))
+            .Select(a => new
+            {
+                assetId      = a.AssetId,
+                assetName    = a.AssetName,
+                assetType    = a.AssetType,
+                serialNumber = a.SerialNumber,
+                status       = a.Status.ToString()
+            })
+            .OrderBy(a => a.assetName)
+            .ToListAsync(ct);
+
+        return Ok(assets);
+    }
+
+    // ─────────────────────────────────────────────────────────
     // PATCH /api/technician/assets/:assetId/condition
     // ─────────────────────────────────────────────────────────
     [HttpPatch("assets/{assetId:int}/condition")]
