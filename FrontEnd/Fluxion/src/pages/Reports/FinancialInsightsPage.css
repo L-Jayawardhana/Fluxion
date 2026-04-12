@@ -1,0 +1,198 @@
+.fi-page {
+  padding: 24px;
+  background-color: #f8fafc;
+  min-height: 100vh;
+}
+
+.fi-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.fi-eyebrow {
+  font-size: 0.875rem;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.fi-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.fi-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.fi-filters {
+  display: flex;
+  gap: 8px;
+  margin-right: 12px;
+  border-right: 1px solid #e2e8f0;
+  padding-right: 16px;
+}
+
+.fi-input {
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 0.875rem;
+  color: #334155;
+  background: white;
+}
+
+.fi-btn {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.fi-btn-primary {
+  background-color: #2563eb;
+  color: white;
+}
+.fi-btn-primary:hover {
+  background-color: #1d4ed8;
+}
+
+.fi-btn-secondary {
+  background-color: white;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+}
+.fi-btn-secondary:hover {
+  background-color: #f1f5f9;
+}
+
+.fi-alert {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 24px;
+}
+
+.fi-loading {
+  text-align: center;
+  padding: 40px;
+  color: #64748b;
+}
+
+.fi-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.fi-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  padding: 20px;
+}
+
+.fi-card h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 16px 0;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 12px;
+}
+
+.fi-budget-card {
+  border-left: 4px solid #3b82f6;
+}
+
+.fi-budget-stats {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+.fi-budget-stats > div {
+  flex: 1;
+}
+
+.fi-stat-label {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+.fi-stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.fi-positive {
+  color: #16a34a;
+}
+.fi-negative {
+  color: #dc2626;
+}
+
+.fi-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+@media (max-width: 1024px) {
+  .fi-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.fi-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.fi-table th {
+  text-align: left;
+  padding: 12px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #475569;
+  border-bottom: 1px solid #cbd5e1;
+  background-color: #f8fafc;
+}
+
+.fi-table td {
+  padding: 12px;
+  font-size: 0.875rem;
+  color: #334155;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.fi-table .fi-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.fi-table th:last-child {
+  text-align: right;
+}
+
+@media print {
+  .fi-actions { display: none; }
+  .fi-page { background: white; padding: 0; min-height: auto; }
+  .fi-card { box-shadow: none; border: 1px solid #cbd5e1; page-break-inside: avoid; }
+}

@@ -88,6 +88,7 @@ const NAV = [
     label: 'Reports', ownerOnly: true, items: [
       { to: '/report-assets', icon: I.report, text: 'Asset Register' },
       { to: '/report-maintenance-cost', icon: I.chart, text: 'Maintenance Cost' },
+      { to: '/financial-insights', icon: I.chart, text: 'Financial Insights' },
       { to: '/report-warranty', icon: I.warranty, text: 'Warranty Expiry' },
       { to: '/export-data', icon: I.exportData, text: 'Export Data' },
     ]
