@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import api from '../../services/api';
 import { getFinancialInsightsReport } from '../../services/maintenanceLogService';
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 import InviteUserModal from './InviteUserModal';
 import './DashboardPage.css';
 
@@ -62,12 +65,193 @@ const ArrowIcon = () => (
 );
 
 /* ── Financial Insights Sub-Page ──────────────────────────── */
-const FinancialInsights = memo(function FinancialInsights({ insights, loading, error }) {
-  const totalCost = insights?.budgetComparison?.actualSpend
-    ?? insights?.costPerAsset?.reduce((sum, item) => sum + (item.totalCost || 0), 0)
+const FinancialInsights = memo(function FinancialInsights({ insights: initialInsights, loading: initialLoading, error: initialError, orgId }) {
+  const [data, setData] = useState(initialInsights);
+  const [loading, setLoading] = useState(initialLoading);
+  const [error, setError] = useState(initialError);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+
+  // Sync initial loading metrics if we haven't filtered
+  useEffect(() => {
+    if (!startDate && !endDate) {
+      setData(initialInsights);
+      setLoading(initialLoading);
+      setError(initialError);
+    }
+  }, [initialInsights, initialLoading, initialError, startDate, endDate]);
+
+  const loadData = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const res = await getFinancialInsightsReport({
+        orgId: orgId || undefined,
+        startDate: startDate || undefined,
+        endDate: endDate || undefined,
+      });
+
+      if (res?.isSuccess === false) {
+        setError(res?.errorMessage || 'Failed to load financial insights');
+        setData(null);
+      } else {
+        const payload = res?.data ?? res;
+        setData(payload || null);
+      }
+    } catch (err) {
+      setError(err.response?.data?.errorMessage || err.message || 'Failed to load financial insights');
+      setData(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleExportPDF = () => {
+    if (!data) return;
+
+    const doc = new jsPDF();
+    let currentY = 14;
+
+    doc.setFontSize(16);
+    doc.text('Financial Insights Report', 14, currentY);
+    currentY += 10;
+
+    const formatCurrency = (v) => `$${(v || 0).toFixed(2)}`;
+
+    // Budget vs Actual
+    doc.setFontSize(12);
+    doc.text('Budget vs Actual', 14, currentY);
+    currentY += 5;
+    doc.autoTable({
+      startY: currentY,
+      head: [['Metric', 'Value']],
+      body: [
+        ['Total Budget', formatCurrency(data.budgetComparison?.totalBudget)],
+        ['Actual Spend', formatCurrency(data.budgetComparison?.actualSpend)],
+        ['Variance', formatCurrency(data.budgetComparison?.variance)]
+      ],
+      margin: { left: 14 }
+    });
+    currentY = doc.lastAutoTable.finalY + 10;
+
+    // Spend By Department
+    if (spendByDepartment && spendByDepartment.length > 0) {
+      if (currentY > 250) { doc.addPage(); currentY = 14; }
+      doc.text('Spend by Department', 14, currentY);
+      doc.autoTable({
+        startY: currentY + 5,
+        head: [['Department', 'Labour', 'Parts', 'Total Maintenance', 'Total Spend']],
+        body: spendByDepartment.map(d => [
+          d.departmentName,
+          formatCurrency(d.laborSpend),
+          formatCurrency(d.partsSpend),
+          formatCurrency(d.maintenanceSpend),
+          formatCurrency(d.totalSpend)
+        ]),
+        margin: { left: 14 }
+      });
+      currentY = doc.lastAutoTable.finalY + 10;
+    }
+
+    // Cost Per Technician
+    if (costPerTechnician && costPerTechnician.length > 0) {
+      if (currentY > 250) { doc.addPage(); currentY = 14; }
+      doc.text('Cost per Technician', 14, currentY);
+      doc.autoTable({
+        startY: currentY + 5,
+        head: [['Technician', 'Labour', 'Parts', 'Total']],
+        body: costPerTechnician.map(t => [
+          t.technicianName,
+          formatCurrency(t.laborCost),
+          formatCurrency(t.partsCost),
+          formatCurrency(t.totalCost)
+        ]),
+        margin: { left: 14 }
+      });
+      currentY = doc.lastAutoTable.finalY + 10;
+    }
+
+    // Cost Per Asset
+    if (costPerAsset && costPerAsset.length > 0) {
+      if (currentY > 250) { doc.addPage(); currentY = 14; }
+      doc.text('Cost per Asset (Top 10)', 14, currentY);
+      doc.autoTable({
+        startY: currentY + 5,
+        head: [['Asset', 'Initial Cost', 'Labour', 'Parts', 'Total Maint.', 'Total Cost']],
+        body: costPerAsset.map(a => [
+          a.assetName,
+          formatCurrency(a.purchaseCost),
+          formatCurrency(a.laborCost),
+          formatCurrency(a.partsCost),
+          formatCurrency(a.maintenanceCost),
+          formatCurrency(a.totalCost)
+        ]),
+        margin: { left: 14 }
+      });
+      currentY = doc.lastAutoTable.finalY + 10;
+    }
+
+    // Monthly Trends
+    if (monthlyTrends && monthlyTrends.length > 0) {
+      if (currentY > 250) { doc.addPage(); currentY = 14; }
+      doc.text('Monthly Spend Trends', 14, currentY);
+      doc.autoTable({
+        startY: currentY + 5,
+        head: [['Month', 'Labour', 'Parts', 'Total']],
+        body: monthlyTrends.map(m => [
+          m.month,
+          formatCurrency(m.laborSpend),
+          formatCurrency(m.partsSpend),
+          formatCurrency(m.spend)
+        ]),
+        margin: { left: 14 }
+      });
+    }
+
+    doc.save(`Financial_Insights_${startDate || 'All'}_to_${endDate || 'All'}.pdf`);
+  };
+
+  const handleExportExcel = () => {
+    if (!data) return;
+
+    const wb = XLSX.utils.book_new();
+
+    const statsData = [
+      ['Metric', 'Value'],
+      ['Total Budget', data.budgetComparison?.totalBudget || 0],
+      ['Actual Spend', data.budgetComparison?.actualSpend || 0],
+      ['Variance', data.budgetComparison?.variance || 0],
+    ];
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(statsData), 'Budget vs Actual');
+
+    if (data.spendByDepartment) {
+      const deptWs = XLSX.utils.json_to_sheet(data.spendByDepartment);
+      XLSX.utils.book_append_sheet(wb, deptWs, 'Spend by Department');
+    }
+
+    if (data.costPerTechnician) {
+      const techWs = XLSX.utils.json_to_sheet(data.costPerTechnician);
+      XLSX.utils.book_append_sheet(wb, techWs, 'Cost per Technician');
+    }
+
+    if (data.costPerAsset) {
+      const assetWs = XLSX.utils.json_to_sheet(data.costPerAsset);
+      XLSX.utils.book_append_sheet(wb, assetWs, 'Cost per Asset');
+    }
+
+    if (data.monthlyTrends) {
+      const trendWs = XLSX.utils.json_to_sheet(data.monthlyTrends);
+      XLSX.utils.book_append_sheet(wb, trendWs, 'Monthly Trends');
+    }
+
+    XLSX.writeFile(wb, 'Financial_Insights.xlsx');
+  };
+
+  const totalCost = data?.budgetComparison?.actualSpend
+    ?? data?.costPerAsset?.reduce((sum, item) => sum + (item.totalCost || 0), 0)
     ?? 0;
 
-  const costPerAsset = (insights?.costPerAsset || []).map((a) => {
+  const costPerAsset = (data?.costPerAsset || []).map((a) => {
     const labor = Number(a?.laborCost ?? 0);
     const parts = Number(a?.partsCost ?? 0);
     const maintenance = Number(a?.maintenanceCost ?? (labor + parts));
@@ -86,7 +270,7 @@ const FinancialInsights = memo(function FinancialInsights({ insights, loading, e
     };
   });
 
-  const spendByDepartment = (insights?.spendByDepartment || []).map((d) => {
+  const spendByDepartment = (data?.spendByDepartment || []).map((d) => {
     const maintenance = Number(d?.maintenanceSpend ?? 0);
     const fallbackLabour = d?.laborSpend == null && d?.partsSpend == null ? maintenance : 0;
     return {
@@ -98,7 +282,7 @@ const FinancialInsights = memo(function FinancialInsights({ insights, loading, e
     };
   });
 
-  const costPerTechnician = (insights?.costPerTechnician || []).map((t) => {
+  const costPerTechnician = (data?.costPerTechnician || []).map((t) => {
     const total = Number(t?.totalCost ?? 0);
     const fallbackLabour = t?.laborCost == null && t?.partsCost == null ? total : 0;
     return {
@@ -109,7 +293,7 @@ const FinancialInsights = memo(function FinancialInsights({ insights, loading, e
     };
   });
 
-  const monthlyTrends = (insights?.monthlyTrends || []).map((m) => {
+  const monthlyTrends = (data?.monthlyTrends || []).map((m) => {
     const total = Number(m?.spend ?? 0);
     const fallbackLabour = m?.laborSpend == null && m?.partsSpend == null ? total : 0;
     return {
@@ -122,6 +306,31 @@ const FinancialInsights = memo(function FinancialInsights({ insights, loading, e
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      
+      <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', flexWrap: 'wrap', alignItems: 'center' }}>
+        <input 
+          type="date" 
+          value={startDate} 
+          onChange={(e) => setStartDate(e.target.value)} 
+          style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--db-border)', background: 'var(--db-surface)' }}
+        />
+        <input 
+          type="date" 
+          value={endDate} 
+          onChange={(e) => setEndDate(e.target.value)} 
+          style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--db-border)', background: 'var(--db-surface)' }}
+        />
+        <button 
+          style={{ padding: '8px 16px', borderRadius: '6px', background: 'var(--db-text)', color: 'var(--db-bg)', fontWeight: 600, border: 'none', cursor: 'pointer' }}
+          onClick={loadData}>Apply</button>
+        <button 
+          style={{ padding: '8px 16px', borderRadius: '6px', background: 'transparent', border: '1px solid var(--db-border)', color: 'var(--db-text)', fontWeight: 500, cursor: 'pointer' }}
+          onClick={handleExportPDF}>Export PDF</button>
+        <button 
+          style={{ padding: '8px 16px', borderRadius: '6px', background: 'transparent', border: '1px solid var(--db-border)', color: 'var(--db-text)', fontWeight: 500, cursor: 'pointer' }}
+          onClick={handleExportExcel}>Export Excel</button>
+      </div>
+
       {error && (
         <div className="db-panel" style={{ borderLeft: '3px solid var(--db-rust)' }}>
           <div className="db-panel-body" style={{ color: 'var(--db-rust)', fontWeight: 600 }}>
@@ -664,7 +873,7 @@ export default function DashboardPage() {
       </div>
 
       {activeTab === 'financial' ? (
-        <FinancialInsights insights={financialInsights} loading={financialLoading} error={financialError} />
+        <FinancialInsights insights={financialInsights} loading={financialLoading} error={financialError} orgId={currentOrgId} />
       ) : (
       <>
       {/* ── KPIs ─────────────────────────────────────────── */}
