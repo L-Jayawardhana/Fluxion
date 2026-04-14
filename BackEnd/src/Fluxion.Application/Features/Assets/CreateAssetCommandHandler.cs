@@ -65,6 +65,7 @@ public class CreateAssetCommandHandler : IRequestHandler<CreateAssetCommand, Ass
             PurchaseDate = request.PurchaseDate,
             WarrantyEndDate = request.WarrantyEndDate,
             Cost = request.Cost,
+            RequiresRegularService = request.RequiresRegularService,
             Status = AssetStatus.available,
             CreatedBy = request.CreatedBy,
             CreatedAt = now,
@@ -78,6 +79,29 @@ public class CreateAssetCommandHandler : IRequestHandler<CreateAssetCommand, Ass
         // 5. Generate QR code value using the newly created AssetId
         asset.QrCode = $"ASSET-{asset.AssetId}";
         await _context.SaveChangesAsync(cancellationToken);
+
+        // If the asset requires regular service, automatically create a schedule
+        if (request.RequiresRegularService)
+        {
+            var schedule = new MaintenanceSchedule
+            {
+                OrgId = request.OrgId,
+                AssetId = asset.AssetId,
+                CreatedByManagerId = request.CreatedBy, // Admin/Owner who added the asset
+                Title = $"Regular Service: {asset.AssetName}",
+                TaskDescription = $"Automated regular service ticket for {asset.AssetName} ({asset.AssetTag ?? asset.SerialNumber ?? "Unknown"})",
+                IntervalDays = 180, // roughly 6 months
+                NextDueDate = now.AddDays(180),
+                IsActive = true,
+                CreatedAt = now,
+                CreatedBy = request.CreatedBy,
+                UpdatedAt = now,
+                UpdatedBy = request.CreatedBy
+            };
+            
+            _context.MaintenanceSchedules.Add(schedule);
+            await _context.SaveChangesAsync(cancellationToken);
+        }
 
         // 6. Return DTO
         return ToDto(asset, department.DepartmentName);

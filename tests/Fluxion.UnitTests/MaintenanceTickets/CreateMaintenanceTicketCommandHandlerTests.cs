@@ -43,7 +43,8 @@ public class CreateMaintenanceTicketCommandHandlerTests
         context.Assets.Add(asset);
         await context.SaveChangesAsync();
 
-        var handler = new CreateMaintenanceTicketCommandHandler(context);
+        var mockNotificationService = new Mock<INotificationService>();
+        var handler = new CreateMaintenanceTicketCommandHandler(context, mockNotificationService.Object);
         var command = new CreateMaintenanceTicketCommand(1, 1, 10, "Title", "Broken Screen", TicketPriority.high);
 
         // Act
@@ -68,7 +69,8 @@ public class CreateMaintenanceTicketCommandHandlerTests
     {
         // Arrange
         using var context = CreateContext();
-        var handler = new CreateMaintenanceTicketCommandHandler(context);
+        var mockNotificationService = new Mock<INotificationService>();
+        var handler = new CreateMaintenanceTicketCommandHandler(context, mockNotificationService.Object);
         var command = new CreateMaintenanceTicketCommand(999, 1, 10, "Title", "Desc", TicketPriority.low);
 
         // Act & Assert

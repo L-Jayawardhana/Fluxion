@@ -86,7 +86,9 @@ export default function NotificationsPage() {
     if (!n.isRead) handleMarkRead(n.notificationId);
 
     // Navigate to relevant page
-    if (n.type === 'ticket_status_updated' && n.ticketId) {
+    if ((n.type === 'ticket_status_updated' || n.type === 'TICKET_CREATED') && n.ticketId) {
+      navigate('/tickets');
+    } else if (n.type === 'TICKET_CREATED') {
       navigate('/tickets');
     } else if (n.type === 'asset_assigned' || n.type === 'asset_condition_updated') {
       navigate('/assigned-assets');
