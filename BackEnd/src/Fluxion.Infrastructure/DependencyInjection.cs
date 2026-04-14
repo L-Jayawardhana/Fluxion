@@ -42,6 +42,7 @@ public static class DependencyInjection
 
         // Background services
         services.AddHostedService<BackgroundServices.WarrantyExpiryNotificationService>();
+        services.AddHostedService<BackgroundJobs.MaintenanceTicketGeneratorService>();
 
         return services;
     }
