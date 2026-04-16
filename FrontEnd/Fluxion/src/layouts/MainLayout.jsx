@@ -65,8 +65,6 @@ const NAV = [
       { to: '/register-asset', icon: I.plus, text: 'Register Asset', ownerOnly: true },
       { to: '/assignments', icon: I.assignment, text: 'Asset Assignments', ownerOnly: true },
       { to: '/assigned-assets', icon: I.assignment, text: 'Assigned Assets', userOnly: true },
-      { to: '/qr-labels', icon: I.qr, text: 'QR Code Labels' },
-      { to: '/asset-categories', icon: I.category, text: 'Asset Categories', ownerOnly: true },
     ]
   },
   {
@@ -95,7 +93,6 @@ const NAV = [
   {
     label: 'Organisation', ownerOnly: true, items: [
       { to: '/subscription', icon: I.globe, text: 'Subscription' },
-      { to: '/audit-log', icon: I.audit, text: 'Audit Log' },
       { to: '/settings', icon: I.settings, text: 'Settings' },
       { to: '/support', icon: I.support, text: 'Support' },
     ]
