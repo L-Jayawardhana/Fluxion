@@ -11,18 +11,25 @@ const TYPE_ICONS = {
   asset_assigned:           '📦',
   ticket_status_updated:    '🔄',
   asset_condition_updated:  '🛠️',
+  UNASSIGNED_TICKET_REMINDER: '⚠️',
 };
 
 const TYPE_LABELS = {
   asset_assigned:           'Asset Assigned',
   ticket_status_updated:    'Ticket Update',
   asset_condition_updated:  'Condition Update',
+  UNASSIGNED_TICKET_REMINDER: 'Ticket Reminder',
 };
 
 function timeAgo(dateStr) {
+  if (!dateStr) return '';
   const now = new Date();
-  const d = new Date(dateStr);
+  // Ensure the date is treated as UTC if the backend doesn't append 'Z'
+  const utcDateStr = dateStr.endsWith('Z') ? dateStr : `${dateStr}Z`;
+  const d = new Date(utcDateStr);
   const diff = Math.floor((now - d) / 1000);
+  
+  if (diff < 0) return 'Just now'; // Handle slight clock skews
   if (diff < 60) return 'Just now';
   if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
   if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
@@ -86,9 +93,9 @@ export default function NotificationsPage() {
     if (!n.isRead) handleMarkRead(n.notificationId);
 
     // Navigate to relevant page
-    if ((n.type === 'ticket_status_updated' || n.type === 'TICKET_CREATED') && n.ticketId) {
+    if ((n.type === 'ticket_status_updated' || n.type === 'TICKET_CREATED' || n.type === 'UNASSIGNED_TICKET_REMINDER') && n.ticketId) {
       navigate('/tickets');
-    } else if (n.type === 'TICKET_CREATED') {
+    } else if (n.type === 'TICKET_CREATED' || n.type === 'UNASSIGNED_TICKET_REMINDER') {
       navigate('/tickets');
     } else if (n.type === 'asset_assigned' || n.type === 'asset_condition_updated') {
       navigate('/assigned-assets');
