@@ -170,6 +170,113 @@ public class GetMaintenanceTicketsQueryHandlerTests
     }
 
     [Fact]
+    public async Task Admin_FilterByTechnicianId_ReturnsOnlySelectedTechnicianTickets()
+    {
+        using var context = CreateContext();
+        var tickets = new List<MaintenanceTicket>
+        {
+            new MaintenanceTicket
+            {
+                TicketId = 1,
+                AssignedTo = 200,
+                Status = TicketStatus.assigned,
+                Title = "Ticket A",
+                IssueDescription = "A",
+                Asset = new Asset { AssetName = "A1" }
+            },
+            new MaintenanceTicket
+            {
+                TicketId = 2,
+                AssignedTo = 300,
+                Status = TicketStatus.in_progress,
+                Title = "Ticket B",
+                IssueDescription = "B",
+                Asset = new Asset { AssetName = "A2" }
+            },
+            new MaintenanceTicket
+            {
+                TicketId = 3,
+                AssignedTo = 200,
+                Status = TicketStatus.waiting_parts,
+                Title = "Ticket C",
+                IssueDescription = "C",
+                Asset = new Asset { AssetName = "A3" }
+            }
+        };
+
+        var handler = CreateHandler(context, "admin", 1, tickets);
+
+        var result = await handler.Handle(
+            new GetMaintenanceTicketsQuery { TechnicianId = 200, PageSize = 50 },
+            CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Data!.Items.Should().HaveCount(2);
+        result.Data.Items.Should().OnlyContain(t => t.AssignedTo == 200);
+    }
+
+    [Fact]
+    public async Task Admin_FilterByTechnicianId_IncludesOngoingStatusesForConflictDetection()
+    {
+        using var context = CreateContext();
+        var tickets = new List<MaintenanceTicket>
+        {
+            new MaintenanceTicket
+            {
+                TicketId = 10,
+                AssignedTo = 777,
+                Status = TicketStatus.assigned,
+                Title = "Assigned Task",
+                IssueDescription = "Assigned",
+                Asset = new Asset { AssetName = "A1" }
+            },
+            new MaintenanceTicket
+            {
+                TicketId = 11,
+                AssignedTo = 777,
+                Status = TicketStatus.in_progress,
+                Title = "In Progress Task",
+                IssueDescription = "In progress",
+                Asset = new Asset { AssetName = "A2" }
+            },
+            new MaintenanceTicket
+            {
+                TicketId = 12,
+                AssignedTo = 777,
+                Status = TicketStatus.waiting_parts,
+                Title = "Waiting Parts Task",
+                IssueDescription = "Waiting parts",
+                Asset = new Asset { AssetName = "A3" }
+            },
+            new MaintenanceTicket
+            {
+                TicketId = 13,
+                AssignedTo = 777,
+                Status = TicketStatus.closed,
+                Title = "Closed Task",
+                IssueDescription = "Closed",
+                Asset = new Asset { AssetName = "A4" }
+            }
+        };
+
+        var handler = CreateHandler(context, "admin", 1, tickets);
+
+        var result = await handler.Handle(
+            new GetMaintenanceTicketsQuery { TechnicianId = 777, PageSize = 50 },
+            CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
+
+        var statuses = result.Data!.Items
+            .Select(t => t.Status)
+            .ToHashSet();
+
+        statuses.Should().Contain(TicketStatus.assigned);
+        statuses.Should().Contain(TicketStatus.in_progress);
+        statuses.Should().Contain(TicketStatus.waiting_parts);
+    }
+
+    [Fact]
     public async Task FilterByKeyword_MatchesTitleOrDescription()
     {
         using var context = CreateContext();

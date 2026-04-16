@@ -46,6 +46,10 @@ public class AssignMaintenanceTicketCommandHandler : IRequestHandler<AssignMaint
         if (technician.Role != UserRole.technician)
             throw new InvalidOperationException($"User {request.TechnicianId} is not a technician.");
 
+        var reporter = await _context.Users
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.UserId == ticket.RaisedBy, cancellationToken);
+
         var oldStatus = ticket.Status;
         ticket.AssignedTo = request.TechnicianId;
         // Automatically move status from open to assigned if it was open
@@ -58,39 +62,13 @@ public class AssignMaintenanceTicketCommandHandler : IRequestHandler<AssignMaint
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        // ── Send email notification to the ticket reporter about the assignment ──
-        try
-        {
-            var reporter = await _context.Users
-                .FirstOrDefaultAsync(u => u.UserId == ticket.RaisedBy, cancellationToken);
-
-            if (reporter != null)
-            {
-                await _alertEmailService.SendTicketStatusUpdatedEmailAsync(
-                    toEmail:        reporter.Email,
-                    recipientName:  reporter.FullName,
-                    ticketId:       ticket.TicketId,
-                    ticketTitle:    ticket.Title,
-                    oldStatus:      oldStatus.ToString(),
-                    newStatus:      ticket.Status.ToString(),
-                    technicianName: technician.FullName,
-                    assetName:      ticket.Asset?.AssetName ?? "Unknown Asset"
-                );
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to send ticket assignment email for ticket {TicketId}", request.TicketId);
-        }
-
         // ── Persist in-app notification ──
         {
-            var reporterUser = await _context.Users.FirstOrDefaultAsync(u => u.UserId == ticket.RaisedBy, cancellationToken);
-            if (reporterUser != null)
+            if (reporter != null)
             {
                 await _notificationService.CreateNotificationAsync(
                     orgId:    ticket.OrgId,
-                    userId:   reporterUser.UserId,
+                    userId:   reporter.UserId,
                     type:     "ticket_status_updated",
                     title:    "Ticket Assigned",
                     message:  $"Your ticket \"{ticket.Title}\" has been assigned to technician {technician.FullName}.",
@@ -99,6 +77,40 @@ public class AssignMaintenanceTicketCommandHandler : IRequestHandler<AssignMaint
                     ct:       cancellationToken
                 );
             }
+        }
+
+        // ── Send email notification in background to avoid slowing API response ──
+        if (reporter != null)
+        {
+            var reporterEmail = reporter.Email;
+            var reporterName = reporter.FullName;
+            var ticketId = ticket.TicketId;
+            var ticketTitle = ticket.Title;
+            var oldStatusText = oldStatus.ToString();
+            var newStatusText = ticket.Status.ToString();
+            var technicianName = technician.FullName;
+            var assetName = ticket.Asset?.AssetName ?? "Unknown Asset";
+
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await _alertEmailService.SendTicketStatusUpdatedEmailAsync(
+                        toEmail: reporterEmail,
+                        recipientName: reporterName,
+                        ticketId: ticketId,
+                        ticketTitle: ticketTitle,
+                        oldStatus: oldStatusText,
+                        newStatus: newStatusText,
+                        technicianName: technicianName,
+                        assetName: assetName
+                    );
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to send ticket assignment email for ticket {TicketId}", ticketId);
+                }
+            });
         }
 
         return true;

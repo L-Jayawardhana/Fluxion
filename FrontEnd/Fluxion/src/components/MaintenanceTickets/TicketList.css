@@ -192,3 +192,85 @@
   background-color: #cbd5e1;
   cursor: not-allowed;
 }
+
+/* Conflict Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.conflict-modal {
+  background: white;
+  padding: 24px;
+  border-radius: 8px;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.conflict-title {
+  color: #b91c1c;
+  margin-top: 0;
+  margin-bottom: 8px;
+  font-size: 20px;
+}
+
+.conflict-message {
+  color: #374151;
+  font-size: 15px;
+  margin-bottom: 12px;
+}
+
+.conflict-ongoing {
+  background: #fdf2f8;
+  padding: 10px;
+  border-radius: 6px;
+  color: #831843;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.conflict-question {
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+.conflict-actions {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+
+.btn-conflict-yes, .btn-conflict-no {
+  padding: 8px 24px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn-conflict-yes {
+  background-color: #ef4444;
+  color: white;
+}
+
+.btn-conflict-yes:hover { background-color: #dc2626; }
+.btn-conflict-yes:disabled { background-color: #fca5a5; cursor: not-allowed; }
+
+.btn-conflict-no {
+  background-color: #e5e7eb;
+  color: #374151;
+}
+
+.btn-conflict-no:hover { background-color: #d1d5db; }
+.btn-conflict-no:disabled { background-color: #f3f4f6; cursor: not-allowed; }

@@ -42,12 +42,10 @@ const AllTicketsPage = () => {
   };
 
   return (
-    <div className="all-tickets-page page aa-page">
-      <div className="aa-header page-header">
-        <div className="aa-header-text">
-          <h1 className="aa-title">Maintenance Tickets</h1>
-          <p className="aa-subtitle">Find and manage all maintenance requests.</p>
-        </div>
+    <div className="all-tickets-page">
+      <div className="page-header">
+        <h1>Maintenance Tickets</h1>
+        <p>Find and manage all maintenance requests.</p>
       </div>
       
       <TicketFilterBar 

@@ -10,7 +10,16 @@ const TicketList = ({ filters }) => {
   const [technicians, setTechnicians] = useState([]);
   const [assigningTech, setAssigningTech] = useState({});
   const [assigningLoading, setAssigningLoading] = useState(false);
+  const [assigningTicketId, setAssigningTicketId] = useState(null);
   const canAssign = user?.role === 'owner' || user?.role === 'admin' || user?.role === 'manager';
+  
+  const [conflictDialog, setConflictDialog] = useState({
+    isOpen: false,
+    ticketToAssignId: null,
+    techId: null,
+    ongoingTicketTitle: '',
+  });
+
   const [pagination, setPagination] = useState({
     pageNumber: 1,
     pageSize: 10,
@@ -36,15 +45,87 @@ const TicketList = ({ filters }) => {
     const techId = assigningTech[ticketId];
     if (!techId) return;
     setAssigningLoading(true);
+    setAssigningTicketId(ticketId);
+
     try {
-      await assignTicket(ticketId, techId);
-      fetchTickets(pagination.pageNumber);
+      // Check for ongoing tasks
+      const res = await getMaintenanceTickets({ technicianId: Number(techId), pageSize: 50 });
+      
+      if (res && res.isSuccess && res.data?.items) {
+        // Filter out the ticket currently being assigned just in case, and find ongoing tickets
+        const ongoing = res.data.items.filter(
+          t => Number(t.ticketId) !== Number(ticketId) && ['assigned', 'in_progress', 'waiting_parts', '1', '2', '3'].includes(String(t.status).toLowerCase())
+        );
+        
+        if (ongoing.length > 0) {
+          setConflictDialog({
+            isOpen: true,
+            ticketToAssignId: ticketId,
+            techId: techId,
+            ongoingTicketTitle: ongoing[0].title
+          });
+          setAssigningLoading(false);
+          setAssigningTicketId(null);
+          return; // Wait for user decision
+        }
+      }
+      
+      // No conflicts, assign directly
+      await performAssign(ticketId, techId);
+    } catch (error) {
+      console.error("Failed to check existing tickets", error);
+      // Fallback to assigning normally if conflict check fails for some reason
+      await performAssign(ticketId, techId);
+    }
+  };
+
+  const performAssign = async (ticketId, techId) => {
+    setAssigningLoading(true);
+    setAssigningTicketId(ticketId);
+    try {
+      await assignTicket(ticketId, Number(techId));
+
+      const numericTicketId = Number(ticketId);
+      const numericTechId = Number(techId);
+      const selectedTechnician = technicians.find(t => Number(t.userId) === numericTechId);
+
+      setTickets(prev => prev.map(t => {
+        if (Number(t.ticketId) !== numericTicketId) return t;
+
+        const statusStr = String(t.status).toLowerCase();
+        const nextStatus = (statusStr === 'open' || statusStr === '0')
+          ? (typeof t.status === 'number' ? 1 : 'assigned')
+          : t.status;
+
+        return {
+          ...t,
+          assignedTo: numericTechId,
+          assignedTechnicianName: selectedTechnician?.fullName || t.assignedTechnicianName,
+          status: nextStatus
+        };
+      }));
     } catch (error) {
       console.error("Failed to assign ticket", error);
     } finally {
       setAssigningLoading(false);
-      setAssigningTech(prev => ({ ...prev, [ticketId]: '' }));
+      setAssigningTicketId(null);
+      setAssigningTech(prev => ({ ...prev, [ticketId]: Number(techId) }));
     }
+  };
+
+  const handleConfirmConflict = async () => {
+    const { ticketToAssignId, techId } = conflictDialog;
+    setConflictDialog({ isOpen: false, ticketToAssignId: null, techId: null, ongoingTicketTitle: '' });
+    await performAssign(ticketToAssignId, techId);
+  };
+
+  const handleCancelConflict = () => {
+    const { ticketToAssignId } = conflictDialog;
+    setConflictDialog({ isOpen: false, ticketToAssignId: null, techId: null, ongoingTicketTitle: '' });
+    setAssigningTech(prev => ({
+      ...prev,
+      [ticketToAssignId]: tickets.find(t => Number(t.ticketId) === Number(ticketToAssignId))?.assignedTo || ''
+    }));
   };
 
   const fetchTickets = async (pageToFetch = pagination.pageNumber) => {
@@ -139,22 +220,26 @@ const TicketList = ({ filters }) => {
 
   if (loading) {
     return (
-      <div className="ticket-list">
-        {[1, 2, 3].map((n) => (
-          <div key={n} className="ticket-card skeleton-card">
-            <div className="skeleton title"></div>
-            <div className="skeleton text"></div>
-            <div className="skeleton text short"></div>
-          </div>
-        ))}
+      <div className="ticket-list-wrapper">
+        <div className="ticket-list">
+          {[1, 2, 3].map((n) => (
+            <div key={n} className="ticket-card skeleton-card">
+              <div className="skeleton title"></div>
+              <div className="skeleton text"></div>
+              <div className="skeleton text short"></div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
 
   if (tickets.length === 0) {
     return (
-      <div className="ticket-list empty-state">
-        <p>No maintenance tickets found matching your criteria.</p>
+      <div className="ticket-list-wrapper">
+        <div className="ticket-list empty-state">
+          <p>No maintenance tickets found matching your criteria.</p>
+        </div>
       </div>
     );
   }
@@ -195,7 +280,11 @@ const TicketList = ({ filters }) => {
                     <button 
                       className="btn-assign"
                       onClick={() => handleAssign(ticket.ticketId)}
-                      disabled={(assigningTech[ticket.ticketId] == (ticket.assignedTo || '')) || assigningLoading}
+                      disabled={
+                        !assigningTech[ticket.ticketId] ||
+                        Number(assigningTech[ticket.ticketId]) === Number(ticket.assignedTo || 0) ||
+                        (assigningLoading && Number(assigningTicketId) === Number(ticket.ticketId))
+                      }
                     >
                       {ticket.assignedTo ? 'Change' : 'Assign'}
                     </button>
@@ -227,6 +316,40 @@ const TicketList = ({ filters }) => {
           Next
         </button>
       </div>
+
+      {/* Conflict Dialog Modal */}
+      {conflictDialog.isOpen && (
+        <div className="modal-overlay">
+          <div className="conflict-modal">
+            <h2 className="conflict-title">⚠️ Scheduling Conflict Detected</h2>
+            <p className="conflict-message">
+              There is already an assigned task to this technician.
+            </p>
+            <p className="conflict-ongoing">
+              <strong>Ongoing Ticket:</strong> {conflictDialog.ongoingTicketTitle}
+            </p>
+            <p className="conflict-question">
+              Wish to assign this task too?
+            </p>
+            <div className="conflict-actions">
+              <button 
+                className="btn-conflict-yes" 
+                onClick={handleConfirmConflict}
+                disabled={assigningLoading}
+              >
+                Yes
+              </button>
+              <button 
+                className="btn-conflict-no" 
+                onClick={handleCancelConflict}
+                disabled={assigningLoading}
+              >
+                No
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
