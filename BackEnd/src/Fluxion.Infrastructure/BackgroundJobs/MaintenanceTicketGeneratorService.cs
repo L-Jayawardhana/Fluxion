@@ -28,13 +28,14 @@ public class MaintenanceTicketGeneratorService : BackgroundService
             try
             {
                 await ProcessSchedulesAsync(stoppingToken);
+                await ProcessUnassignedTicketsReminderAsync(stoppingToken);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred executing MaintenanceTicketGeneratorService.");
             }
 
-            // Run once a day (or frequently in test env, using 24h as per prod standard)
+            // Run once a day (or frequently in test env, using 12h as per prod standard)
             await Task.Delay(TimeSpan.FromHours(12), stoppingToken);
         }
     }
@@ -79,9 +80,9 @@ public class MaintenanceTicketGeneratorService : BackgroundService
         {
             await context.SaveChangesAsync(cancellationToken);
             _logger.LogInformation("Generated {Count} maintenance tickets.", dueSchedules.Count);
-            
+
             var notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
-            
+
             // For each schedule processed, notify its organization's owners/admins
             foreach (var schedule in dueSchedules)
             {
@@ -89,8 +90,8 @@ public class MaintenanceTicketGeneratorService : BackgroundService
 
                 var ownerIds = await context.Users
                     .Where(u => u.OrgId == schedule.OrgId && 
-                               (u.Role == Fluxion.Domain.Enums.UserRole.owner || 
-                                u.Role == Fluxion.Domain.Enums.UserRole.admin || 
+                               (u.Role == Fluxion.Domain.Enums.UserRole.owner ||
+                                u.Role == Fluxion.Domain.Enums.UserRole.admin ||
                                 u.Role == Fluxion.Domain.Enums.UserRole.manager))
                     .Select(u => u.UserId)
                     .ToListAsync(cancellationToken);
@@ -110,5 +111,51 @@ public class MaintenanceTicketGeneratorService : BackgroundService
                 }
             }
         }
+    }
+
+    private async Task ProcessUnassignedTicketsReminderAsync(CancellationToken cancellationToken)
+    {
+        using var scope = _serviceProvider.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<IApplicationDbContext>();
+        var now = DateTime.UtcNow;
+        var thresholdDate = now.AddDays(-2);
+
+        var unassignedTickets = await context.MaintenanceTickets
+            .Where(t => t.AssignedTo == null 
+                     && t.CreatedAt <= thresholdDate 
+                     && t.Status == Fluxion.Domain.Enums.TicketStatus.open 
+                     // We check if a reminder notification was already sent to avoid spam
+                     && !context.Notifications.Any(n => n.TicketId == t.TicketId && n.Type == "UNASSIGNED_TICKET_REMINDER"))
+            .ToListAsync(cancellationToken);
+
+        if (!unassignedTickets.Any()) return;
+
+        var notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
+
+        foreach (var ticket in unassignedTickets)
+        {
+            var ownerIds = await context.Users
+                .Where(u => u.OrgId == ticket.OrgId && 
+                           (u.Role == Fluxion.Domain.Enums.UserRole.owner || 
+                            u.Role == Fluxion.Domain.Enums.UserRole.admin ||
+                            u.Role == Fluxion.Domain.Enums.UserRole.manager))
+                .Select(u => u.UserId)
+                .ToListAsync(cancellationToken);
+
+            foreach (var ownerId in ownerIds)
+            {
+                await notificationService.CreateNotificationAsync(
+                    orgId: ticket.OrgId,
+                    userId: ownerId,
+                    type: "UNASSIGNED_TICKET_REMINDER",
+                    title: "Unassigned Ticket Reminder",
+                    message: $"Ticket '{ticket.Title}' was raised more than two days ago and is still unassigned.",
+                    ticketId: ticket.TicketId,
+                    assetId: ticket.AssetId,
+                    ct: cancellationToken
+                );
+            }
+        }
+        _logger.LogInformation("Sent unassigned specific reminders for {Count} tickets.", unassignedTickets.Count);
     }
 }
