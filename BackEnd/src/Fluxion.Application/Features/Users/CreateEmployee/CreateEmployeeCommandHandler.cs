@@ -45,6 +45,21 @@ public class CreateEmployeeCommandHandler : IRequestHandler<CreateEmployeeComman
         if (!deptExists)
             throw new InvalidOperationException("The specified department does not exist in this organization.");
 
+        // Check user limit based on subscription
+        var orgSub = await _context.OrgSubscriptions
+            .Include(s => s.Plan)
+            .Where(s => s.OrgId == request.OrgId && s.Status == SubscriptionStatus.active)
+            .OrderByDescending(s => s.StartedAt)
+            .FirstOrDefaultAsync(cancellationToken);
+            
+        int? maxUsers = orgSub?.MaxUsers ?? orgSub?.Plan?.MaxUsers ?? 5; // Default Free plan limit
+        if (maxUsers.HasValue)
+        {
+            var currentUserCount = await _context.Users.CountAsync(u => u.OrgId == request.OrgId && u.IsActive, cancellationToken);
+            if (currentUserCount >= maxUsers.Value)
+                throw new InvalidOperationException($"Subscription limit reached. Your plan allows up to {maxUsers.Value} users.");
+        }
+
         // 3. Generate invitation token via Infrastructure service
         var token = _invitationService.GenerateInvitationToken();
 

@@ -37,6 +37,8 @@ const WarrantyExpiryPage = lazy(() => import('./pages/Reports/WarrantyExpiryPage
 const MaintenanceCostPage = lazy(() => import('./pages/Reports/MaintenanceCostPage'));
 /* ── Notifications ── */
 const NotificationsPage = lazy(() => import('./pages/Notifications/NotificationsPage'));
+/* ── Settings ── */
+const SettingsPage = lazy(() => import('./pages/Settings/SettingsPage'));
 
 function App() {
   const [splashDone, setSplashDone] = useState(
@@ -94,6 +96,8 @@ function App() {
                 <Route path="/report-maintenance-cost" element={<MaintenanceCostPage />} />
                 {/* Notifications */}
                 <Route path="/notifications" element={<NotificationsPage />} />
+                {/* Settings */}
+                <Route path="/settings" element={<SettingsPage />} />
                 {/* Add more protected routes here */}
               </Route>
             </Route>
