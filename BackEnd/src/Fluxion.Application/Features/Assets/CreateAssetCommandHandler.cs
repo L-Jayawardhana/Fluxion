@@ -34,6 +34,23 @@ public class CreateAssetCommandHandler : IRequestHandler<CreateAssetCommand, Ass
             throw new KeyNotFoundException(
                 $"Department with ID {request.DepartmentId} was not found in organisation {request.OrgId}.");
 
+        // Check asset limit based on subscription
+        var orgSub = await _context.OrgSubscriptions
+            .Include(s => s.Plan)
+            .Where(s => s.OrgId == request.OrgId && s.Status == SubscriptionStatus.active)
+            .OrderByDescending(s => s.StartedAt)
+            .FirstOrDefaultAsync(cancellationToken);
+            
+        int? maxAssets = orgSub?.MaxAssets ?? orgSub?.Plan?.MaxAssets ?? 50; // Default Free plan limit
+        if (maxAssets.HasValue)
+        {
+            var currentAssetCount = await _context.Assets.CountAsync(a => a.OrgId == request.OrgId && a.Status != AssetStatus.retired, cancellationToken);
+            if (currentAssetCount >= maxAssets.Value)
+            {
+                throw new InvalidOperationException($"Subscription limit reached. Your plan allows up to {maxAssets.Value} assets.");
+            }
+        }
+
         // 3. Generate AssetTag (AA-001, AA-002, etc. per OrgId)
         var lastAssetWithTag = await _context.Assets
             .Where(a => a.OrgId == request.OrgId && a.AssetTag != null && a.AssetTag.StartsWith("AA-"))

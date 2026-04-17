@@ -17,6 +17,29 @@ public class OrganizationController : ControllerBase
         _env = env;
     }
 
+    [HttpGet("{id}/plan")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "owner,admin")]
+    public async Task<IActionResult> GetPlan(int id)
+    {
+        var plan = await _mediator.Send(new GetOrganizationPlanQuery(id));
+        return Ok(new { planName = plan });
+    }
+
+    [HttpPut("{id}/plan")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "owner,admin")]
+    public async Task<IActionResult> UpdatePlan(int id, [FromBody] UpdatePlanDto dto)
+    {
+        try
+        {
+            await _mediator.Send(new UpdateOrganizationPlanCommand(id, dto.PlanName));
+            return Ok(new { message = "Plan updated successfully." });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
@@ -125,4 +148,9 @@ public class UploadLogoBase64Dto
 {
     public string? Name { get; set; }
     public string Base64 { get; set; } = string.Empty;
+}
+
+public class UpdatePlanDto
+{
+    public string PlanName { get; set; } = string.Empty;
 }
