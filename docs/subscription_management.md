@@ -23,3 +23,8 @@ Replaced the default unbounded organization limit setup with a tiered Subscripti
 
 3. **Validation & Extensibility**
    - Downgrading is automatically shielded dynamically in EF Core (`UpdateOrganizationPlanHandler.cs`). If the target downgrade limits conflict against currently instantiated DB structures physically present in the system, exceptions accurately map out precisely how many users or assets the administrator must manually purge to clear the threshold for downgrade effectively preventing cascading deletion operations from unintentionally crippling production data.
+
+4. **Payment Verification & Validation**
+   - Premium tiers (`Pro`, `Enterprise`) enforce client-side payment verification dialogs upon selection, both during initial organization creation, and during post-creation upgrades inside the `Settings` portal.
+   - The Custom `PaymentModal` interface enforces structural parity on card validation fields: Card number validation (16 digits), temporal boundary checking against past expiration dates (`MM/YY`), and basic CVV pattern checks.
+   - In frontend testing, an intentional simulated bank failure overrides API execution if the CVV inputted matches `000`. Free plans natively skip payment simulation routing immediately.

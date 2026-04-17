@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { getPlan, updatePlan } from '../../services/subscriptionService';
 import { getOrganizations, getUsers, updateOrganization, updateUser } from '../../services/api';
+import PaymentModal from '../../components/PaymentModal/PaymentModal';
 import './SettingsPage.css';
 
 export default function SettingsPage() {
@@ -16,6 +17,8 @@ export default function SettingsPage() {
 
   const [activeTab, setActiveTab] = useState('billing');
   const [isChangingPlan, setIsChangingPlan] = useState(false);
+  const [showPayment, setShowPayment] = useState(false);
+  const [pendingPlan, setPendingPlan] = useState(null);
 
   const showMessage = (msg, isError = false) => {
     if (isError) {
@@ -93,11 +96,24 @@ export default function SettingsPage() {
     }
   };
 
-  const handleUpdatePlan = (planName) => {
-    if (!user?.orgId) return;
+  const confirmPlanUpdate = (planName) => {
+    if (planName.toLowerCase() !== 'free') {
+       setPendingPlan(planName);
+       setShowPayment(true);
+       return;
+    }
+    executePlanUpdate(planName);
+  };
+
+  const executePlanUpdate = (planName) => {
+    const targetOrgId = orgData?.orgId || user?.orgId;
+    if (!targetOrgId) {
+      showMessage('Error: Could not resolve Organization context', true);
+      return;
+    }
     setUpdating(true);
     showMessage(null); // Clear errors
-    updatePlan(user.orgId, planName)
+    updatePlan(targetOrgId, planName)
       .then(() => {
         setCurrentPlan(planName);
         setIsChangingPlan(false); // Hide the plans after successful update
@@ -312,7 +328,7 @@ export default function SettingsPage() {
 
                       <button 
                         className="plan-button"
-                        onClick={() => handleUpdatePlan('Free')}
+                        onClick={() => confirmPlanUpdate('Free')}
                         disabled={updating || currentPlan === 'Free'}
                       >
                         {updating && currentPlan !== 'Free' ? 'Processing...' : currentPlan === 'Free' ? 'CURRENT PLAN' : 'DOWNGRADE'}
@@ -341,7 +357,7 @@ export default function SettingsPage() {
 
                       <button 
                         className="plan-button white"
-                        onClick={() => handleUpdatePlan('Pro')}
+                        onClick={() => confirmPlanUpdate('Pro')}
                         disabled={updating || currentPlan === 'Pro'}
                       >
                         {updating && currentPlan !== 'Pro' ? 'Processing...' : currentPlan === 'Pro' ? 'CURRENT PLAN' : 'UPGRADE TO PRO'}
@@ -369,7 +385,7 @@ export default function SettingsPage() {
 
                       <button 
                         className="plan-button"
-                        onClick={() => handleUpdatePlan('Enterprise')}
+                        onClick={() => confirmPlanUpdate('Enterprise')}
                         disabled={updating || currentPlan === 'Enterprise'}
                       >
                         {updating && currentPlan !== 'Enterprise' ? 'Processing...' : currentPlan === 'Enterprise' ? 'CURRENT PLAN' : 'UPGRADE TO ENTERPRISE'}
@@ -382,6 +398,14 @@ export default function SettingsPage() {
           )}
         </main>
       </div>
+
+      <PaymentModal 
+        isOpen={showPayment}
+        onClose={() => setShowPayment(false)}
+        onSuccess={() => { setShowPayment(false); executePlanUpdate(pendingPlan); }}
+        planName={pendingPlan || ''}
+        price={pendingPlan === 'Pro' ? '$29 / mo' : '$199 / mo'}
+      />
     </div>
   );
 }
