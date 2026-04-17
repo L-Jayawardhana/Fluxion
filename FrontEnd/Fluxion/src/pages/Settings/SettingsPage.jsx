@@ -102,6 +102,7 @@ export default function SettingsPage() {
         setCurrentPlan(planName);
         setIsChangingPlan(false); // Hide the plans after successful update
         showMessage('Plan updated successfully!');
+        window.dispatchEvent(new CustomEvent('planChanged', { detail: planName }));
       })
       .catch((err) => {
         showMessage(err.response?.data?.message || err.message, true);

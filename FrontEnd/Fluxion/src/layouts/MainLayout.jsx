@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Outlet, NavLink, Link, useLocation, useNavigate } from 'react-router-dom';
 import { getUnreadCount } from '../services/notificationService';
+import { getPlan } from '../services/subscriptionService';
 import { useAuth } from '../hooks/useAuth';
 import './MainLayout.css';
 
@@ -135,6 +136,7 @@ export default function MainLayout() {
   const navigate = useNavigate();
   const [clock, setClock] = useState('');
   const [unreadCount, setUnreadCount] = useState(0);
+  const [currentPlan, setCurrentPlan] = useState('Free');
 
   const rawName = user?.email?.split('@')[0] || 'User';
   const userName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
@@ -170,6 +172,36 @@ export default function MainLayout() {
     return () => clearInterval(id);
   }, [user, location.pathname]);
 
+  /* Subscription plan tracker */
+  useEffect(() => {
+    if (user?.orgId) {
+      getPlan(user.orgId)
+        .then((res) => setCurrentPlan(res.planName))
+        .catch((err) => console.error("Error fetching plan in layout:", err));
+    }
+
+    const handlePlanChange = (e) => {
+      if (e.detail) {
+        setCurrentPlan(e.detail);
+      }
+    };
+
+    window.addEventListener('planChanged', handlePlanChange);
+    return () => window.removeEventListener('planChanged', handlePlanChange);
+  }, [user]);
+
+  let maxUsers = '—';
+  let maxAssets = '—';
+  let nextPlan = 'Enterprise';
+
+  if (currentPlan === 'Free') { 
+    maxUsers = '5'; maxAssets = '50'; nextPlan = 'Pro'; 
+  } else if (currentPlan === 'Pro') { 
+    maxUsers = '25'; maxAssets = '500'; nextPlan = 'Enterprise'; 
+  } else if (currentPlan === 'Enterprise') { 
+    maxUsers = 'Unlimited'; maxAssets = 'Unlimited'; nextPlan = null; 
+  }
+
   return (
     <div className="ml-shell">
 
@@ -186,7 +218,7 @@ export default function MainLayout() {
           <span className="ml-org-dot" />
           <div className="ml-org-info">
             <div className="ml-org-name">{user?.orgId ? `Organisation` : 'My Workspace'}</div>
-            <div className="ml-org-plan">Pro Plan · Active</div>
+            <div className="ml-org-plan">{currentPlan} Plan · Active</div>
           </div>
         </div>
 
@@ -208,12 +240,19 @@ export default function MainLayout() {
         {/* Subscription block */}
         <div className="ml-sb-plan">
           <div className="ml-spb-top">
-            <span className="ml-spb-name">Pro Plan</span>
+            <span className="ml-spb-name">{currentPlan} Plan</span>
             <span className="ml-spb-badge">Active</span>
           </div>
-          <div className="ml-spb-bar"><div className="ml-spb-fill" /></div>
-          <div className="ml-spb-nums"><span>Users · —</span><span>Assets · —</span></div>
-          <button className="ml-spb-up">↑ Upgrade to Enterprise</button>
+          <div className="ml-spb-bar"><div className="ml-spb-fill" style={{ width: currentPlan === 'Enterprise' ? '100%' : '30%' }} /></div>
+          <div className="ml-spb-nums">
+            <span>Users · {maxUsers}</span>
+            <span>Assets · {maxAssets}</span>
+          </div>
+          {nextPlan && (
+            <button className="ml-spb-up" onClick={() => navigate('/settings')}>
+              ↑ Upgrade to {nextPlan}
+            </button>
+          )}
         </div>
 
         {/* Profile */}
