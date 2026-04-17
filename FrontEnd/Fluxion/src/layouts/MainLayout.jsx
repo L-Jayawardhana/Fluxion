@@ -92,7 +92,6 @@ const NAV = [
   },
   {
     label: 'Organisation', ownerOnly: true, items: [
-      { to: '/subscription', icon: I.globe, text: 'Subscription' },
       { to: '/settings', icon: I.settings, text: 'Settings' },
       { to: '/support', icon: I.support, text: 'Support' },
     ]

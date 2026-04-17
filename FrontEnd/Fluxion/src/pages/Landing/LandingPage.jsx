@@ -375,12 +375,12 @@ export default function LandingPage() {
                             <li>PDF / CSV export</li>
                             <li className="muted">SLA reports</li>
                         </ul>
-                        <button className="plan-btn dark">Start Pro trial</button>
+                        <button className="plan-btn dark">Start trial</button>
                     </div>
                     <div className="plan">
                         <div className="plan-name">Enterprise</div>
-                        <div className="plan-price">Custom</div>
-                        <div className="plan-per">contact us</div>
+                        <div className="plan-price">$199</div>
+                        <div className="plan-per">per month · unlimited users</div>
                         <ul className="plan-features">
                             <li>Unlimited users</li>
                             <li>Unlimited assets</li>
@@ -390,7 +390,7 @@ export default function LandingPage() {
                             <li>PDF / CSV export</li>
                             <li>SLA reports</li>
                         </ul>
-                        <button className="plan-btn outline">Contact sales</button>
+                        <button className="plan-btn outline">Start trial</button>
                     </div>
                 </div>
             </section>
