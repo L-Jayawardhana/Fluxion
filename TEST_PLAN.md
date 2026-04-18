@@ -36,11 +36,11 @@ Before merging `dev → main`, verify:
 
 | Suite | Framework | Location | What it tests |
 |-------|-----------|----------|---------------|
-| **Unit Tests** | xUnit + Moq + FluentAssertions | `tests/Fluxion.UnitTests/` | Handlers, validators, JWT, password hashing, verification codes |
-| **Integration Tests** | xUnit + WebApplicationFactory | `tests/Fluxion.IntegrationTests/` | Full HTTP request/response through the API pipeline (in-memory DB) |
-| **Selenium Smoke** | Java + JUnit 5 + Selenium 4 | `tests/selenium-smoke/` | Login page load, register page load, wrong-password error, empty-form guard, auth-guard redirect |
-| **JMeter Smoke** | Apache JMeter 5.x | `tests/jmeter/auth_smoke.jmx` | Single-user auth flow verification |
-| **JMeter Load** | Apache JMeter 5.x | `tests/jmeter/auth_load.jmx` | 50 concurrent users, 2-minute sustained load |
+| **Unit Tests** | xUnit + Moq + FluentAssertions | `BackEnd/tests/Fluxion.UnitTests/` | Handlers, validators, JWT, password hashing, verification codes |
+| **Integration Tests** | xUnit + WebApplicationFactory | `BackEnd/tests/Fluxion.IntegrationTests/` | Full HTTP request/response through the API pipeline (in-memory DB) |
+| **Selenium Smoke** | Java + JUnit 5 + Selenium 4 | `qa/selenium-smoke/` | Login page load, register page load, wrong-password error, empty-form guard, auth-guard redirect |
+| **JMeter Smoke** | Apache JMeter 5.x | `qa/jmeter/auth_smoke.jmx` | Single-user auth flow verification |
+| **JMeter Load** | Apache JMeter 5.x | `qa/jmeter/auth_load.jmx` | 50 concurrent users, 2-minute sustained load |
 
 ---
 
@@ -67,7 +67,7 @@ Before merging `dev → main`, verify:
 .\scripts\test-unit.ps1
 
 # Or directly:
-dotnet test tests/Fluxion.UnitTests/Fluxion.UnitTests.csproj --configuration Release
+dotnet test BackEnd/tests/Fluxion.UnitTests/Fluxion.UnitTests.csproj --configuration Release
 ```
 
 No external dependencies needed — uses in-memory database and mocks.
@@ -82,7 +82,7 @@ No external dependencies needed — uses in-memory database and mocks.
 .\scripts\test-integration.ps1
 
 # Or directly:
-dotnet test tests/Fluxion.IntegrationTests/Fluxion.IntegrationTests.csproj --configuration Release
+dotnet test BackEnd/tests/Fluxion.IntegrationTests/Fluxion.IntegrationTests.csproj --configuration Release
 ```
 
 Uses `WebApplicationFactory` with an in-memory database — no Docker or MySQL required.
@@ -129,8 +129,8 @@ Five fast smoke tests run (tagged `smoke`):
 | SMOKE-04 | Empty form submit stays on `/login` (HTML5 validation) |
 | SMOKE-05 | Unauthenticated `/dashboard` access redirects to `/login` |
 
-Screenshots on failure are saved to `tests/selenium-smoke/target/screenshots/`.  
-Surefire XML reports are at `tests/selenium-smoke/target/surefire-reports/`.
+Screenshots on failure are saved to `qa/selenium-smoke/target/screenshots/`.  
+Surefire XML reports are at `qa/selenium-smoke/target/surefire-reports/`.
 
 ### 4. JMeter Performance Tests
 
@@ -147,12 +147,12 @@ Surefire XML reports are at `tests/selenium-smoke/target/surefire-reports/`.
 ./scripts/test-perf.sh load -JTHREADS=100 -JRAMP_UP=60 -JDURATION=300
 
 # GUI mode for editing plans
-jmeter -t tests/jmeter/auth_smoke.jmx
+jmeter -t qa/jmeter/auth_smoke.jmx
 ```
 
 **JMeter CLI mode output:**
 ```bash
-jmeter -n -t tests/jmeter/auth_load.jmx -l results.jtl -e -o report
+jmeter -n -t qa/jmeter/auth_load.jmx -l results.jtl -e -o report
 # Open report/index.html for the HTML dashboard
 ```
 
