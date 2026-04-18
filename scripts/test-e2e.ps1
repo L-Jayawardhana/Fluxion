@@ -5,7 +5,7 @@
 $ErrorActionPreference = "Stop"
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $RepoRoot  = Split-Path -Parent $ScriptDir
-$SmokeDir  = Join-Path $RepoRoot "tests/selenium-smoke"
+$SmokeDir  = Join-Path $RepoRoot "qa/selenium-smoke"
 
 # Defaults (override with env vars)
 if (-not $env:SELENIUM_BASE_URL)    { $env:SELENIUM_BASE_URL    = "http://localhost:5173" }
