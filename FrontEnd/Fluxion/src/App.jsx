@@ -24,6 +24,7 @@ const WelcomePage = lazy(() => import('./pages/Welcome/WelcomePage'));
 const NotFoundPage = lazy(() => import('./pages/NotFound/NotFoundPage'));
 const InviteUserPage = lazy(() => import('./pages/Users/InviteUserPage'));
 const UsersPage = lazy(() => import('./pages/Users/UsersPage'));
+const RolesPage = lazy(() => import('./pages/Users/RolesPage'));
 const RaiseTicketPage = lazy(() => import('./pages/Maintenance/RaiseTicketPage'));
 const AllTicketsPage = lazy(() => import('./pages/Maintenance/AllTicketsPage'));
 const MaintenanceLogPage = lazy(() => import('./pages/Maintenance/MaintenanceLogPage'));
@@ -76,6 +77,7 @@ function App() {
                 <Route path="/dashboard" element={<DashboardPage />} />
                 <Route path="/invite-users" element={<InviteUserPage />} />
                 <Route path="/users" element={<UsersPage />} />
+                <Route path="/roles" element={<RolesPage />} />
                 <Route path="/departments" element={<DepartmentsPage />} />
                 <Route path="/add-department" element={<AddDepartmentPage />} />
                 <Route path="/register-asset" element={<RegisterAssetPage />} />

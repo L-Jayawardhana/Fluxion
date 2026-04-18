@@ -66,15 +66,15 @@ public class CreateEmployeeCommandHandler : IRequestHandler<CreateEmployeeComman
         // 4. Validate and parse Role
         if (string.IsNullOrWhiteSpace(request.Role) || 
             !Enum.TryParse<UserRole>(request.Role, true, out var parsedRole) || 
-            (parsedRole != UserRole.user && parsedRole != UserRole.technician && parsedRole != UserRole.manager))
+            (parsedRole != UserRole.user && parsedRole != UserRole.technician && parsedRole != UserRole.manager && parsedRole != UserRole.admin))
         {
-            throw new InvalidOperationException("Invalid role specified. Only 'user', 'technician', or 'manager' are allowed.");
+            throw new InvalidOperationException("Invalid role specified. Only 'user', 'technician', 'manager' or 'admin' are allowed.");
         }
 
         var currentUserRole = _currentUserService.Role?.ToLowerInvariant();
-        if (parsedRole == UserRole.manager && currentUserRole != "owner" && currentUserRole != "admin")
+        if ((parsedRole == UserRole.manager || parsedRole == UserRole.admin) && currentUserRole != "owner" && currentUserRole != "admin")
         {
-            throw new InvalidOperationException("Only owners or admins can add a manager.");
+            throw new InvalidOperationException("Only owners or admins can add managers or other administrators.");
         }
 
         // 5. Create User with the specified role

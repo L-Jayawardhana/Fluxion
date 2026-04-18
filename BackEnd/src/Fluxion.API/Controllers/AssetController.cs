@@ -23,7 +23,7 @@ public class AssetController : ControllerBase
 
     /// <summary>Lists all assets for an organisation, optionally filtered by department and/or asset type.</summary>
     [HttpGet]
-    [Authorize(Roles = "user,admin,owner,technician,manager")]
+    [Authorize(Roles = "owner,admin,systemadmin,manager")]
     public async Task<IActionResult> GetAll(
         [FromQuery] int orgId,
         [FromQuery] int? departmentId = null,
@@ -38,7 +38,7 @@ public class AssetController : ControllerBase
 
     /// <summary>Gets a single asset by id, scoped to the given organisation.</summary>
     [HttpGet("{id:int}")]
-    [Authorize(Roles = "user,admin,owner,technician,manager")]
+    [Authorize(Roles = "owner,admin,systemadmin,manager")]
     public async Task<IActionResult> GetById(int id, [FromQuery] int orgId)
     {
         if (orgId <= 0)
@@ -72,7 +72,7 @@ public class AssetController : ControllerBase
 
     /// <summary>Lists all assets currently assigned to a user.</summary>
     [HttpGet("user/{userId:int}")]
-    [Authorize(Roles = "user,admin,owner,technician,manager")]
+    [Authorize(Roles = "user,owner,admin,systemadmin,manager")]
     public async Task<IActionResult> GetAssignedToUser(int userId, [FromQuery] int orgId)
     {
         var currentUserIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value 
