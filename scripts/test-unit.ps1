@@ -6,7 +6,7 @@ $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $RepoRoot  = Split-Path -Parent $ScriptDir
 
 Write-Host "🧪 Running Unit Tests..." -ForegroundColor Cyan
-dotnet test (Join-Path $RepoRoot "tests\Fluxion.UnitTests\Fluxion.UnitTests.csproj") `
+dotnet test (Join-Path $RepoRoot "BackEnd\tests\Fluxion.UnitTests\Fluxion.UnitTests.csproj") `
   --configuration Release `
   --logger "console;verbosity=normal" `
   --collect:"XPlat Code Coverage" `
