@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { getPlan, updatePlan } from '../../services/subscriptionService';
 import { getOrganizations, getUsers, updateOrganization, updateUser } from '../../services/api';
+import { authService } from '../../services/authService';
 import PaymentModal from '../../components/PaymentModal/PaymentModal';
 import './SettingsPage.css';
 
@@ -16,6 +17,8 @@ export default function SettingsPage() {
   const [successMsg, setSuccessMsg] = useState(null);
 
   const [activeTab, setActiveTab] = useState('billing');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
   const [isChangingPlan, setIsChangingPlan] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
   const [pendingPlan, setPendingPlan] = useState(null);
@@ -96,6 +99,23 @@ export default function SettingsPage() {
     }
   };
 
+  const handlePasswordChange = async (e) => {
+    e.preventDefault();
+    if (!currentPassword || !newPassword) return;
+    setUpdating(true);
+    try {
+      await authService.changePassword(currentPassword, newPassword);
+      showMessage('Password updated successfully!');
+      setCurrentPassword('');
+      setNewPassword('');
+    } catch (err) {
+      console.error(err);
+      showMessage(err.response?.data?.message || 'Failed to update password.', true);
+    } finally {
+      setUpdating(false);
+    }
+  };
+
   const confirmPlanUpdate = (planName) => {
     if (planName.toLowerCase() !== 'free') {
        setPendingPlan(planName);
@@ -151,16 +171,16 @@ export default function SettingsPage() {
               Organization Profile
             </button>
             <button 
+              className={activeTab === 'security' ? 'active' : ''} 
+              onClick={() => { setActiveTab('security'); showMessage(null); }}
+            >
+              Security
+            </button>
+            <button 
               className={activeTab === 'billing' ? 'active' : ''} 
               onClick={() => { setActiveTab('billing'); setIsChangingPlan(false); showMessage(null); }}
             >
               Billing & Plans
-            </button>
-            <button 
-              className={activeTab === 'notifications' ? 'active' : ''} 
-              onClick={() => { setActiveTab('notifications'); showMessage(null); }}
-            >
-              Notifications
             </button>
           </nav>
         </aside>
@@ -211,6 +231,11 @@ export default function SettingsPage() {
             <div className="settings-section">
               <h2>Organization Profile</h2>
               <p className="section-desc">Update your workspace details and branding.</p>
+              {user?.role === 'manager' && (
+                <div className="alert-info">
+                  <p>You have view-only access to organization settings. Contact an administrator to make changes.</p>
+                </div>
+              )}
               <form className="settings-form" onSubmit={handleOrgUpdate}>
                 <div className="form-group">
                   <label>Workspace Name</label>
@@ -219,6 +244,7 @@ export default function SettingsPage() {
                     value={orgData?.orgName || ''} 
                     onChange={e => setOrgData({ ...orgData, orgName: e.target.value })}
                     required
+                    disabled={user?.role === 'manager'}
                   />
                 </div>
                 <div className="form-group">
@@ -228,6 +254,7 @@ export default function SettingsPage() {
                     value={orgData?.slug || ''} 
                     onChange={e => setOrgData({ ...orgData, slug: e.target.value })}
                     required
+                    disabled={user?.role === 'manager'}
                   />
                 </div>
                 <div className="form-group">
@@ -241,37 +268,42 @@ export default function SettingsPage() {
                     <option value="PST">PST (Pacific Standard Time)</option>
                   </select>
                 </div>
-                <button type="submit" className="btn-save" disabled={updating || !orgData}>Update Profile</button>
+                <button 
+                  type="submit" 
+                  className="btn-save" 
+                  disabled={updating || !orgData || user?.role === 'manager'}
+                >
+                  {user?.role === 'manager' ? 'Admin Only' : 'Update Profile'}
+                </button>
               </form>
             </div>
           )}
 
-          {activeTab === 'notifications' && (
+          {activeTab === 'security' && (
             <div className="settings-section">
-              <h2>Notification Preferences</h2>
-              <p className="section-desc">Choose how you receive alerts and updates.</p>
-              <div className="settings-list">
-                <div className="setting-item">
-                  <div>
-                    <h4>Email Notifications</h4>
-                    <p>Receive updates about tickets and assets via email.</p>
-                  </div>
-                  <label className="toggle-switch">
-                    <input type="checkbox" defaultChecked />
-                    <span className="slider"></span>
-                  </label>
+              <h2>Security</h2>
+              <p className="section-desc">Change your password and secure your account.</p>
+              <form className="settings-form" onSubmit={handlePasswordChange}>
+                <div className="form-group">
+                  <label>Current Password</label>
+                  <input 
+                    type="password" 
+                    value={currentPassword} 
+                    onChange={e => setCurrentPassword(e.target.value)}
+                    required
+                  />
                 </div>
-                <div className="setting-item">
-                  <div>
-                    <h4>Monthly Reports</h4>
-                    <p>Receive a monthly summary of your workspace activity.</p>
-                  </div>
-                  <label className="toggle-switch">
-                    <input type="checkbox" />
-                    <span className="slider"></span>
-                  </label>
+                <div className="form-group">
+                  <label>New Password</label>
+                  <input 
+                    type="password" 
+                    value={newPassword} 
+                    onChange={e => setNewPassword(e.target.value)}
+                    required
+                  />
                 </div>
-              </div>
+                <button type="submit" className="btn-save" disabled={updating || !currentPassword || !newPassword}>Change Password</button>
+              </form>
             </div>
           )}
 
@@ -282,7 +314,7 @@ export default function SettingsPage() {
                   <h2>Billing & Plans</h2>
                   <p className="section-desc">Manage your subscription, limits, and billing method.</p>
                 </div>
-                {!isChangingPlan && (
+                {!isChangingPlan && user?.role !== 'manager' && (
                   <button className="btn-change-plan" onClick={() => setIsChangingPlan(true)}>
                     Change Plan
                   </button>

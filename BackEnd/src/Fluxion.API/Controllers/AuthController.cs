@@ -132,4 +132,25 @@ public class AuthController : ControllerBase
         if (!result.IsValid) return BadRequest(new { message = result.Message });
         return Ok(result);
     }
+
+    [HttpPost("change-password")]
+    [Microsoft.AspNetCore.Authorization.Authorize]
+    public async Task<IActionResult> ChangePassword([FromBody] Application.Features.Authentication.ChangePassword.ChangePasswordRequestDto request, [FromServices] ICurrentUserService currentUserService)
+    {
+        if (currentUserService.UserId == null)
+            return Unauthorized();
+
+        try
+        {
+            var command = new Application.Features.Authentication.ChangePassword.ChangePasswordCommand(
+                currentUserService.UserId.Value, request.CurrentPassword, request.NewPassword);
+                
+            await _mediator.Send(command);
+            return Ok(new { message = "Password updated successfully." });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
 }

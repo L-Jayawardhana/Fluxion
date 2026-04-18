@@ -1,0 +1,344 @@
+/* ══════════════════════════════════════════════════════════
+   Roles & Access — Final High Contrast Editorial · Fluxion
+   ══════════════════════════════════════════════════════════ */
+
+.rl-page {
+  --db-bg:      #F2EFE8;
+  --db-surface: #EDE9E0;
+  --db-card:    #FFFFFF;
+  --db-border:  rgba(0,0,0,.15);
+  --db-border2: rgba(0,0,0,.10);
+  --db-paper:   #0D0D0D;
+  --db-text:    #1A1C21;
+  --db-mist:    #475569;
+  --db-dim:     #64748B;
+  --db-green:   #10B981;
+  --db-blue:    #3B82F6;
+  padding: 32px;
+  background: var(--db-bg);
+}
+
+@keyframes upFadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes upSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Custom Header (Fixes Visibility) ── */
+.rl-header {
+  margin-bottom: 32px;
+  animation: upFadeUp .4s ease-out;
+}
+
+.rl-header-eyebrow {
+  font-size: 10px;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: #c84b2f; /* Rust color from theme for visibility */
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.rl-header-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 32px;
+  color: #0f172a;
+  margin: 0;
+  letter-spacing: -.03em;
+}
+
+.rl-header-subtitle {
+  font-size: 14px;
+  color: #64748b;
+  margin: 8px 0 0;
+  font-weight: 500;
+}
+
+.rl-grid {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 24px;
+  animation: upFadeUp .4s .1s both;
+}
+
+/* ── Sidebar ── */
+.rl-sidebar {
+  background: var(--db-card);
+  border: 1px solid var(--db-border);
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+}
+
+.rl-sidebar-label {
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--db-dim);
+  padding: 0 12px 14px;
+  font-weight: 700;
+  border-bottom: 1px solid var(--db-border2);
+  margin-bottom: 8px;
+}
+
+.rl-tab {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all .25s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: left;
+}
+
+.rl-tab:hover {
+  background: #f8fafc;
+  transform: translateX(4px);
+}
+
+.rl-tab.active {
+  background: #0f172a;
+  border-color: #0f172a;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.2);
+}
+
+.rl-tab-indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.rl-tab-name {
+  flex: 1;
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.rl-tab.active .rl-tab-name {
+  color: #FFFFFF;
+}
+
+.rl-tab-count {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--db-dim);
+  background: #F1F5F9;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-weight: 700;
+}
+
+.rl-tab.active .rl-tab-count {
+  background: rgba(255,255,255,0.15);
+  color: #FFFFFF;
+}
+
+/* ── Role Card ── */
+.rl-card {
+  background: var(--db-card);
+  border: 1px solid var(--db-border);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.05);
+}
+
+.rl-card-header {
+  padding: 40px;
+  border-bottom: 1px solid var(--db-border2);
+  border-left: 8px solid;
+}
+
+.rl-role-info {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.rl-role-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 26px;
+  color: #FFFFFF;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+
+.rl-role-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 30px;
+  color: #0f172a;
+  margin: 0;
+  letter-spacing: -.03em;
+}
+
+.rl-role-desc {
+  font-size: 14.5px;
+  color: #475569;
+  margin: 10px 0 0;
+  line-height: 1.6;
+  max-width: 650px;
+  font-weight: 500;
+}
+
+/* ── Permissions Grid ── */
+.rl-perms-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  padding: 40px;
+  background: linear-gradient(to bottom, #fcfcfc, #ffffff);
+}
+
+.rl-section-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.rl-section-head svg {
+  width: 20px;
+  height: 20px;
+  color: var(--db-green);
+}
+
+.rl-section-head span {
+  font-family: 'Syne', sans-serif;
+  font-size: 11px;
+  letter-spacing: .15em;
+  font-weight: 800;
+  color: #94a3b8;
+}
+
+.rl-perm-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.rl-perm-list li {
+  font-size: 14.5px;
+  color: #334155;
+  font-weight: 500;
+  padding-left: 28px;
+  position: relative;
+  line-height: 1.5;
+}
+
+.rl-perm-list li::before {
+  content: '→';
+  position: absolute;
+  left: 0;
+  color: #cbd5e1;
+  font-weight: 900;
+}
+
+/* ── Users Table ── */
+.rl-users-section {
+  padding: 40px;
+  border-top: 1px solid var(--db-border2);
+  background: #fafafa;
+}
+
+.rl-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--db-border2);
+  border-radius: 12px;
+  background: #FFFFFF;
+}
+
+.rl-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.rl-table th {
+  padding: 14px 24px;
+  text-align: left;
+  font-family: 'Syne', sans-serif;
+  font-size: 10px;
+  letter-spacing: .12em;
+  color: #94a3b8;
+  border-bottom: 1px solid var(--db-border2);
+  background: #F8FAFC;
+}
+
+.rl-table td {
+  padding: 16px 24px;
+  border-bottom: 1px solid #F1F5F9;
+  vertical-align: middle;
+}
+
+.rl-table tr:last-child td { border: none; }
+
+.rl-table tbody tr:hover td {
+  background: #fdfdfd;
+}
+
+.rl-user-cell {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.rl-user-av {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+  font-family: 'Syne', sans-serif;
+}
+
+.rl-user-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.rl-user-email {
+  font-size: 13px;
+  color: #64748b;
+  font-family: 'DM Mono', monospace;
+}
+
+.rl-status-chip {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+/* ── Mobile ── */
+@media (max-width: 900px) {
+  .rl-grid { grid-template-columns: 1fr; }
+  .rl-perms-grid { grid-template-columns: 1fr; }
+  .rl-sidebar { order: 2; }
+}

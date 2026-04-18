@@ -555,7 +555,7 @@ export default function DashboardPage() {
         setFinancialError('');
 
         const usersRes = await api.get('/User', {
-          params: currentOrgId ? { orgId: currentOrgId } : undefined
+          params: { orgId: currentOrgId }
         });
 
         const users = Array.isArray(usersRes?.data)
@@ -1072,7 +1072,7 @@ export default function DashboardPage() {
         onClose={() => setIsInviteModalOpen(false)}
         orgId={currentOrgId}
         onUserInvited={() => {
-          api.get('/User').then(res => {
+          api.get('/User', { params: { orgId: currentOrgId } }).then(res => {
             setDashboardData(prev => ({ ...prev, users: res.data || [] }));
           }).catch(() => { });
         }}

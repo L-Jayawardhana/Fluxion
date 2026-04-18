@@ -43,7 +43,7 @@ const NAV = [
   {
     label: 'Home', items: [
       { to: '/welcome', icon: I.welcome, text: 'Welcome' },
-      { to: '/dashboard', icon: I.dashboard, text: 'Dashboard' },
+      { to: '/dashboard', icon: I.dashboard, text: 'Dashboard', ownerOnly: true },
       { to: '/notifications', icon: I.bell, text: 'Notifications' },
     ]
   },
@@ -56,13 +56,13 @@ const NAV = [
   },
   {
     label: 'Departments', items: [
-      { to: '/departments', icon: I.department, text: 'All Departments' },
+      { to: '/departments', icon: I.department, text: 'All Departments', ownerOnly: true },
       { to: '/add-department', icon: I.plus, text: 'Add Department', ownerOnly: true },
     ]
   },
   {
     label: 'Assets', items: [
-      { to: '/assets', icon: I.asset, text: 'All Assets' },
+      { to: '/assets', icon: I.asset, text: 'All Assets', ownerOnly: true },
       { to: '/register-asset', icon: I.plus, text: 'Register Asset', ownerOnly: true },
       { to: '/assignments', icon: I.assignment, text: 'Asset Assignments', ownerOnly: true },
       { to: '/assigned-assets', icon: I.assignment, text: 'Assigned Assets', userOnly: true },
@@ -73,7 +73,6 @@ const NAV = [
       { to: '/tickets', icon: I.ticket, text: 'All Tickets' },
       { to: '/raise-ticket', icon: I.raise, text: 'Raise Ticket' },
       { to: '/maintenance-logs', icon: I.log, text: 'Maintenance Logs' },
-      { to: '/overdue-tickets', icon: I.overdue, text: 'Overdue Tickets' },
     ]
   },
   {
@@ -85,10 +84,8 @@ const NAV = [
   },
   {
     label: 'Reports', ownerOnly: true, items: [
-      { to: '/report-assets', icon: I.report, text: 'Asset Register' },
       { to: '/report-maintenance-cost', icon: I.chart, text: 'Maintenance Cost' },
       { to: '/report-warranty', icon: I.warranty, text: 'Warranty Expiry' },
-      { to: '/export-data', icon: I.exportData, text: 'Export Data' },
     ]
   },
   {
@@ -143,6 +140,7 @@ export default function MainLayout() {
   const userRole = user?.role || 'user';
   const initials = userName.slice(0, 2).toUpperCase();
   const filteredNav = useMemo(() => getFilteredNav(userRole), [userRole]);
+  const showPlanBlock = userRole !== 'user' && userRole !== 'technician';
 
   /* Live clock */
   useEffect(() => {
@@ -174,7 +172,7 @@ export default function MainLayout() {
 
   /* Subscription plan tracker */
   useEffect(() => {
-    if (user?.orgId) {
+    if (user?.orgId && showPlanBlock) {
       getPlan(user.orgId)
         .then((res) => setCurrentPlan(res.planName))
         .catch((err) => console.error("Error fetching plan in layout:", err));
@@ -188,7 +186,7 @@ export default function MainLayout() {
 
     window.addEventListener('planChanged', handlePlanChange);
     return () => window.removeEventListener('planChanged', handlePlanChange);
-  }, [user]);
+  }, [user, showPlanBlock]);
 
   let maxUsers = '—';
   let maxAssets = '—';
@@ -238,29 +236,31 @@ export default function MainLayout() {
         </nav>
 
         {/* Subscription block */}
-        <div className="ml-sb-plan">
-          <div className="ml-spb-top">
-            <span className="ml-spb-name">{currentPlan} Plan</span>
-            <span className="ml-spb-badge">Active</span>
+        {showPlanBlock && (
+          <div className="ml-sb-plan">
+            <div className="ml-spb-top">
+              <span className="ml-spb-name">{currentPlan} Plan</span>
+              <span className="ml-spb-badge">Active</span>
+            </div>
+            <div className="ml-spb-bar"><div className="ml-spb-fill" style={{ width: currentPlan === 'Enterprise' ? '100%' : '30%' }} /></div>
+            <div className="ml-spb-nums">
+              <span>Users · {maxUsers}</span>
+              <span>Assets · {maxAssets}</span>
+            </div>
+            {nextPlan && (
+              <button className="ml-spb-up" onClick={() => navigate('/settings')}>
+                ↑ Upgrade to {nextPlan}
+              </button>
+            )}
           </div>
-          <div className="ml-spb-bar"><div className="ml-spb-fill" style={{ width: currentPlan === 'Enterprise' ? '100%' : '30%' }} /></div>
-          <div className="ml-spb-nums">
-            <span>Users · {maxUsers}</span>
-            <span>Assets · {maxAssets}</span>
-          </div>
-          {nextPlan && (
-            <button className="ml-spb-up" onClick={() => navigate('/settings')}>
-              ↑ Upgrade to {nextPlan}
-            </button>
-          )}
-        </div>
+        )}
 
         {/* Profile */}
         <div className="ml-sb-profile">
           <div className="ml-sb-av">{initials}</div>
           <div className="ml-sb-uinfo">
             <div className="ml-sb-uname">{userName}</div>
-            <div className="ml-sb-urole">{userRole}</div>
+            <div className="ml-sb-urole">{userRole === 'owner' ? 'admin' : userRole}</div>
           </div>
           <button className="ml-sb-gear" onClick={logout} title="Logout">
             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 2H3a1 1 0 00-1 1v10a1 1 0 001 1h3M11 12l4-4-4-4M15 8H6" /></svg>

@@ -18,7 +18,7 @@ public class OrganizationController : ControllerBase
     }
 
     [HttpGet("{id}/plan")]
-    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "owner,admin")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "owner,systemAdmin,admin,manager")]
     public async Task<IActionResult> GetPlan(int id)
     {
         var plan = await _mediator.Send(new GetOrganizationPlanQuery(id));
@@ -26,7 +26,7 @@ public class OrganizationController : ControllerBase
     }
 
     [HttpPut("{id}/plan")]
-    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "owner,admin")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "owner,systemAdmin,admin")]
     public async Task<IActionResult> UpdatePlan(int id, [FromBody] UpdatePlanDto dto)
     {
         try
@@ -62,6 +62,7 @@ public class OrganizationController : ControllerBase
     }
 
     [HttpPost("{id}/logo")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "owner,systemAdmin,admin")]
     public async Task<IActionResult> UploadLogo(int id, IFormFile file)
     {
         if (file is null || file.Length == 0)
@@ -95,6 +96,7 @@ public class OrganizationController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "owner,systemAdmin,admin")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateOrganizationCommand command)
     {
         if (id != command.OrgId) return BadRequest("ID mismatch");
@@ -103,6 +105,7 @@ public class OrganizationController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "owner,systemAdmin,admin")]
     public async Task<IActionResult> Delete(int id)
     {
         await _mediator.Send(new DeleteOrganizationCommand(id));
@@ -110,6 +113,7 @@ public class OrganizationController : ControllerBase
     }
 
     [HttpPost("{id}/logo-base64")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "owner,systemAdmin,admin")]
     public async Task<IActionResult> UploadLogoBase64(int id, [FromBody] UploadLogoBase64Dto dto, [FromServices] Fluxion.Application.Interfaces.IImageService imageService)
     {
         if (string.IsNullOrEmpty(dto.Base64))
