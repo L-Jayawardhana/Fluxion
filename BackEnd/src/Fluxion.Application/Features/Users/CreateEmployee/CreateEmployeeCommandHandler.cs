@@ -34,16 +34,37 @@ public class CreateEmployeeCommandHandler : IRequestHandler<CreateEmployeeComman
         if (emailExists)
             throw new InvalidOperationException("A user with this email already exists.");
 
-        // 2. Validate OrgId and DepartmentId
+        // 2. Validate OrgId and Role
         var orgExists = await _context.Organizations
             .AnyAsync(o => o.OrgId == request.OrgId, cancellationToken);
         if (!orgExists)
             throw new InvalidOperationException("The specified organization does not exist.");
 
-        var deptExists = await _context.Departments
-            .AnyAsync(d => d.DepartmentId == request.DepartmentId && d.OrgId == request.OrgId, cancellationToken);
-        if (!deptExists)
-            throw new InvalidOperationException("The specified department does not exist in this organization.");
+        if (string.IsNullOrWhiteSpace(request.Role) || 
+            !Enum.TryParse<UserRole>(request.Role, true, out var parsedRoleResult) || 
+            (parsedRoleResult != UserRole.user && parsedRoleResult != UserRole.technician && parsedRoleResult != UserRole.manager && parsedRoleResult != UserRole.admin))
+        {
+            throw new InvalidOperationException("Invalid role specified. Only 'user', 'technician', 'manager' or 'admin' are allowed.");
+        }
+        var parsedRole = parsedRoleResult;
+
+        var currentUserRole = _currentUserService.Role?.ToLowerInvariant();
+        if ((parsedRole == UserRole.manager || parsedRole == UserRole.admin) && currentUserRole != "owner" && currentUserRole != "admin")
+        {
+            throw new InvalidOperationException("Only owners or admins can add managers or other administrators.");
+        }
+
+        // 3. Validate Department (if applicable)
+        if (parsedRole != UserRole.manager && parsedRole != UserRole.technician)
+        {
+            if (!request.DepartmentId.HasValue)
+                throw new InvalidOperationException("Department is required for this role.");
+
+            var deptExists = await _context.Departments
+                .AnyAsync(d => d.DepartmentId == request.DepartmentId.Value && d.OrgId == request.OrgId, cancellationToken);
+            if (!deptExists)
+                throw new InvalidOperationException("The specified department does not exist in this organization.");
+        }
 
         // Check user limit based on subscription
         var orgSub = await _context.OrgSubscriptions
@@ -60,22 +81,8 @@ public class CreateEmployeeCommandHandler : IRequestHandler<CreateEmployeeComman
                 throw new InvalidOperationException($"Subscription limit reached. Your plan allows up to {maxUsers.Value} users.");
         }
 
-        // 3. Generate invitation token via Infrastructure service
+        // 4. Generate invitation token via Infrastructure service
         var token = _invitationService.GenerateInvitationToken();
-
-        // 4. Validate and parse Role
-        if (string.IsNullOrWhiteSpace(request.Role) || 
-            !Enum.TryParse<UserRole>(request.Role, true, out var parsedRole) || 
-            (parsedRole != UserRole.user && parsedRole != UserRole.technician && parsedRole != UserRole.manager && parsedRole != UserRole.admin))
-        {
-            throw new InvalidOperationException("Invalid role specified. Only 'user', 'technician', 'manager' or 'admin' are allowed.");
-        }
-
-        var currentUserRole = _currentUserService.Role?.ToLowerInvariant();
-        if ((parsedRole == UserRole.manager || parsedRole == UserRole.admin) && currentUserRole != "owner" && currentUserRole != "admin")
-        {
-            throw new InvalidOperationException("Only owners or admins can add managers or other administrators.");
-        }
 
         // 5. Create User with the specified role
         var user = new User
@@ -91,10 +98,12 @@ public class CreateEmployeeCommandHandler : IRequestHandler<CreateEmployeeComman
             InvitationToken = token,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
-            UserDepartments = new List<UserDepartment>
-            {
-                new UserDepartment { DepartmentId = request.DepartmentId }
-            }
+            UserDepartments = (parsedRole == UserRole.manager || parsedRole == UserRole.technician)
+                ? new List<UserDepartment>()
+                : new List<UserDepartment>
+                {
+                    new UserDepartment { DepartmentId = request.DepartmentId!.Value }
+                }
         };
 
         _context.Users.Add(user);
