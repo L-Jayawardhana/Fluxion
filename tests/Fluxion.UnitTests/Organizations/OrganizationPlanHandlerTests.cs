@@ -80,7 +80,7 @@ public class OrganizationPlanHandlerTests : IDisposable
         // Seed 51 non-retired assets for this org (Free max is 50)
         for (int i = 0; i < 51; i++)
         {
-            _db.Assets.Add(new Asset { AssetId = i + 1, OrgId = 1, Status = AssetStatus.active, AssetName = "A" });
+            _db.Assets.Add(new Asset { AssetId = i + 1, OrgId = 1, Status = AssetStatus.available, AssetName = "A" });
         }
         await _db.SaveChangesAsync();
 

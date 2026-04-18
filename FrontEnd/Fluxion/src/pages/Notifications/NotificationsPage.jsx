@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth';
 import {
   getNotifications,
   markNotificationAsRead,
@@ -10,15 +11,19 @@ import './NotificationsPage.css';
 const TYPE_ICONS = {
   asset_assigned:           '📦',
   ticket_status_updated:    '🔄',
+  ticket_assigned:          '🎫',
   asset_condition_updated:  '🛠️',
   UNASSIGNED_TICKET_REMINDER: '⚠️',
+  TICKET_CREATED:           '🆕',
 };
 
 const TYPE_LABELS = {
   asset_assigned:           'Asset Assigned',
   ticket_status_updated:    'Ticket Update',
+  ticket_assigned:          'Ticket Assignment',
   asset_condition_updated:  'Condition Update',
   UNASSIGNED_TICKET_REMINDER: 'Ticket Reminder',
+  TICKET_CREATED:           'Ticket Created',
 };
 
 function timeAgo(dateStr) {
@@ -39,6 +44,7 @@ function timeAgo(dateStr) {
 
 export default function NotificationsPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -92,11 +98,13 @@ export default function NotificationsPage() {
   const handleClick = (n) => {
     if (!n.isRead) handleMarkRead(n.notificationId);
 
+    const isTech = user?.role === 'technician';
+
     // Navigate to relevant page
-    if ((n.type === 'ticket_status_updated' || n.type === 'TICKET_CREATED' || n.type === 'UNASSIGNED_TICKET_REMINDER') && n.ticketId) {
-      navigate('/tickets');
-    } else if (n.type === 'TICKET_CREATED' || n.type === 'UNASSIGNED_TICKET_REMINDER') {
-      navigate('/tickets');
+    if ((n.type === 'ticket_status_updated' || n.type === 'ticket_assigned' || n.type === 'TICKET_CREATED' || n.type === 'UNASSIGNED_TICKET_REMINDER') && n.ticketId) {
+      navigate(isTech ? `/technician/tickets/${n.ticketId}` : '/tickets');
+    } else if (n.type === 'TICKET_CREATED' || n.type === 'UNASSIGNED_TICKET_REMINDER' || n.type === 'ticket_assigned') {
+      navigate(isTech ? '/technician/tickets' : '/tickets');
     } else if (n.type === 'asset_assigned' || n.type === 'asset_condition_updated') {
       navigate('/assigned-assets');
     }

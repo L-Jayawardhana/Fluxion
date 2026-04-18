@@ -77,6 +77,20 @@ public class AssignMaintenanceTicketCommandHandler : IRequestHandler<AssignMaint
                     ct:       cancellationToken
                 );
             }
+
+            if (technician != null)
+            {
+                await _notificationService.CreateNotificationAsync(
+                    orgId:    ticket.OrgId,
+                    userId:   technician.UserId,
+                    type:     "ticket_assigned",
+                    title:    "New Ticket Assigned",
+                    message:  $"You have been assigned to ticket \"{ticket.Title}\".",
+                    ticketId: ticket.TicketId,
+                    assetId:  ticket.AssetId,
+                    ct:       cancellationToken
+                );
+            }
         }
 
         // ── Send email notification in background to avoid slowing API response ──
