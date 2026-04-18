@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -25,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../BackEnd/src/Fluxion.API/Fluxion.API.csproj" />
+    <ProjectReference Include="../../src/Fluxion.API/Fluxion.API.csproj" />
   </ItemGroup>
 
 </Project>
