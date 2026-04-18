@@ -229,4 +229,25 @@ public class DepartmentHandlerTests : IDisposable
 
         await act.Should().ThrowAsync<KeyNotFoundException>();
     }
+
+    [Fact]
+    public async Task ToggleDepartment_ReactivatingDuplicateName_ThrowsInvalidOperationException()
+    {
+        // Add one active department and one inactive department with the same name
+        _db.Departments.AddRange(
+            new Department { OrgId = 1, DepartmentName = "Marketing", IsActive = true, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+            new Department { OrgId = 1, DepartmentName = "Marketing", IsActive = false, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow }
+        );
+        await _db.SaveChangesAsync();
+
+        var inactiveDept = _db.Departments.Local.First(d => !d.IsActive && d.DepartmentName == "Marketing");
+
+        var handler = new ToggleDepartmentHandler(_db);
+        var act = async () => await handler.Handle(
+            new ToggleDepartmentCommand(inactiveDept.DepartmentId, OrgId: 1, IsActive: true),
+            CancellationToken.None);
+
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("Cannot reactivate: a department with this name already exists and is active.");
+    }
 }
