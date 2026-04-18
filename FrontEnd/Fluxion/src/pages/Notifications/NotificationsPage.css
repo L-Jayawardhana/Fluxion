@@ -194,7 +194,8 @@
   background: rgba(45, 148, 86, 0.15);
 }
 
-.notif-icon.ticket_status_updated {
+.notif-icon.ticket_status_updated,
+.notif-icon.ticket_assigned {
   background: rgba(42, 111, 200, 0.15);
 }
 
@@ -263,7 +264,8 @@
   color: var(--notif-green);
 }
 
-.notif-badge.ticket_status_updated {
+.notif-badge.ticket_status_updated,
+.notif-badge.ticket_assigned {
   background: rgba(42, 111, 200, 0.12);
   color: var(--notif-blue);
 }
