@@ -1,154 +1,104 @@
 # QA — Shared Quality Assurance Layer
 
-This directory contains **cross-cutting QA tools** shared across the entire Fluxion monorepo (Backend, User Frontend, Admin Dashboard).
-
-> **Convention:** App-specific tests live inside each service (`BackEnd/tests/`, `FrontEnd/Fluxion/tests/`, `FluxionAdminDash/tests/`).  
-> This `qa/` folder holds only **shared configuration, tooling, and reports**.
+This directory contains **cross-cutting QA tools** shared across the entire Fluxion monorepo (Backend, User Frontend, Admin Dashboard). This includes E2E browser tests and Performance load tests.
 
 ---
 
 ## Directory Structure
 
-```
+``` text
 qa/
-├── conftest.py          # Shared Selenium WebDriver fixtures (Python / pytest)
+├── conftest.py          # Shared Selenium WebDriver setup/fixtures
+├── selenium/            # E2E Browser Testing Framework
+│   ├── config.py        # Central config, test users, and RBAC matrix
+│   ├── pages/           # Page Object Model (POM) classes
+│   └── tests/           # Selenium test suites (pytest format)
 ├── jmeter/              # Apache JMeter performance test plans
-│   ├── auth_load.jmx    # 50-thread sustained load test (2 min)
-│   └── auth_smoke.jmx   # Single-user auth flow smoke test
-├── postman/             # Postman / Newman API collections
-├── swagger/             # Exported Swagger / OpenAPI specs
-└── reports/             # Auto-generated test reports & dashboards
+└── ...
 ```
 
 ---
 
-## 1. Shared Selenium Configuration (`conftest.py`)
+## 1. Selenium E2E Tests (Python + pytest)
 
-Provides **session-scoped** browser fixtures for both frontends so E2E tests share identical WebDriver setup.
-
-| Fixture | Target | Default URL |
-|---------|--------|-------------|
-| `user_driver` | User Frontend | `http://localhost:5173` |
-| `admin_driver` | Admin Dashboard | `http://localhost:5174` |
+The project uses a Page Object Model (POM) framework to test full end-to-end user flows, with a primary focus on Role-Based Access Control (RBAC).
 
 ### Prerequisites
 
-```bash
-pip install selenium pytest webdriver-manager
-```
-
-### Usage
-
-Tests in `FrontEnd/Fluxion/tests/e2e/` and `FluxionAdminDash/tests/e2e/` import these fixtures automatically:
+You need Python installed, along with Google Chrome. Install the required Python packages:
 
 ```bash
-# Run user frontend E2E tests
-pytest FrontEnd/Fluxion/tests/e2e/ --rootdir=qa/
-
-# Run admin dashboard E2E tests
-pytest FluxionAdminDash/tests/e2e/ --rootdir=qa/
+cd qa
+pip install pytest selenium webdriver-manager
 ```
 
-### Configuration
+### Running the Tests
 
-The `conftest.py` runs Chrome in **headless mode** by default. To launch a visible browser for debugging:
+Make sure your backend (`dotnet run`) and frontend (`npm run dev`) are running first, as Selenium actually opens a browser and interacts with the live dev servers.
 
-```python
-# Remove or comment out in conftest.py:
-options.add_argument("--headless=new")
+**Run the entire suite:**
+```bash
+cd qa
+pytest selenium/tests/ -v
 ```
+
+**Run specific test suites:**
+```bash
+cd qa
+# 1. Public Pages (Landing, 404)
+pytest selenium/tests/test_01_public_pages.py -v
+
+# 2. Authentication (Login, Logout, Session)
+pytest selenium/tests/test_02_auth.py -v
+
+# 3. RBAC Matrix (Tests all roles against all routes)
+pytest selenium/tests/test_03_rbac.py -v
+
+# 4. Navigation & Layout (Sidebar, Responsiveness)
+pytest selenium/tests/test_04_navigation.py -v
+```
+
+> **Note**: Test `test_03_rbac.py` requires seeded test user accounts defined in `selenium/config.py` in your local database. By default, Selenium runs in **headless** mode. To see the browser opening in real-time, comment out `options.add_argument("--headless=new")` inside `qa/conftest.py`.
 
 ---
 
-## 2. JMeter Performance Tests (`jmeter/`)
+## 2. Apache JMeter Performance Tests
 
-Two pre-built test plans for the backend API:
+JMeter test plans (`.jmx` files) are used to test API endpoints under concurrent user load.
 
-| Plan | File | Threads | Duration | Purpose |
-|------|------|---------|----------|---------|
-| **Smoke** | `auth_smoke.jmx` | 1 | 1 loop | Quick sanity — verify auth endpoints respond |
-| **Load** | `auth_load.jmx` | 50 | 120s | Sustained load — find performance regressions |
+### Pre-requisites
 
-### Prerequisites
+- Download and install [Apache JMeter](https://jmeter.apache.org/download_jmeter.cgi) (Requires Java).
+- Ensure JMeter is added to your system `PATH` (so you can run the `jmeter` command).
 
-- [Apache JMeter 5.6+](https://jmeter.apache.org/download_jmeter.cgi) on `PATH`
-- Backend API running at `http://localhost:5226`
+### Available Test Plans
 
-### Running
+| Plan File | Purpose | Load Simulation |
+|-----------|---------|-----------------|
+| `asset_pagination_load.jmx` | Tests the `GET /api/Asset` endpoint | 50 concurrent users, 3 loops |
+| `concurrent_ticket_update.jmx`| Tests Ticket Assignment race conditions | 20 users burst updating simultaneously |
 
-```bash
-# Quick smoke test
-./scripts/test-perf.sh smoke
+### Running the Tests
 
-# Full load test (PowerShell)
-.\scripts\test-perf.ps1 load
-
-# Custom parameters
-./scripts/test-perf.sh load -JTHREADS=100 -JRAMP_UP=60 -JDURATION=300
-
-# GUI mode (for editing plans)
-jmeter -t qa/jmeter/auth_smoke.jmx
-```
-
-### Recommended Load Scenarios
-
-| Scenario | Threads | Ramp-up | Duration |
-|----------|---------|---------|----------|
-| Smoke | 1 | 0s | 1 loop |
-| Light Load | 10 | 10s | 60s |
-| Normal Load | 50 | 30s | 120s |
-| Stress | 200 | 60s | 300s |
-
-Results and HTML dashboards are saved to `qa/jmeter/results/`.
-
----
-
-## 3. Postman Collections (`postman/`)
-
-Place exported Postman collections (`.json`) here for API contract testing. These can be run headlessly via [Newman](https://github.com/postmanlabs/newman):
+For accurate results, JMeter must be run in **CLI (Non-GUI) Mode**. 
+You will need to edit the `.jmx` files first (or pass variables via CLI) to inject a valid `AUTH_TOKEN`.
 
 ```bash
-npm install -g newman
-newman run qa/postman/Fluxion_API.postman_collection.json \
-  --environment qa/postman/local.postman_environment.json
+cd qa/jmeter
+
+# 1. Run Asset Load Test
+jmeter -n -t asset_pagination_load.jmx -l asset_results.jtl -e -o ./asset_report
+
+# 2. Run Ticket Race Condition Test
+jmeter -n -t concurrent_ticket_update.jmx -l ticket_results.jtl -e -o ./ticket_report
 ```
 
----
+* ` -n ` : Run in non-GUI mode
+* ` -t ` : Specifies the test plan to run
+* ` -l ` : Saves the raw results to a `.jtl` file
+* ` -e -o ` : Generates a readable HTML report folder at the given path. You can open `index.html` inside it.
 
-## 4. Swagger / OpenAPI Specs (`swagger/`)
-
-Store exported `swagger.json` or `openapi.yaml` files for API documentation and contract versioning.
-
-When the backend is running locally, the live spec is available at:
-- **Swagger UI:** `http://localhost:5226/swagger`
-- **JSON spec:** `http://localhost:5226/swagger/v1/swagger.json`
-
-Export and commit snapshots here for CI diff checks or client SDK generation.
-
----
-
-## 5. Test Reports (`reports/`)
-
-Auto-generated reports land here when running the full test suite:
-
+If you want to view, build, or modify the test scenarios visually, open the JMeter GUI:
 ```bash
-# Generate comprehensive QA report
-./scripts/generate-full-qa-report.sh
-
-# View the dashboard
-open TestResults/test-dashboard.md
+jmeter -t qa/jmeter/concurrent_ticket_update.jmx
 ```
-
-> **Note:** This directory is `.gitignore`'d for generated output. Only templates or configuration files should be committed.
-
----
-
-## Related Directories
-
-| Directory | Contents |
-|-----------|----------|
-| [`BackEnd/tests/`](../BackEnd/tests/) | .NET xUnit unit + integration tests |
-| [`FrontEnd/Fluxion/tests/e2e/`](../FrontEnd/Fluxion/tests/e2e/) | User frontend Selenium E2E tests |
-| [`FluxionAdminDash/tests/e2e/`](../FluxionAdminDash/tests/e2e/) | Admin dashboard Selenium E2E tests |
-| [`scripts/`](../scripts/) | Test runner scripts (PS1 + bash) |
-| [`TEST_PLAN.md`](../TEST_PLAN.md) | Full QA gate checklist and test plan |
