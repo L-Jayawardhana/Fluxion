@@ -24,14 +24,14 @@ BackEnd/
 
 **Framework:** xUnit 2.9 + Moq 4.20 + FluentAssertions 6.12  
 **Database:** EF Core InMemory (no external dependencies)  
-**Total Tests:** 123
+**Total Tests:** 149
 
 Tests individual handlers, validators, services, and controllers in isolation using mocked dependencies.
 
 | Folder | What it tests | Key files |
 |--------|--------------|-----------|
 | `Authentication/` | Login & Register command handlers + validators | `LoginCommandHandlerTests.cs`, `RegisterCommandValidatorTests.cs` |
-| `Controllers/` | Maintenance, Notification, Technician controllers | `MaintenanceControllerTests.cs`, `TechnicianControllerTests.cs` |
+| `Controllers/` | Validating RBAC HTTP headers and testing SEC security alerts | `AssetControllerTests.cs`, `OrganizationControllerTests.cs` |
 | `Departments/` | Department CRUD handlers (create, update, toggle, duplicates) | `DepartmentHandlerTests.cs` |
 | `MaintenanceLogs/` | Financial insights + maintenance log page queries | `GetFinancialInsightsQueryHandlerTests.cs` |
 | `MaintenanceTickets/` | Ticket creation, assignment, filtering, pagination | `AssignMaintenanceTicketCommandHandlerTests.cs` |
@@ -189,16 +189,18 @@ public class YourEndpointTests : IClassFixture<FluxionWebApplicationFactory>
 
 ---
 
-## CI/CD
+## CI/CD Pipeline
 
-Tests run automatically on every push/PR to `main` via GitHub Actions (`.github/workflows/cicd.yml`):
+Tests run automatically on every push/PR to `main` and `dev` via GitHub Actions utilizing the unified Quality Gate configuration (`.github/workflows/qa.yml`):
 
-| Step | Duration | Fail Policy |
-|------|----------|-------------|
-| Unit Tests | ~3s | `continue-on-error: true` (temporary) |
-| Integration Tests | ~2s | `continue-on-error: true` (temporary) |
+| Job Axis | Technologies Validated |
+|----------|------------------------|
+| `backend-tests` | `dotnet run` (Unit + Integration xUnit tests) |
+| `frontend-tests` | `npm test` (User App Vitest UI components) |
+| `admin-tests` | `npm test` (Admin Dash Vitest logic components) |
+| `security-scan` | `trufflehog` hardcoded secrets scanner |
 
-> **Note:** `continue-on-error` will be removed once all tests are fully stabilized.
+> **Note**: A specific test inside `AssetControllerTests.cs` tracking SEC-04 (debug tracing) intentionally fails to lock deployments until the underlying production issue is repaired by the backend team.
 
 ---
 
@@ -209,4 +211,4 @@ Tests run automatically on every push/PR to `main` via GitHub Actions (`.github/
 | QA shared layer | [`qa/`](../../qa/) |
 | Test runner scripts | [`scripts/`](../../scripts/) |
 | Full test plan | [`TEST_PLAN.md`](../../TEST_PLAN.md) |
-| CI/CD workflow | [`.github/workflows/cicd.yml`](../../.github/workflows/cicd.yml) |
+| CI/CD QA workflow | [`.github/workflows/qa.yml`](../../.github/workflows/qa.yml) |

@@ -1,35 +1,34 @@
-# Admin Dashboard — E2E Tests
+# Admin Dashboard — Tests
 
-This directory is for Selenium-based end-to-end tests for the **Admin Dashboard** (`FluxionAdminDash`).
+This directory maintains the automated testing suites for the **Admin Dashboard** (`FluxionAdminDash`).
 
-## Setup
+## 1. Unit & Service Tests (Vitest)
 
-E2E tests use the shared Selenium configuration from `qa/conftest.py` at repository root.
+We use `Vitest` with `jsdom` to test context states and API interactions natively without full browser overhead.
 
-### Prerequisites
-
-| Tool | Version | Purpose |
-|------|---------|---------|
-| Python | 3.10+ | Test runtime |
-| Chrome | Latest stable | Selenium WebDriver |
-| pip packages | `selenium`, `pytest`, `webdriver-manager` | Test dependencies |
-
-### Running Tests
-
+### Running Vitest
+Run this from `FluxionAdminDash/`:
 ```bash
-# From repository root
-pytest FluxionAdminDash/tests/e2e/ --rootdir=qa/
-
-# Or with the shared conftest
-pytest FluxionAdminDash/tests/e2e/ -c qa/conftest.py
+npm test
 ```
 
-### Writing Tests
+### Coverage
+- **`tests/context/AuthContext.test.jsx`**: Validates login, logout, state restoration from `localStorage`, and deep edge-cases for Admin JWT authentication.
+- **`tests/services/api.test.js`**: Thorough coverage over the main CRUD API functions powering the dashboard (Departments, Subscriptions, Users).
 
-Use the `admin_driver` fixture from `qa/conftest.py`:
+---
 
-```python
-def test_admin_login_page_loads(admin_driver):
-    admin_driver.get("http://localhost:5174/login")
-    assert "login" in admin_driver.current_url.lower()
+## 2. End-to-End Tests (Selenium)
+
+While local React/Context limits tests live here, the **Full End-To-End Browser Tests** live globally at the root of the repository in the `qa/selenium/` folder.
+
+Admin Dash E2E testing relies heavily on the `test_03_rbac.py` framework, ensuring that only Owner/Manager level permissions unlock the dashboard routing capabilities dynamically.
+
+### Running Selenium tests
+Start your backend and frontend. Then:
+```bash
+cd ../../qa
+python -m pytest selenium/tests/ -v
 ```
+
+Reference the [QA Directory README](../../qa/README.md) and the root [TEST_PLAN.md](../../TEST_PLAN.md) for full instructions regarding the Selenium and JMeter deployments.

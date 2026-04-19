@@ -1,45 +1,35 @@
-# User Frontend — E2E Tests
+# User Frontend — Tests
 
-This directory is for Selenium-based end-to-end tests for the **User Frontend** (`FrontEnd/Fluxion`).
+This directory maintains the automated testing suites for the **User Frontend** (`FrontEnd/Fluxion`).
 
-## Setup
+## 1. Unit & Service Tests (Vitest)
 
-E2E tests use the shared Selenium configuration from `qa/conftest.py` at repository root.
+We use `Vitest` with `jsdom` to test React components and API HTTP service wrappers locally.
 
-### Prerequisites
+### Running Vitest
+Run this from `FrontEnd/Fluxion/`:
+```bash
+npm test
+```
 
-| Tool | Version | Purpose |
-|------|---------|---------|
-| Python | 3.10+ | Test runtime |
-| Chrome | Latest stable | Selenium WebDriver |
-| pip packages | `selenium`, `pytest`, `webdriver-manager` | Test dependencies |
+### Coverage
+- **`tests/services/`**: Covers API wrappers for `authService`, `technicianService`, `maintenanceService`, `warrantyService`, etc. Validates data transformation, payload shape, and interceptor behaviors.
+- **`src/components/PaymentModal/`**: Pre-existing component logic tests for layout validation.
 
-### Running Tests
+---
+
+## 2. End-to-End Tests (Selenium)
+
+While the isolated unit tests live in this directory, the **Shared End-To-End Browser Tests** live globally at the root of the repository in the `qa/selenium/` folder.
+
+This is because E2E tests often require coordinating both applications (User App + Admin App) checking cross-compatibility (like an Admin creating an asset, and a User viewing it).
+
+### Running Selenium tests
+To run the automated Python tests that drive the Chrome browser, start both the .NET backend and Vite frontend, then:
 
 ```bash
-# From repository root
-pytest FrontEnd/Fluxion/tests/e2e/ --rootdir=qa/
-
-# Or with the shared conftest
-pytest FrontEnd/Fluxion/tests/e2e/ -c qa/conftest.py
+cd ../../qa
+python -m pytest selenium/tests/ -v
 ```
 
-### Writing Tests
-
-Use the `user_driver` fixture from `qa/conftest.py`:
-
-```python
-def test_login_page_loads(user_driver):
-    user_driver.get("http://localhost:5173/login")
-    assert "login" in user_driver.current_url.lower()
-```
-
-## Smoke Tests Covered
-
-| ID | What is checked |
-|----|----------------|
-| SMOKE-01 | Login page loads — email field + submit button visible |
-| SMOKE-02 | Register page loads — Step-1 form visible |
-| SMOKE-03 | Wrong password shows error banner, stays on `/login` |
-| SMOKE-04 | Empty form submit stays on `/login` (HTML5 validation) |
-| SMOKE-05 | Unauthenticated `/dashboard` access redirects to `/login` |
+Reference the [QA Directory README](../../qa/README.md) and the root [TEST_PLAN.md](../../TEST_PLAN.md) for deeper instructions on the RBAC Selenium matrix.
