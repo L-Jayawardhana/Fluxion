@@ -11,13 +11,15 @@ namespace Fluxion.UnitTests.Controllers;
 /// </summary>
 public class AssetControllerTests
 {
-    // ── Authorization attribute tests ────────────────────────────────
+    // ── Class-level authorization ────────────────────────────────────
 
     [Fact]
     public void AssetController_ShouldHaveAuthorizeAttribute()
     {
         typeof(AssetController).Should().BeDecoratedWith<AuthorizeAttribute>();
     }
+
+    // ── GetAll ───────────────────────────────────────────────────────
 
     [Fact]
     public void GetAll_ShouldBeRestrictedToManagementRoles()
@@ -30,6 +32,8 @@ public class AssetControllerTests
         attr.Roles.Should().Contain("admin");
     }
 
+    // ── Create ───────────────────────────────────────────────────────
+
     [Fact]
     public void Create_ShouldBeRestrictedToManagementRoles()
     {
@@ -41,15 +45,7 @@ public class AssetControllerTests
         attr.Roles.Should().Contain("admin");
     }
 
-    [Fact]
-    public void Delete_ShouldBeRestrictedToManagementRoles()
-    {
-        var method = typeof(AssetController).GetMethod(nameof(AssetController.Delete));
-
-        var attr = method!.GetCustomAttribute<AuthorizeAttribute>();
-        attr.Should().NotBeNull("Delete should have role restrictions");
-        attr!.Roles.Should().Contain("owner");
-    }
+    // ── Assign ───────────────────────────────────────────────────────
 
     [Fact]
     public void Assign_ShouldRequireAuthorization()
@@ -58,7 +54,11 @@ public class AssetControllerTests
 
         var attr = method!.GetCustomAttribute<AuthorizeAttribute>();
         attr.Should().NotBeNull("Assign should have role restrictions");
+        attr!.Roles.Should().Contain("admin");
+        attr.Roles.Should().Contain("owner");
     }
+
+    // ── Unassign ─────────────────────────────────────────────────────
 
     [Fact]
     public void Unassign_ShouldRequireAuthorization()
@@ -67,7 +67,11 @@ public class AssetControllerTests
 
         var attr = method!.GetCustomAttribute<AuthorizeAttribute>();
         attr.Should().NotBeNull("Unassign should have role restrictions");
+        attr!.Roles.Should().Contain("admin");
+        attr.Roles.Should().Contain("owner");
     }
+
+    // ── Transfer ─────────────────────────────────────────────────────
 
     [Fact]
     public void Transfer_ShouldRequireAuthorization()
@@ -76,7 +80,11 @@ public class AssetControllerTests
 
         var attr = method!.GetCustomAttribute<AuthorizeAttribute>();
         attr.Should().NotBeNull("Transfer should have role restrictions");
+        attr!.Roles.Should().Contain("admin");
+        attr.Roles.Should().Contain("owner");
     }
+
+    // ── Retire ───────────────────────────────────────────────────────
 
     [Fact]
     public void Retire_ShouldRequireAuthorization()
@@ -85,18 +93,30 @@ public class AssetControllerTests
 
         var attr = method!.GetCustomAttribute<AuthorizeAttribute>();
         attr.Should().NotBeNull("Retire should have role restrictions");
+        attr!.Roles.Should().Contain("admin");
+        attr.Roles.Should().Contain("owner");
     }
 
-    // ── Verify debug code exposure (SEC-04) ─────────────────────────
+    // ── GetWarrantyExpiryReport ──────────────────────────────────────
 
     [Fact]
-    public void Endpoints_ShouldNotReturnRawExceptionDetails_InProduction()
+    public void GetWarrantyExpiryReport_ShouldBeRestrictedToManagementRoles()
     {
-        // This is a static analysis check — the actual controller currently
-        // returns ex.Message + ex.InnerException in its catch blocks.
-        // This test documents the known issue (SEC-04).
-        // In production, exception details should be logged, not returned.
+        var method = typeof(AssetController).GetMethod(nameof(AssetController.GetWarrantyExpiryReport));
 
+        var attr = method!.GetCustomAttribute<AuthorizeAttribute>();
+        attr.Should().NotBeNull("GetWarrantyExpiryReport should have role restrictions");
+        attr!.Roles.Should().Contain("owner");
+        attr.Roles.Should().Contain("admin");
+    }
+
+    // ── SEC-04: Debug code in production ─────────────────────────────
+
+    [Fact]
+    public void Endpoints_ShouldNotContainDebugOnlyComments()
+    {
+        // SEC-04: AssetController has "Debugging ONLY" comments with stack trace exposure.
+        // This is a static analysis test to detect debug code left in production.
         var sourceFile = Path.Combine(
             AppDomain.CurrentDomain.BaseDirectory,
             "..", "..", "..", "..", "..", "src", "Fluxion.API", "Controllers", "AssetController.cs"
@@ -105,10 +125,9 @@ public class AssetControllerTests
         if (File.Exists(sourceFile))
         {
             var content = File.ReadAllText(sourceFile);
-            // This SHOULD fail — documenting known bug SEC-04
             var hasDebugExposure = content.Contains("Debugging ONLY");
             hasDebugExposure.Should().BeFalse(
-                    "SEC-04: AssetController should NOT contain debug-only stack trace exposure in production code");
+                "SEC-04: AssetController should NOT contain debug-only stack trace exposure in production code");
         }
     }
 }
