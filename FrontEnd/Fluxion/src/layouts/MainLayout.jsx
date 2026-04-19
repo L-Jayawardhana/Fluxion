@@ -1,8 +1,9 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Outlet, NavLink, Link, useLocation, useNavigate } from 'react-router-dom';
 import { getUnreadCount } from '../services/notificationService';
 import { getPlan } from '../services/subscriptionService';
 import { useAuth } from '../hooks/useAuth';
+import GlobalSearch from '../components/GlobalSearch';
 import './MainLayout.css';
 
 /* ── SVG icon helpers ──────────────────────────────────── */
@@ -29,68 +30,72 @@ const I = {
   globe: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="8" cy="8" r="7" /><path d="M8 1v14M2 5.5h12M2 10.5h12" /></svg>,
   audit: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="2" y="1" width="12" height="14" rx="1" /><path d="M5 5h6M5 8h6M5 11h3" /></svg>,
   settings: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="8" cy="8" r="3" /><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.1 3.1l1.4 1.4M11.5 11.5l1.4 1.4M3.1 12.9l1.4-1.4M11.5 4.5l1.4-1.4" /></svg>,
-  support: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="8" cy="6" r="3" /><path d="M2 14c0-3.3 2.7-5 6-5s6 1.7 6 5" /><path d="M13 2l2 2-6 6-2-1" /></svg>,
+  support: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="8" cy="8" r="7" /><path d="M8 5a2 2 0 110 4" strokeLinecap="round" /><circle cx="8" cy="12" r=".5" fill="currentColor" /></svg>,
   search: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="6.5" cy="6.5" r="4.5" /><path d="M11 11l3 3" /></svg>,
   bell: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M8 1a5 5 0 015 5v3l1.5 2.5H.5L2 9V6a6 6 0 016-5z" /><path d="M6 13a2 2 0 004 0" /></svg>,
   gear: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="8" cy="8" r="3" /><path d="M8 1v2M8 13v2M1 8h2M13 8h2" /></svg>,
   perf: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M2 12l3-4 3 2 3-5 3 3"/><rect x="1" y="1" width="14" height="14" rx="1.5"/></svg>,
   wrench: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M11.5 2.5a4 4 0 00-5.4 5.4L2 12l2 2 4.1-4.1A4 4 0 0011.5 2.5z"/></svg>,
+  menu: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M2 4h12M2 8h12M2 12h12"/></svg>,
 };
 
 /* ── Sidebar data ──────────────────────────────────────── */
-/* ownerOnly: true → hidden from employees (role "user") */
 const NAV = [
   {
     label: 'Home', items: [
-      { to: '/welcome', icon: I.welcome, text: 'Welcome' },
-      { to: '/dashboard', icon: I.dashboard, text: 'Dashboard', ownerOnly: true },
-      { to: '/notifications', icon: I.bell, text: 'Notifications' },
+      { to: '/welcome',       icon: I.welcome,    text: 'Welcome' },
+      { to: '/dashboard',     icon: I.dashboard,  text: 'Dashboard',    ownerOnly: true },
+      { to: '/notifications', icon: I.bell,       text: 'Notifications' },
     ]
   },
   {
     label: 'People', ownerOnly: true, items: [
-      { to: '/users', icon: I.users, text: 'Users' },
-      { to: '/invite-users', icon: I.invite, text: 'Invite Users' },
-      { to: '/roles', icon: I.roles, text: 'Roles & Access' },
+      { to: '/users',         icon: I.users,  text: 'Users' },
+      { to: '/invite-users',  icon: I.invite, text: 'Invite Users' },
+      { to: '/roles',         icon: I.roles,  text: 'Roles & Access' },
     ]
   },
   {
     label: 'Departments', items: [
-      { to: '/departments', icon: I.department, text: 'All Departments', ownerOnly: true },
-      { to: '/add-department', icon: I.plus, text: 'Add Department', ownerOnly: true },
+      { to: '/departments',     icon: I.department, text: 'All Departments', ownerOnly: true },
+      { to: '/add-department',  icon: I.plus,       text: 'Add Department',  ownerOnly: true },
     ]
   },
   {
     label: 'Assets', items: [
-      { to: '/assets', icon: I.asset, text: 'All Assets', ownerOnly: true },
-      { to: '/register-asset', icon: I.plus, text: 'Register Asset', ownerOnly: true },
-      { to: '/assignments', icon: I.assignment, text: 'Asset Assignments', ownerOnly: true },
-      { to: '/assigned-assets', icon: I.assignment, text: 'Assigned Assets', userOnly: true },
+      { to: '/assets',          icon: I.asset,      text: 'All Assets',         ownerOnly: true },
+      { to: '/register-asset',  icon: I.plus,       text: 'Register Asset',     ownerOnly: true },
+      { to: '/assignments',     icon: I.assignment, text: 'Asset Assignments',  ownerOnly: true },
+      { to: '/assigned-assets', icon: I.assignment, text: 'Assigned Assets',    userOnly: true },
     ]
   },
   {
     label: 'Maintenance', items: [
-      { to: '/tickets', icon: I.ticket, text: 'All Tickets' },
-      { to: '/raise-ticket', icon: I.raise, text: 'Raise Ticket' },
-      { to: '/maintenance-logs', icon: I.log, text: 'Maintenance Logs' },
+      { to: '/tickets',           icon: I.ticket, text: 'All Tickets' },
+      { to: '/raise-ticket',      icon: I.raise,  text: 'Raise Ticket' },
+      { to: '/maintenance-logs',  icon: I.log,    text: 'Maintenance Logs' },
     ]
   },
   {
     label: 'Technician', technicianOnly: true, items: [
-      { to: '/technician/dashboard',   icon: I.dashboard, text: 'Ticket Summary',    technicianOnly: true },
-      { to: '/technician/tickets',     icon: I.ticket,    text: 'My Tickets',   technicianOnly: true },
-      { to: '/technician/performance', icon: I.chart,     text: 'Performance',  technicianOnly: true },
+      { to: '/technician/dashboard',   icon: I.dashboard, text: 'Ticket Summary',  technicianOnly: true },
+      { to: '/technician/tickets',     icon: I.ticket,    text: 'My Tickets',      technicianOnly: true },
+      { to: '/technician/performance', icon: I.chart,     text: 'Performance',     technicianOnly: true },
     ]
   },
   {
     label: 'Reports', ownerOnly: true, items: [
-      { to: '/report-maintenance-cost', icon: I.chart, text: 'Maintenance Cost' },
-      { to: '/report-warranty', icon: I.warranty, text: 'Warranty Expiry' },
+      { to: '/report-maintenance-cost', icon: I.chart,    text: 'Maintenance Cost' },
+      { to: '/report-warranty',         icon: I.warranty, text: 'Warranty Expiry' },
     ]
   },
   {
     label: 'Organisation', ownerOnly: true, items: [
       { to: '/settings', icon: I.settings, text: 'Settings' },
+    ]
+  },
+  {
+    label: 'Help', items: [
       { to: '/support', icon: I.support, text: 'Support' },
     ]
   },
@@ -129,17 +134,27 @@ function getFilteredNav(role) {
 /* ██████████████████████████████████████████████████████████ */
 export default function MainLayout() {
   const { user, logout } = useAuth();
-  const location = useLocation();
-  const navigate = useNavigate();
-  const [clock, setClock] = useState('');
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [currentPlan, setCurrentPlan] = useState('Free');
+  const location  = useLocation();
+  const navigate  = useNavigate();
 
-  const rawName = user?.email?.split('@')[0] || 'User';
+  const [clock,        setClock]        = useState('');
+  const [unreadCount,  setUnreadCount]  = useState(0);
+  const [currentPlan,  setCurrentPlan]  = useState('Free');
+  const [searchOpen,   setSearchOpen]   = useState(false);
+  const [sidebarOpen,  setSidebarOpen]  = useState(true);
+
+  /* Sequence shortcut tracker: e.g. G then D */
+  const seqRef   = useRef(null);
+  const seqTimer = useRef(null);
+
+  const openSearch  = useCallback(() => setSearchOpen(true),  []);
+  const closeSearch = useCallback(() => setSearchOpen(false), []);
+
+  const rawName  = user?.email?.split('@')[0] || 'User';
   const userName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
   const userRole = user?.role || 'user';
   const initials = userName.slice(0, 2).toUpperCase();
-  const filteredNav = useMemo(() => getFilteredNav(userRole), [userRole]);
+  const filteredNav  = useMemo(() => getFilteredNav(userRole), [userRole]);
   const showPlanBlock = userRole !== 'user' && userRole !== 'technician';
 
   /* Live clock */
@@ -164,7 +179,6 @@ export default function MainLayout() {
         console.error('Failed to fetch unread count', err);
       }
     };
-    
     fetchUnread();
     const id = setInterval(fetchUnread, 60_000);
     return () => clearInterval(id);
@@ -175,33 +189,112 @@ export default function MainLayout() {
     if (user?.orgId && showPlanBlock) {
       getPlan(user.orgId)
         .then((res) => setCurrentPlan(res.planName))
-        .catch((err) => console.error("Error fetching plan in layout:", err));
+        .catch((err) => console.error('Error fetching plan in layout:', err));
     }
-
-    const handlePlanChange = (e) => {
-      if (e.detail) {
-        setCurrentPlan(e.detail);
-      }
-    };
-
+    const handlePlanChange = (e) => { if (e.detail) setCurrentPlan(e.detail); };
     window.addEventListener('planChanged', handlePlanChange);
     return () => window.removeEventListener('planChanged', handlePlanChange);
   }, [user, showPlanBlock]);
 
-  let maxUsers = '—';
-  let maxAssets = '—';
-  let nextPlan = 'Enterprise';
+  /* ── Global keyboard shortcuts ─────────────────────────── */
+  useEffect(() => {
+    const isAdmin = ['owner', 'admin', 'systemadmin', 'manager'].includes(userRole);
+    const isTech  = userRole === 'technician';
+    // const isUser  = userRole === 'user'; // used for future expansion
 
-  if (currentPlan === 'Free') { 
-    maxUsers = '5'; maxAssets = '50'; nextPlan = 'Pro'; 
-  } else if (currentPlan === 'Pro') { 
-    maxUsers = '25'; maxAssets = '500'; nextPlan = 'Enterprise'; 
-  } else if (currentPlan === 'Enterprise') { 
-    maxUsers = 'Unlimited'; maxAssets = 'Unlimited'; nextPlan = null; 
-  }
+    const onKey = (e) => {
+      const tag = document.activeElement?.tagName?.toLowerCase();
+      const inInput = tag === 'input' || tag === 'textarea' || tag === 'select' || document.activeElement?.isContentEditable;
+
+      /* Ctrl+K — global search (always available) */
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setSearchOpen(prev => !prev);
+        return;
+      }
+
+      /* Ctrl+\ — toggle sidebar (always available) */
+      if ((e.ctrlKey || e.metaKey) && e.key === '\\') {
+        e.preventDefault();
+        setSidebarOpen(prev => !prev);
+        return;
+      }
+
+      if (inInput) return;
+
+      /* ? — support/help (always available) */
+      if (e.key === '?') {
+        e.preventDefault();
+        navigate('/support');
+        return;
+      }
+
+      /* ── Role-specific two-key sequences ── */
+      let SEQ = {};
+
+      if (isAdmin) {
+        SEQ = {
+          'n+a': '/register-asset',   // New Asset
+          'n+t': '/raise-ticket',     // New Ticket
+          'n+u': '/invite-users',     // New User
+          'g+d': '/dashboard',        // Go Dashboard
+          'g+a': '/assets',           // Go Assets
+          'g+t': '/tickets',          // Go Tickets
+          'g+u': '/users',            // Go Users
+        };
+      } else if (isTech) {
+        SEQ = {
+          'g+d': '/technician/dashboard', // Go Dashboard (tech)
+          'g+t': '/technician/tickets',   // Go My Tickets
+          'n+t': '/raise-ticket',         // New Ticket
+        };
+      } else {
+        // Regular user
+        SEQ = {
+          'g+t': '/tickets',           // Go Tickets
+          'n+t': '/raise-ticket',      // New Ticket
+          'g+a': '/assigned-assets',   // Go Assigned Assets
+        };
+      }
+
+      const k = e.key.toLowerCase();
+      if (seqRef.current) {
+        const combo = `${seqRef.current}+${k}`;
+        if (SEQ[combo]) {
+          e.preventDefault();
+          navigate(SEQ[combo]);
+        }
+        seqRef.current = null;
+        clearTimeout(seqTimer.current);
+        return;
+
+      }
+
+      /* Record first key if it could start a combo */
+      const firstKeys = new Set(['n', 'g']);
+      if (firstKeys.has(k)) {
+        seqRef.current = k;
+        seqTimer.current = setTimeout(() => { seqRef.current = null; }, 1000);
+      }
+    };
+
+    window.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      clearTimeout(seqTimer.current);
+    };
+  }, [navigate]);
+
+  let maxUsers  = '—';
+  let maxAssets = '—';
+  let nextPlan  = 'Enterprise';
+
+  if (currentPlan === 'Free')       { maxUsers = '5';         maxAssets = '50';        nextPlan = 'Pro'; }
+  else if (currentPlan === 'Pro')   { maxUsers = '25';        maxAssets = '500';       nextPlan = 'Enterprise'; }
+  else if (currentPlan === 'Enterprise') { maxUsers = 'Unlimited'; maxAssets = 'Unlimited'; nextPlan = null; }
 
   return (
-    <div className="ml-shell">
+    <div className={`ml-shell${sidebarOpen ? '' : ' ml-sidebar-collapsed'}`}>
 
       {/* ═══════════ SIDEBAR ═══════════ */}
       <aside className="ml-sidebar">
@@ -275,15 +368,28 @@ export default function MainLayout() {
         {/* Topbar */}
         <header className="ml-topbar">
           <div className="ml-tb-left">
+            <button
+              className="ml-tb-sidebar-toggle"
+              onClick={() => setSidebarOpen(prev => !prev)}
+              title="Toggle sidebar (Ctrl+\)"
+            >
+              {I.menu}
+            </button>
             <span className="ml-tb-crumb">Fluxion</span>
             <span className="ml-tb-sep">›</span>
             <span className="ml-tb-page">{pageName(location.pathname)}</span>
           </div>
           <div className="ml-tb-right">
             <span className="ml-tb-clock">{clock}</span>
-            <button className="ml-tb-btn">
+            <button
+              className="ml-tb-btn"
+              onClick={openSearch}
+              title="Search (Ctrl+K)"
+              id="topbar-search-btn"
+            >
               {I.search}
               Search
+              <span className="ml-tb-shortcut">Ctrl K</span>
             </button>
             <button className="ml-tb-notif" onClick={() => navigate('/notifications')}>
               {I.bell}
@@ -298,6 +404,10 @@ export default function MainLayout() {
         </div>
 
       </div>
+
+      {/* ═══════════ GLOBAL SEARCH ═══════════ */}
+      {searchOpen && <GlobalSearch onClose={closeSearch} />}
+
     </div>
   );
 }

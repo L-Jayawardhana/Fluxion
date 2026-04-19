@@ -2,12 +2,14 @@ using Fluxion.Application.Features.Users;
 using Fluxion.Application.Features.Users.CreateEmployee;
 using Fluxion.Application.Features.Users.AcceptInvite;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Fluxion.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class UserController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -17,8 +19,9 @@ public class UserController : ControllerBase
         _mediator = mediator;
     }
 
+    /// <summary>Invites (creates) a new employee. Admin/owner/manager only.</summary>
     [HttpPost("employee")]
-    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "owner,admin,manager")]
+    [Authorize(Roles = "owner,admin,manager")]
     public async Task<IActionResult> CreateEmployee([FromBody] CreateEmployeeCommand command)
     {
         try
@@ -32,8 +35,9 @@ public class UserController : ControllerBase
         }
     }
 
+    /// <summary>Accept invite — public endpoint (no token required).</summary>
     [HttpPost("accept-invite")]
-    [Microsoft.AspNetCore.Authorization.AllowAnonymous]
+    [AllowAnonymous]
     public async Task<IActionResult> AcceptInvite([FromBody] AcceptInviteCommand command)
     {
         var success = await _mediator.Send(command);
@@ -41,14 +45,18 @@ public class UserController : ControllerBase
         return Ok(new { message = "Invitation accepted successfully." });
     }
 
+    /// <summary>Lists all users. Admin/owner/manager only.</summary>
     [HttpGet]
+    [Authorize(Roles = "owner,admin,systemAdmin,manager")]
     public async Task<IActionResult> GetAll([FromQuery] int? orgId)
     {
         var result = await _mediator.Send(new GetAllUsersQuery(orgId));
         return Ok(result);
     }
 
+    /// <summary>Updates a user record. Admin/owner/manager only.</summary>
     [HttpPut("{id}")]
+    [Authorize(Roles = "owner,admin,manager")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateUserCommand command)
     {
         if (id != command.UserId) return BadRequest("ID mismatch");
@@ -56,7 +64,9 @@ public class UserController : ControllerBase
         return NoContent();
     }
 
+    /// <summary>Deletes (or deactivates) a user. Owner/admin only.</summary>
     [HttpDelete("{id}")]
+    [Authorize(Roles = "owner,admin")]
     public async Task<IActionResult> Delete(int id)
     {
         await _mediator.Send(new DeleteUserCommand(id));
