@@ -1,11 +1,13 @@
 using Fluxion.Application.Features.Organizations;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Fluxion.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class OrganizationController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -41,6 +43,7 @@ public class OrganizationController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = "owner,systemAdmin,admin,manager")]
     public async Task<IActionResult> GetAll()
     {
         var result = await _mediator.Send(new GetAllOrganizationsQuery());
@@ -48,6 +51,7 @@ public class OrganizationController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "owner,systemAdmin")]
     public async Task<IActionResult> Create([FromBody] CreateOrganizationCommand command)
     {
         try
