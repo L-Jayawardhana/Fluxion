@@ -22,14 +22,29 @@ public class OrganizationControllerTests
     // ── Authorization attribute tests ────────────────────────────────
 
     [Fact]
-    public void GetPlan_ShouldBeRestrictedToManagementRoles()
+    public void OrganizationController_ShouldHaveAuthorizeAttribute()
     {
-        var method = typeof(OrganizationController).GetMethod(nameof(OrganizationController.GetPlan));
+        typeof(OrganizationController).Should().BeDecoratedWith<AuthorizeAttribute>();
+    }
+
+    [Fact]
+    public void GetAll_ShouldBeRestrictedToAdminRoles()
+    {
+        var method = typeof(OrganizationController).GetMethod(nameof(OrganizationController.GetAll));
 
         var attr = method!.GetCustomAttribute<AuthorizeAttribute>();
-        attr.Should().NotBeNull("GetPlan should require authorization");
-        attr!.Roles.Should().Contain("owner");
-        attr.Roles.Should().Contain("admin");
+        attr.Should().NotBeNull();
+        attr!.Roles.Should().Be("owner,systemAdmin,admin,manager");
+    }
+
+    [Fact]
+    public void Create_ShouldBeRestrictedToOwnerAndSystemAdmin()
+    {
+        var method = typeof(OrganizationController).GetMethod(nameof(OrganizationController.Create));
+
+        var attr = method!.GetCustomAttribute<AuthorizeAttribute>();
+        attr.Should().NotBeNull();
+        attr!.Roles.Should().Be("owner,systemAdmin");
     }
 
     [Fact]
@@ -38,8 +53,18 @@ public class OrganizationControllerTests
         var method = typeof(OrganizationController).GetMethod(nameof(OrganizationController.UpdatePlan));
 
         var attr = method!.GetCustomAttribute<AuthorizeAttribute>();
-        attr.Should().NotBeNull("UpdatePlan should require authorization");
+        attr.Should().NotBeNull();
         attr!.Roles.Should().Be("owner,systemAdmin,admin");
+    }
+
+    [Fact]
+    public void GetPlan_ShouldBeRestrictedToManagementRoles()
+    {
+        var method = typeof(OrganizationController).GetMethod(nameof(OrganizationController.GetPlan));
+
+        var attr = method!.GetCustomAttribute<AuthorizeAttribute>();
+        attr.Should().NotBeNull("GetPlan should require authorization");
+        attr!.Roles.Should().Be("owner,systemAdmin,admin,manager");
     }
 
     [Fact]
@@ -70,32 +95,6 @@ public class OrganizationControllerTests
         var attr = method!.GetCustomAttribute<AuthorizeAttribute>();
         attr.Should().NotBeNull("Delete should require authorization");
         attr!.Roles.Should().Be("owner,systemAdmin,admin");
-    }
-
-    // ── KNOWN ISSUE: GetAll and Create have NO [Authorize] attribute ──
-    // These tests document the missing authorization as open bugs.
-
-    [Fact]
-    public void GetAll_HasNoAuthorizeAttribute_KnownIssue()
-    {
-        // BUG: GET /api/Organization (list all orgs) has no [Authorize] attribute.
-        // This is a security issue — it should be restricted.
-        var method = typeof(OrganizationController).GetMethod(nameof(OrganizationController.GetAll));
-
-        var attr = method!.GetCustomAttribute<AuthorizeAttribute>();
-        // Documenting the current behavior: no auth required
-        attr.Should().BeNull("KNOWN ISSUE SEC-05: GetAll currently has no [Authorize] attribute");
-    }
-
-    [Fact]
-    public void Create_HasNoAuthorizeAttribute_ByDesign()
-    {
-        // POST /api/Organization (create) has no [Authorize] attribute.
-        // This may be by design (used during registration flow).
-        var method = typeof(OrganizationController).GetMethod(nameof(OrganizationController.Create));
-
-        var attr = method!.GetCustomAttribute<AuthorizeAttribute>();
-        attr.Should().BeNull("Create is intentionally unauthenticated for the registration flow");
     }
 
     // ── Endpoint behavior tests ─────────────────────────────────────
