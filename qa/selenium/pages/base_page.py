@@ -24,7 +24,14 @@ class BasePage:
 
     def click(self, locator):
         el = self.wait.until(EC.element_to_be_clickable(locator))
-        el.click()
+        try:
+            # Scroll to center to avoid floating headers/footers intercepting
+            self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", el)
+            import time; time.sleep(0.5)  # Wait for any scrolling/animations
+            el.click()
+        except Exception:
+            # Fallback to Javascript click if intercepted by overlay/toast
+            self.driver.execute_script("arguments[0].click();", el)
 
     def type_text(self, locator, text):
         el = self.find(locator)

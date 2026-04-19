@@ -1,14 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.3">
   <hashTree>
-    <!-- ═══════════════════════════════════════════════════════════════
-         Fluxion Auth Load Test
-         Purpose: Stress-test login + health endpoint under concurrent load.
-         Defaults: 50 threads, 30s ramp-up, 120s duration.
-         Run:
-           jmeter -n -t auth_load.jmx -l results.jtl -e -o report \
-             -JBASE_HOST=localhost -JBASE_PORT=5226
-         ═══════════════════════════════════════════════════════════════ -->
     <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="Fluxion Auth Load Test" enabled="true">
       <stringProp name="TestPlan.comments">Concurrent load test for auth endpoints</stringProp>
       <boolProp name="TestPlan.functional_mode">false</boolProp>
@@ -43,33 +35,33 @@
       </elementProp>
     </TestPlan>
     <hashTree>
-
-      <!-- ── Setup: Register load-test users ───────────────────── -->
-      <SetupThreadGroup guiclass="SetupThreadGroupGui" testclass="SetupThreadGroup" testname="Setup - Register Load Users" enabled="true">
-        <stringProp name="ThreadGroup.num_threads">1</stringProp>
-        <stringProp name="ThreadGroup.ramp_time">0</stringProp>
-        <boolProp name="ThreadGroup.scheduler">false</boolProp>
-        <elementProp name="ThreadGroup.main_controller" elementType="LoopController">
-          <boolProp name="LoopController.continue_forever">false</boolProp>
+      <SetupThreadGroup guiclass="SetupThreadGroupGui" testclass="SetupThreadGroup" testname="Setup - Register Load Users">
+        <intProp name="ThreadGroup.num_threads">1</intProp>
+        <intProp name="ThreadGroup.ramp_time">0</intProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController">
           <stringProp name="LoopController.loops">1</stringProp>
+          <boolProp name="LoopController.continue_forever">false</boolProp>
         </elementProp>
       </SetupThreadGroup>
       <hashTree>
-        <!-- Register a dedicated load-test user -->
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Register load-test user" enabled="true">
-          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
-          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-            <collectionProp name="Arguments.arguments">
-              <elementProp name="" elementType="HTTPArgument">
-                <stringProp name="Argument.value">{"fullName":"Load Tester","email":"loadtest@fluxion.dev","password":"LoadT3st!Pass","orgId":null}</stringProp>
-              </elementProp>
-            </collectionProp>
-          </elementProp>
           <stringProp name="HTTPSampler.domain">${BASE_HOST}</stringProp>
           <stringProp name="HTTPSampler.port">${BASE_PORT}</stringProp>
           <stringProp name="HTTPSampler.protocol">${BASE_PROTOCOL}</stringProp>
           <stringProp name="HTTPSampler.path">/api/auth/register</stringProp>
           <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">{&quot;fullName&quot;:&quot;Load Tester&quot;,&quot;email&quot;:&quot;loadtest@fluxion.dev&quot;,&quot;password&quot;:&quot;LoadT3st!Pass&quot;,&quot;orgId&quot;:null}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
         </HTTPSamplerProxy>
         <hashTree>
           <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="JSON Headers" enabled="true">
@@ -83,21 +75,19 @@
           <hashTree/>
         </hashTree>
       </hashTree>
-
-      <!-- ── Load Thread Group ─────────────────────────────────── -->
       <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Auth Load Test" enabled="true">
         <stringProp name="ThreadGroup.num_threads">${THREADS}</stringProp>
         <stringProp name="ThreadGroup.ramp_time">${RAMP_UP}</stringProp>
-        <boolProp name="ThreadGroup.scheduler">true</boolProp>
         <stringProp name="ThreadGroup.duration">${DURATION}</stringProp>
-        <elementProp name="ThreadGroup.main_controller" elementType="LoopController">
-          <boolProp name="LoopController.continue_forever">false</boolProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
+        <boolProp name="ThreadGroup.scheduler">true</boolProp>
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController">
           <intProp name="LoopController.loops">-1</intProp>
+          <boolProp name="LoopController.continue_forever">false</boolProp>
         </elementProp>
       </ThreadGroup>
       <hashTree>
-
-        <!-- JSON Header -->
         <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="JSON Headers" enabled="true">
           <collectionProp name="HeaderManager.headers">
             <elementProp name="Content-Type" elementType="Header">
@@ -107,28 +97,26 @@
           </collectionProp>
         </HeaderManager>
         <hashTree/>
-
-        <!-- Transaction: Login + Health -->
         <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="Login + Call Health" enabled="true">
           <boolProp name="TransactionController.includeTimers">false</boolProp>
         </TransactionController>
         <hashTree>
-
-          <!-- Login -->
           <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST /api/auth/login" enabled="true">
-            <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
-            <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-              <collectionProp name="Arguments.arguments">
-                <elementProp name="" elementType="HTTPArgument">
-                  <stringProp name="Argument.value">{"email":"loadtest@fluxion.dev","password":"LoadT3st!Pass"}</stringProp>
-                </elementProp>
-              </collectionProp>
-            </elementProp>
             <stringProp name="HTTPSampler.domain">${BASE_HOST}</stringProp>
             <stringProp name="HTTPSampler.port">${BASE_PORT}</stringProp>
             <stringProp name="HTTPSampler.protocol">${BASE_PROTOCOL}</stringProp>
             <stringProp name="HTTPSampler.path">/api/auth/login</stringProp>
             <stringProp name="HTTPSampler.method">POST</stringProp>
+            <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+            <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+              <collectionProp name="Arguments.arguments">
+                <elementProp name="" elementType="HTTPArgument">
+                  <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                  <stringProp name="Argument.value">{&quot;email&quot;:&quot;loadtest@fluxion.dev&quot;,&quot;password&quot;:&quot;LoadT3st!Pass&quot;}</stringProp>
+                  <stringProp name="Argument.metadata">=</stringProp>
+                </elementProp>
+              </collectionProp>
+            </elementProp>
           </HTTPSamplerProxy>
           <hashTree>
             <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="Extract accessToken" enabled="true">
@@ -144,17 +132,21 @@
               </collectionProp>
               <intProp name="Assertion.test_type">8</intProp>
               <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+              <stringProp name="Assertion.custom_message"></stringProp>
+              <boolProp name="Assertion.assume_success">false</boolProp>
             </ResponseAssertion>
             <hashTree/>
           </hashTree>
-
-          <!-- Health with token -->
           <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /api/health" enabled="true">
             <stringProp name="HTTPSampler.domain">${BASE_HOST}</stringProp>
             <stringProp name="HTTPSampler.port">${BASE_PORT}</stringProp>
             <stringProp name="HTTPSampler.protocol">${BASE_PROTOCOL}</stringProp>
             <stringProp name="HTTPSampler.path">/api/health</stringProp>
             <stringProp name="HTTPSampler.method">GET</stringProp>
+            <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
+            <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+              <collectionProp name="Arguments.arguments"/>
+            </elementProp>
           </HTTPSamplerProxy>
           <hashTree>
             <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="Bearer Token" enabled="true">
@@ -172,27 +164,26 @@
               </collectionProp>
               <intProp name="Assertion.test_type">8</intProp>
               <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+              <stringProp name="Assertion.custom_message"></stringProp>
+              <boolProp name="Assertion.assume_success">false</boolProp>
             </ResponseAssertion>
             <hashTree/>
             <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Assert Healthy" enabled="true">
               <collectionProp name="Asserion.test_strings">
-                <stringProp name="1824396137">Healthy</stringProp>
+                <stringProp name="-1834753667">Healthy</stringProp>
               </collectionProp>
               <intProp name="Assertion.test_type">2</intProp>
               <stringProp name="Assertion.test_field">Assertion.response_data</stringProp>
+              <stringProp name="Assertion.custom_message"></stringProp>
+              <boolProp name="Assertion.assume_success">false</boolProp>
             </ResponseAssertion>
             <hashTree/>
           </hashTree>
-
         </hashTree>
-
-        <!-- Think time between iterations -->
         <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="Think Time (500ms)" enabled="true">
           <stringProp name="ConstantTimer.delay">500</stringProp>
         </ConstantTimer>
         <hashTree/>
-
-        <!-- Results -->
         <ResultCollector guiclass="SummaryReport" testclass="ResultCollector" testname="Summary Report" enabled="true">
           <boolProp name="ResultCollector.error_logging">false</boolProp>
           <objProp>
@@ -206,6 +197,19 @@
               <code>true</code>
               <message>true</message>
               <threadName>true</threadName>
+              <dataType>false</dataType>
+              <encoding>false</encoding>
+              <assertions>false</assertions>
+              <subresults>false</subresults>
+              <responseData>false</responseData>
+              <samplerData>false</samplerData>
+              <xml>false</xml>
+              <fieldNames>false</fieldNames>
+              <responseHeaders>false</responseHeaders>
+              <requestHeaders>false</requestHeaders>
+              <responseDataOnError>false</responseDataOnError>
+              <saveAssertionResultsFailureMessage>false</saveAssertionResultsFailureMessage>
+              <assertionsResultsToSave>0</assertionsResultsToSave>
               <bytes>true</bytes>
               <sentBytes>true</sentBytes>
               <connectTime>true</connectTime>
@@ -214,7 +218,6 @@
           <stringProp name="filename"></stringProp>
         </ResultCollector>
         <hashTree/>
-
         <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
           <boolProp name="ResultCollector.error_logging">false</boolProp>
           <objProp>
@@ -228,14 +231,24 @@
               <code>true</code>
               <message>true</message>
               <threadName>true</threadName>
+              <dataType>false</dataType>
+              <encoding>false</encoding>
+              <assertions>false</assertions>
+              <subresults>false</subresults>
               <responseData>false</responseData>
+              <samplerData>false</samplerData>
+              <xml>false</xml>
+              <fieldNames>false</fieldNames>
+              <responseHeaders>false</responseHeaders>
+              <requestHeaders>false</requestHeaders>
               <responseDataOnError>true</responseDataOnError>
+              <saveAssertionResultsFailureMessage>false</saveAssertionResultsFailureMessage>
+              <assertionsResultsToSave>0</assertionsResultsToSave>
             </value>
           </objProp>
           <stringProp name="filename"></stringProp>
         </ResultCollector>
         <hashTree/>
-
       </hashTree>
     </hashTree>
   </hashTree>
