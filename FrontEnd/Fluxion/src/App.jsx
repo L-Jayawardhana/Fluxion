@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './hooks/useAuth';
 import ProtectedRoute, { RoleRoute } from './components/ProtectedRoute';
 import MainLayout from './layouts/MainLayout';
+import AuthLayout from './layouts/AuthLayout';
 import SplashScreen from './components/SplashScreen';
 import SpeedLoader from './components/SpeedLoader';
 import RouteTransitionLoader from './components/RouteTransitionLoader';
@@ -68,15 +69,18 @@ function App() {
     <AuthProvider>
       {!splashDone && <SplashScreen onComplete={handleSplashComplete} />}
       <BrowserRouter>
-        <RouteTransitionLoader />
-        <Suspense fallback={<SpeedLoader label="Loading page…" />}>
+        <Suspense fallback={<div className="minimal-root-loader" />}>
           <Routes>
-            {/* Public */}
+            {/* Public Layout Wrapper */}
             <Route path="/"                element={<LandingPage />} />
-            <Route path="/login"           element={<LoginPage />} />
-            <Route path="/register"        element={<RegisterPage />} />
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-            <Route path="/accept-invite"   element={<AcceptInvitePage />} />
+            
+            <Route element={<AuthLayout />}>
+              <Route path="/login"           element={<LoginPage />} />
+              <Route path="/register"        element={<RegisterPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="/accept-invite"   element={<AcceptInvitePage />} />
+            </Route>
+
             <Route path="/unauthorized"    element={<UnauthorizedPage />} />
 
             {/* Protected (must be logged in) */}

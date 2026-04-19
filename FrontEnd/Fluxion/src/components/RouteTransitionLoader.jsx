@@ -18,6 +18,12 @@ export default function RouteTransitionLoader() {
             return;
         }
 
+        /* 
+         * Restriction: Since this component is now relocated specifically into 
+         * the AuthLayout, we no longer need to manually check for auth routes.
+         * It will only trigger on navigation within the authentication flow.
+         */
+        
         /* Delay phase state transition to avoid React setState execution directly in effect cycle block */
         const startTimer = setTimeout(() => setPhase('visible'), 0);
 
