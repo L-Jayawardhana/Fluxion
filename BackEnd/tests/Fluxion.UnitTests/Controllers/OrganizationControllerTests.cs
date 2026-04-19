@@ -134,7 +134,7 @@ public class OrganizationControllerTests
             .ThrowsAsync(new InvalidOperationException("Organization already exists"));
 
         var controller = CreateController();
-        var result = await controller.Create(new CreateOrganizationCommand());
+        var result = await controller.Create(new CreateOrganizationCommand("TestOrg", "test-org", "UTC", 1));
 
         result.Should().BeOfType<ConflictObjectResult>();
     }
@@ -143,7 +143,7 @@ public class OrganizationControllerTests
     public async Task Update_IdMismatch_ReturnsBadRequest()
     {
         var controller = CreateController();
-        var command = new UpdateOrganizationCommand { OrgId = 99 };
+        var command = new UpdateOrganizationCommand(99, "TestOrg", "test-org", "UTC", true);
 
         var result = await controller.Update(1, command);
 
