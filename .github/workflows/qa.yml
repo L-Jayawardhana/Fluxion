@@ -2,9 +2,9 @@ name: QA Pipeline
 
 on:
   push:
-    branches: [main, dev]
+    branches: [main, Dev]
   pull_request:
-    branches: [main, dev]
+    branches: [main, Dev]
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
