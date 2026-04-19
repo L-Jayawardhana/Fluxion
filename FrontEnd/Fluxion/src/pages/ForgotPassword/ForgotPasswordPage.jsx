@@ -123,7 +123,7 @@ export default function ForgotPasswordPage() {
         setError('');
         setSuccess('');
         const errs = {};
-        if (!newPassword || newPassword.length < 6) errs.newPassword = 'Password must be at least 6 characters.';
+        if (!newPassword || newPassword.length < 8) errs.newPassword = 'Password must be at least 8 characters.';
         if (newPassword !== confirmPassword) errs.confirmPassword = 'Passwords do not match.';
         if (Object.keys(errs).length) { setFieldErrors(errs); return; }
 
