@@ -96,10 +96,10 @@ builder.Services.AddCors(options =>
             }
             else
             {
-                // Fallback: allow any origin (not recommended for production)
-                policy.AllowAnyOrigin()
-                      .AllowAnyMethod()
-                      .AllowAnyHeader();
+                // Security Hardening: Never fallback to AllowAnyOrigin in production.
+                // Fail-fast to ensure the environment is correctly configured.
+                throw new InvalidOperationException("CORS AllowedOrigins configuration is missing or empty for Production. " +
+                                                   "Please set AllowedOrigins__0, AllowedOrigins__1, etc. in your environment variables.");
             }
         }
     });
