@@ -30,7 +30,6 @@ function isAdmin(role) {
   return ['owner', 'admin', 'systemadmin', 'manager'].includes(role?.toLowerCase());
 }
 function isTechnician(role) { return role?.toLowerCase() === 'technician'; }
-function isUser(role)       { return role?.toLowerCase() === 'user'; }
 
 /* ── DATA: Admin workflows ──────────────────────────────── */
 const ADMIN_WORKFLOWS = [

@@ -25,7 +25,6 @@ vi.mock('axios', () => {
   };
 });
 
-import axios from 'axios';
 import api, {
   getDepartments,
   getOrganizations,

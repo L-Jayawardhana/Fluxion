@@ -283,7 +283,7 @@ export default function MainLayout() {
       window.removeEventListener('keydown', onKey);
       clearTimeout(seqTimer.current);
     };
-  }, [navigate]);
+  }, [navigate, userRole]);
 
   let maxUsers  = '—';
   let maxAssets = '—';
