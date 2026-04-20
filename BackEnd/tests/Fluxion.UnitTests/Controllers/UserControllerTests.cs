@@ -29,19 +29,19 @@ public class UserControllerTests
     public void CreateEmployee_ShouldBeRestrictedToAdminRoles()
     {
         // Arrange
-        var method = typeof(UserController).GetMethod(nameof(UserController.CreateEmployee));
+        var method = typeof(UserController).GetMethod(nameof(UserController.CreateEmployee))!;
         
         // Assert
         var attr = method.GetCustomAttribute<AuthorizeAttribute>();
         attr.Should().NotBeNull();
-        attr.Roles.Should().Be("owner,admin,manager");
+        attr!.Roles.Should().Be("owner,admin,manager");
     }
 
     [Fact]
     public void AcceptInvite_ShouldAllowAnonymous()
     {
         // Arrange
-        var method = typeof(UserController).GetMethod(nameof(UserController.AcceptInvite));
+        var method = typeof(UserController).GetMethod(nameof(UserController.AcceptInvite))!;
         
         // Assert
         method.GetCustomAttribute<AllowAnonymousAttribute>().Should().NotBeNull();
@@ -51,12 +51,12 @@ public class UserControllerTests
     public void Delete_ShouldBeRestrictedToOwnerAndAdmin()
     {
         // Arrange
-        var method = typeof(UserController).GetMethod(nameof(UserController.Delete));
+        var method = typeof(UserController).GetMethod(nameof(UserController.Delete))!;
         
         // Assert
         var attr = method.GetCustomAttribute<AuthorizeAttribute>();
         attr.Should().NotBeNull();
-        attr.Roles.Should().Be("owner,admin");
+        attr!.Roles.Should().Be("owner,admin");
     }
 
     [Fact]

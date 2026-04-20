@@ -102,7 +102,7 @@ public class AssignMaintenanceTicketCommandHandler : IRequestHandler<AssignMaint
             var ticketTitle = ticket.Title;
             var oldStatusText = oldStatus.ToString();
             var newStatusText = ticket.Status.ToString();
-            var technicianName = technician.FullName;
+            var technicianName = technician?.FullName ?? "Unknown Technician";
             var assetName = ticket.Asset?.AssetName ?? "Unknown Asset";
 
             _ = Task.Run(async () =>

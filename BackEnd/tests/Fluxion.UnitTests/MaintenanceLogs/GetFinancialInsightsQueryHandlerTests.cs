@@ -73,8 +73,8 @@ public class GetFinancialInsightsQueryHandlerTests
         // Assert
         result.Should().NotBeNull();
         
-        var itSpend = result.SpendByDepartment.FirstOrDefault(d => d.DepartmentName == "IT");
-        var hrSpend = result.SpendByDepartment.FirstOrDefault(d => d.DepartmentName == "HR");
+        var itSpend = result!.SpendByDepartment.FirstOrDefault(d => d.DepartmentName == "IT");
+        var hrSpend = result!.SpendByDepartment.FirstOrDefault(d => d.DepartmentName == "HR");
         
         itSpend.Should().NotBeNull();
         itSpend!.LaborSpend.Should().Be(300);
@@ -88,20 +88,20 @@ public class GetFinancialInsightsQueryHandlerTests
         hrSpend!.MaintenanceSpend.Should().Be(175);
         hrSpend!.TotalSpend.Should().Be(175);
 
-        var tech1Cost = result.CostPerTechnician.FirstOrDefault(t => t.TechnicianName == "Tech One");
+        var tech1Cost = result!.CostPerTechnician.FirstOrDefault(t => t.TechnicianName == "Tech One");
         tech1Cost.Should().NotBeNull();
         tech1Cost!.LaborCost.Should().Be(250);
         tech1Cost!.PartsCost.Should().Be(75);
         tech1Cost!.TotalCost.Should().Be(325);
         
-        var asset1Cost = result.CostPerAsset.FirstOrDefault(a => a.AssetName == "Server");
+        var asset1Cost = result!.CostPerAsset.FirstOrDefault(a => a.AssetName == "Server");
         asset1Cost.Should().NotBeNull();
         asset1Cost!.LaborCost.Should().Be(300);
         asset1Cost!.PartsCost.Should().Be(150);
         asset1Cost!.TotalCost.Should().Be(450);
 
-        result.BudgetComparison.TotalBudget.Should().Be(10000m); // 2 depts * 5000
-        result.BudgetComparison.ActualSpend.Should().Be(625m); // 450 + 175
-        result.BudgetComparison.Variance.Should().Be(9375m); // 10000 - 625
+        result!.BudgetComparison.TotalBudget.Should().Be(10000m); // 2 depts * 5000
+        result!.BudgetComparison.ActualSpend.Should().Be(625m); // 450 + 175
+        result!.BudgetComparison.Variance.Should().Be(9375m); // 10000 - 625
     }
 }
