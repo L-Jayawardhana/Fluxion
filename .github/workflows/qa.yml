@@ -1,0 +1,137 @@
+name: QA Pipeline
+
+on:
+  push:
+    branches: [main, Dev]
+  pull_request:
+    branches: [main, Dev]
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+jobs:
+
+  # ─── 1. Backend Unit + Integration Tests ───────────────────────
+  backend-tests:
+    name: .NET Unit & Integration Tests
+    runs-on: ubuntu-latest
+    env:
+      CloudinarySettings__CloudName: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
+      CloudinarySettings__ApiKey: ${{ secrets.CLOUDINARY_API_KEY }}
+      CloudinarySettings__ApiSecret: ${{ secrets.CLOUDINARY_API_SECRET }}
+    defaults:
+      run:
+        working-directory: BackEnd
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Restore dependencies
+        run: |
+          dotnet restore src/Fluxion.API/Fluxion.API.csproj
+          dotnet restore tests/Fluxion.UnitTests/Fluxion.UnitTests.csproj
+          dotnet restore tests/Fluxion.IntegrationTests/Fluxion.IntegrationTests.csproj
+
+      - name: Build
+        run: |
+          dotnet build src/Fluxion.API/Fluxion.API.csproj --configuration Release --no-restore
+          dotnet build tests/Fluxion.UnitTests/Fluxion.UnitTests.csproj --configuration Release --no-restore
+          dotnet build tests/Fluxion.IntegrationTests/Fluxion.IntegrationTests.csproj --configuration Release --no-restore
+
+      - name: Run Unit Tests
+        run: |
+          dotnet test tests/Fluxion.UnitTests/Fluxion.UnitTests.csproj \
+            --configuration Release --no-build --verbosity normal \
+            --logger "trx;LogFileName=unit-results.trx" \
+            --results-directory TestResults/
+
+      - name: Run Integration Tests
+        run: |
+          dotnet test tests/Fluxion.IntegrationTests/Fluxion.IntegrationTests.csproj \
+            --configuration Release --no-build --verbosity normal \
+            --logger "trx;LogFileName=integration-results.trx" \
+            --results-directory TestResults/
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dotnet-test-results
+          path: BackEnd/TestResults/
+
+  # ─── 2. Frontend (Fluxion) Tests ────────────────────────────────
+  frontend-tests:
+    name: Frontend Vitest (Fluxion)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        working-directory: FrontEnd/Fluxion
+        run: npm ci
+
+      - name: Run Vitest
+        working-directory: FrontEnd/Fluxion
+        run: npx vitest run --reporter=verbose
+
+  # ─── 3. Admin Dashboard Tests ───────────────────────────────────
+  admin-tests:
+    name: Admin Dashboard Vitest
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        working-directory: FluxionAdminDash
+        run: npm ci
+
+      - name: Run Vitest
+        working-directory: FluxionAdminDash
+        run: npx vitest run --reporter=verbose
+
+  # ─── 4. Security Scan ──────────────────────────────────────────
+  security-scan:
+    name: Secret & Dependency Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: TruffleHog — Scan for secrets
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: main
+          head: HEAD
+        continue-on-error: true
+
+      - name: Check for hardcoded secrets in config
+        run: |
+          echo "Checking for secrets committed to repo..."
+          if grep -r "Password=" BackEnd/src/Fluxion.API/appsettings.Development.json 2>/dev/null; then
+            echo "⚠️  WARNING: appsettings.Development.json contains real passwords!"
+            echo "SEC-01: This file should be in .gitignore"
+          fi
+          if grep -r "490325311461" FrontEnd/Fluxion/src/services/authService.js 2>/dev/null; then
+            echo "⚠️  WARNING: Google Client ID is hardcoded in source"
+            echo "SEC-02: Move to environment variable VITE_GOOGLE_CLIENT_ID"
+          fi

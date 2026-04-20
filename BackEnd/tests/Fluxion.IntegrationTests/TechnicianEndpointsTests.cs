@@ -321,7 +321,7 @@ public class TechnicianEndpointsTests : IClassFixture<FluxionWebApplicationFacto
                 Title = "Fan noise",
                 IssueDescription = "loud fan",
                 Priority = TicketPriority.low,
-                Status = TicketStatus.assigned,
+                Status = TicketStatus.resolved,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             });

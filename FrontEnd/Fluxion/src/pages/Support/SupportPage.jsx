@@ -172,7 +172,7 @@ export default function SupportPage() {
 
   const handleCard = (card) => {
     if (card.to)        { navigate(card.to); return; }
-    if (card.href)      { window.location.href = card.href; return; }
+    if (card.href)      { window.location.assign(card.href); return; }
     if (card.anchor)    {
       document.getElementById(card.anchor)?.scrollIntoView({ behavior: 'smooth' });
     }

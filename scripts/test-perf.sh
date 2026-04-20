@@ -11,7 +11,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(dirname "$SCRIPT_DIR")"
 source "$SCRIPT_DIR/test-utils.sh"
-JMETER_DIR="$REPO_ROOT/tests/jmeter"
+JMETER_DIR="$REPO_ROOT/qa/jmeter"
 RESULTS_DIR="$JMETER_DIR/results"
 
 PLAN="${1:-smoke}"

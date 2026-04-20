@@ -12,7 +12,7 @@ test_command="dotnet test Unit Tests"
 echo "🧪 Running Unit Tests..."
 
 # Capture test output
-test_output=$(dotnet test "$REPO_ROOT/tests/Fluxion.UnitTests/Fluxion.UnitTests.csproj" \
+test_output=$(dotnet test "$REPO_ROOT/BackEnd/tests/Fluxion.UnitTests/Fluxion.UnitTests.csproj" \
   --configuration Release \
   --logger "console;verbosity=normal" \
   --logger "trx;LogFileName=unit-tests.trx" \

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -13,9 +13,10 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="FluentAssertions" Version="6.12.2" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.13" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.13" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.2" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="Moq" Version="4.20.72" />
     <PackageReference Include="xunit" Version="2.9.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
   </ItemGroup>
@@ -25,7 +26,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../BackEnd/src/Fluxion.API/Fluxion.API.csproj" />
+    <ProjectReference Include="../../src/Fluxion.Domain/Fluxion.Domain.csproj" />
+    <ProjectReference Include="../../src/Fluxion.Application/Fluxion.Application.csproj" />
+    <ProjectReference Include="../../src/Fluxion.Infrastructure/Fluxion.Infrastructure.csproj" />
+    <ProjectReference Include="../../src/Fluxion.Persistence/Fluxion.Persistence.csproj" />
+    <ProjectReference Include="../../src/Fluxion.API/Fluxion.API.csproj" />
   </ItemGroup>
 
 </Project>

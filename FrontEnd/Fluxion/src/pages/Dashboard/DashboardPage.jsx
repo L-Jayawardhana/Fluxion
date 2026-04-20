@@ -30,12 +30,6 @@ function AnimVal({ val, suffix = '' }) {
 }
 
 /* ── Helpers ──────────────────────────────────────────────── */
-function greetingText() {
-  const h = new Date().getHours();
-  if (h < 12) return 'Good morning';
-  if (h < 17) return 'Good afternoon';
-  return 'Good evening';
-}
 
 const fmtDate = (d) => {
   if (!d) return '—';
@@ -541,8 +535,6 @@ export default function DashboardPage() {
   const mounted = useRef(false);
 
   const currentOrgId = user?.orgId ?? getTokenOrgIdFallback();
-  const rawName = user?.email?.split('@')[0] || 'User';
-  const userName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
 
 
   /* ── Fetch data (non-blocking — page renders instantly) ── */
@@ -674,7 +666,7 @@ export default function DashboardPage() {
     // sort by count
     const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
     const top3 = sorted.slice(0, 3);
-    const other = sorted.slice(3).reduce((acc, [_, c]) => acc + c, 0);
+    const other = sorted.slice(3).reduce((acc, item) => acc + item[1], 0);
     
     const colors = ['var(--db-blue)', 'var(--db-green)', 'var(--db-rust)', 'var(--db-amber)'];
     let finalData = top3.map(([name, count], i) => ({ name, count, color: colors[i] }));
@@ -811,20 +803,7 @@ export default function DashboardPage() {
        return { icon, name: a.assetName || `Asset #${a.assetId}`, days, cls };
     });
   }, [dashboardData.assets]);
-  
   /* ── Dynamic Activity Data ── */
-  const activityDataRaw = useMemo(() => {
-     if(dashboardData.tickets.length === 0) return [];
-     return dashboardData.tickets.slice(0,4).map((t, i) => {
-       const isClosed = t.status >= 3;
-       return {
-         icon: isClosed ? '✅' : '🎫',
-         bg: isClosed ? 'rgba(45,148,86,.15)' : 'rgba(200,75,47,.15)',
-         text: <>Ticket <strong>#{t.ticketId}</strong> {isClosed ? 'closed' : 'opened'} ({t.title})</>,
-         time: fmtDate(t.createdAt)
-       }
-     });
-  }, [dashboardData.tickets]);
 
 
   if (isEmployee) {

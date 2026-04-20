@@ -128,10 +128,9 @@ public class AssetController : ControllerBase
         {
             return BadRequest(new { message = ex.Message });
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            // Debugging ONLY: Return the full exception stack trace to find the 500 error
-            return StatusCode(500, new { message = $"Internal Error: {ex.Message} {ex.InnerException?.Message}" });
+            return StatusCode(500, new { message = "An error occurred while processing your request." });
         }
     }
 
@@ -156,9 +155,9 @@ public class AssetController : ControllerBase
         {
             return NotFound(new { message = ex.Message });
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            return StatusCode(500, new { message = $"Internal Error: {ex.Message} {ex.InnerException?.Message}" });
+            return StatusCode(500, new { message = "An error occurred while processing your request." });
         }
     }
 
@@ -183,9 +182,9 @@ public class AssetController : ControllerBase
         {
             return NotFound(new { message = ex.Message });
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            return StatusCode(500, new { message = $"Internal Error: {ex.Message} {ex.InnerException?.Message}" });
+            return StatusCode(500, new { message = "An error occurred while processing your request." });
         }
     }
 

@@ -12,7 +12,7 @@ namespace Fluxion.API.Controllers;
 
 [ApiController]
 [Route("api/maintenance")]
-[Authorize(Roles = "owner,admin,systemadmin,manager")]
+[Authorize]
 public class MaintenanceController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -134,6 +134,7 @@ public class MaintenanceController : ControllerBase
     }
 
     [HttpGet("financial-insights")]
+    [Authorize(Roles = "owner,admin,systemadmin,manager")]
     public async Task<IActionResult> GetFinancialInsights([FromQuery] int? orgId, [FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate, CancellationToken ct)
     {
         try {
