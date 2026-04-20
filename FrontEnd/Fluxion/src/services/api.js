@@ -51,6 +51,34 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       clearStoredAuth();
+
+      // Only redirect if not already on a public/auth page
+      const publicPaths = ['/login', '/register', '/accept-invite', '/'];
+      const isPublicPage = publicPaths.some((p) => window.location.pathname === p || window.location.pathname.startsWith(p + '?'));
+      if (!isPublicPage) {
+        // Show a brief toast/alert before navigating
+        const toast = document.createElement('div');
+        toast.textContent = 'Your session has expired. Please sign in again.';
+        Object.assign(toast.style, {
+          position: 'fixed',
+          bottom: '24px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          background: '#1a1a2e',
+          color: '#fff',
+          padding: '12px 24px',
+          borderRadius: '8px',
+          fontSize: '14px',
+          zIndex: '99999',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
+          border: '1px solid rgba(255,255,255,0.1)',
+        });
+        document.body.appendChild(toast);
+        setTimeout(() => {
+          toast.remove();
+          window.location.href = '/login';
+        }, 2500);
+      }
     }
     return Promise.reject(error);
   }

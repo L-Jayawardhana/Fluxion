@@ -7,22 +7,34 @@ export default function AcceptInvitePage() {
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
   const navigate = useNavigate();
-  
+
   const [status, setStatus] = useState(token ? 'processing' : 'error'); // processing, error, success
+  const [errorMessage, setErrorMessage] = useState('');
   const processed = useRef(false);
 
   useEffect(() => {
-    if (!token) return;
+    if (!token) {
+      setErrorMessage('No invitation token was found in the link. Please check the URL and try again.');
+      return;
+    }
 
     if (processed.current) return;
     processed.current = true;
-    
+
     api.post('/User/accept-invite', { token })
       .then(() => {
         setStatus('success');
       })
       .catch((err) => {
         console.error(err);
+        // Extract a meaningful message from the backend response
+        const serverMessage =
+          err.response?.data?.message ||
+          err.response?.data?.title ||
+          (typeof err.response?.data === 'string' ? err.response.data : null) ||
+          err.message ||
+          null;
+        setErrorMessage(serverMessage || 'We couldn\'t process this invitation. It may have already been used, or the link might be invalid.');
         setStatus('error');
       });
   }, [token]);
@@ -52,8 +64,8 @@ export default function AcceptInvitePage() {
         {status === 'error' && (
           <div className="error-state">
             <div className="icon-error">!</div>
-            <h2>Invalid or Expired Invitation</h2>
-            <p>We couldn't process this invitation. It may have already been used, or the link might be invalid.</p>
+            <h2>Invitation Could Not Be Processed</h2>
+            <p>{errorMessage || 'We couldn\'t process this invitation. It may have already been used, or the link might be invalid.'}</p>
             <button className="secondary-btn" onClick={() => navigate('/login')}>
               Go to Login
             </button>
