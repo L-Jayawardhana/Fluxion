@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import { getStoredToken, clearStoredAuth } from '../utils/authStorage';
 
 const AuthContext = createContext(null);
 
@@ -18,19 +19,6 @@ function isTokenValid(token) {
     if (!payload) return false;
     if (payload.exp && Date.now() >= payload.exp * 1000) return false;
     return true;
-}
-
-/** Read token from whichever storage has it */
-function getStoredToken() {
-    return localStorage.getItem('token') || sessionStorage.getItem('token');
-}
-
-/** Clear token from both storages */
-function clearStoredAuth() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('expiresAt');
-    sessionStorage.removeItem('token');
-    sessionStorage.removeItem('expiresAt');
 }
 
 /** Build a user object from a valid token, or return null */

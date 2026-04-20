@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getStoredToken, clearStoredAuth } from '../utils/authStorage';
 
 // VITE_API_URL is injected at build time via .env files or Vercel environment variables
 const API_BASE_URL = import.meta.env.VITE_API_URL;
@@ -14,18 +15,6 @@ const api = axios.create({
   },
 });
 
-// Read token from whichever storage has it
-function getStoredToken() {
-  return localStorage.getItem('token') || sessionStorage.getItem('token');
-}
-
-// Clear token from both storages
-function clearStoredAuth() {
-  localStorage.removeItem('token');
-  localStorage.removeItem('expiresAt');
-  sessionStorage.removeItem('token');
-  sessionStorage.removeItem('expiresAt');
-}
 
 // Attach JWT token to every request if it exists and is not expired
 api.interceptors.request.use((config) => {
