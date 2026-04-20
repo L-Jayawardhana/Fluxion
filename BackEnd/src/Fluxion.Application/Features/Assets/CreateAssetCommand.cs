@@ -12,5 +12,6 @@ public record CreateAssetCommand(
     DateTime? PurchaseDate,
     DateTime? WarrantyEndDate,
     decimal? Cost,
+    bool RequiresRegularService,
     int CreatedBy
 ) : IRequest<AssetDto>;

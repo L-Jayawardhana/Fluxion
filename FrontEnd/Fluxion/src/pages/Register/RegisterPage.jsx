@@ -2,6 +2,8 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { authService, GOOGLE_CLIENT_ID } from '../../services/authService';
+import { updatePlan } from '../../services/subscriptionService';
+import PaymentModal from '../../components/PaymentModal/PaymentModal';
 import './RegisterPage.css';
 
 export default function RegisterPage() {
@@ -13,6 +15,7 @@ export default function RegisterPage() {
     const [plan, setPlan] = useState('free');
     const [billing, setBilling] = useState('monthly');
     const [termsAccepted, setTermsAccepted] = useState(false);
+    const [showPayment, setShowPayment] = useState(false);
     const [loading, setLoading] = useState(false);
     const [registeredUser, setRegisteredUser] = useState(null); // { userId, token }
     const [orgTimezone, setOrgTimezone] = useState(Intl.DateTimeFormat().resolvedOptions().timeZone || '');
@@ -35,6 +38,7 @@ export default function RegisterPage() {
     const ringRef = useRef(null);
     const fileInputRef = useRef(null);
     const googleBtnRef = useRef(null);
+    const gsiInitializedRef = useRef(false);
 
     // Custom cursor
     useEffect(() => {
@@ -123,10 +127,14 @@ export default function RegisterPage() {
 
     useEffect(() => {
         if (window.google && step === 1 && googleBtnRef.current) {
-            window.google.accounts.id.initialize({
-                client_id: GOOGLE_CLIENT_ID,
-                callback: handleGoogleSignUp,
-            });
+            if (!gsiInitializedRef.current) {
+                window.google.accounts.id.initialize({
+                    client_id: GOOGLE_CLIENT_ID,
+                    callback: handleGoogleSignUp,
+                });
+                gsiInitializedRef.current = true;
+            }
+            googleBtnRef.current.innerHTML = '';
             window.google.accounts.id.renderButton(
                 googleBtnRef.current,
                 {
@@ -303,6 +311,15 @@ export default function RegisterPage() {
         if (!termsAccepted) { setApiError('Please accept the Terms of Service to continue.'); return; }
         setApiError('');
 
+        if (plan !== 'free') {
+            setShowPayment(true);
+            return;
+        }
+
+        await finalizeRegistration();
+    };
+
+    const finalizeRegistration = async () => {
         // Send welcome email (fire-and-forget — don't block UI)
         try {
             const planLabel = plan.charAt(0).toUpperCase() + plan.slice(1) + (billing === 'annual' ? ' (Annual)' : '');
@@ -316,6 +333,16 @@ export default function RegisterPage() {
         } catch (e) {
             // welcome email is non-critical, ignore errors
             void e;
+        }
+
+        // Apply plan to organization
+        if (createdOrg?.orgId) {
+            try {
+                const planLabel = plan.charAt(0).toUpperCase() + plan.slice(1);
+                await updatePlan(createdOrg.orgId, planLabel);
+            } catch (err) {
+                 console.error("Could not link plan to org", err);
+            }
         }
 
         setStep(4);
@@ -660,13 +687,17 @@ export default function RegisterPage() {
                                 </div>
                                 <div className="plan-card-feature">25 users</div>
                                 <div className="plan-card-feature">500 assets</div>
+                                <div className="plan-card-feature">Full dashboard</div>
                                 <div className="plan-card-feature">QR + PDF export</div>
                             </div>
                             <div className={`plan-card ${plan === 'enterprise' ? 'selected' : ''}`} onClick={() => setPlan('enterprise')}>
                                 <div className="plan-card-name">Enterprise</div>
-                                <div className="plan-card-price">Custom</div>
+                                <div className="plan-card-price">
+                                    {billing === 'annual' ? '$159' : '$199'} <span>{billing === 'annual' ? '/ mo, billed annually' : '/ mo'}</span>
+                                </div>
                                 <div className="plan-card-feature">Unlimited users</div>
                                 <div className="plan-card-feature">Unlimited assets</div>
+                                <div className="plan-card-feature">Full dashboard</div>
                                 <div className="plan-card-feature">SLA reports</div>
                             </div>
                         </div>
@@ -691,6 +722,14 @@ export default function RegisterPage() {
                             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2"><path d="M13 8H3M7 4L3 8l4 4" /></svg>
                             Back
                         </button>
+                        
+                        <PaymentModal 
+                            isOpen={showPayment}
+                            onClose={() => setShowPayment(false)}
+                            onSuccess={() => { setShowPayment(false); finalizeRegistration(); }}
+                            planName={plan.charAt(0).toUpperCase() + plan.slice(1)}
+                            price={plan === 'pro' ? (billing === 'annual' ? '$23 / mo' : '$29 / mo') : (billing === 'annual' ? '$159 / mo' : '$199 / mo')}
+                        />
                     </div>
                 )}
 

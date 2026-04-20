@@ -24,6 +24,9 @@ public class MaintenanceLog
     [Column(TypeName = "decimal(10,2)")]
     public decimal? RepairCost { get; set; }
 
+    [Column(TypeName = "decimal(10,2)")]
+    public decimal? ExternalPartsCost { get; set; }
+
     public string? RepairNotes { get; set; }
 
     public bool? IsVisibleToEmployee { get; set; }

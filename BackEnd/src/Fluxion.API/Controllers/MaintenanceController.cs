@@ -12,7 +12,7 @@ namespace Fluxion.API.Controllers;
 
 [ApiController]
 [Route("api/maintenance")]
-[Authorize(Roles = "owner,technician,user,admin,systemadmin")]
+[Authorize]
 public class MaintenanceController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -131,6 +131,31 @@ public class MaintenanceController : ControllerBase
     private static string BuildValidationMessage(ValidationException ex)
     {
         return string.Join("; ", ex.Errors.Select(e => e.ErrorMessage).Distinct());
+    }
+
+    [HttpGet("financial-insights")]
+    [Authorize(Roles = "owner,admin,systemadmin,manager")]
+    public async Task<IActionResult> GetFinancialInsights([FromQuery] int? orgId, [FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate, CancellationToken ct)
+    {
+        try {
+            var query = new Fluxion.Application.Features.Financial.GetFinancialInsightsQuery {
+                OrgId = orgId,
+                StartDate = startDate,
+                EndDate = endDate
+            };
+            var result = await _mediator.Send(query, ct);
+            if (!result.IsSuccess) return BadRequest(result);
+            return Ok(result);
+        }
+        catch (Fluxion.Application.Exceptions.ForbiddenException ex) {
+            return StatusCode(StatusCodes.Status403Forbidden, Fluxion.Application.DTOs.Common.Result<Fluxion.Application.Features.Financial.FinancialInsightsDto>.Failure(ex.Message));
+        }
+        catch (UnauthorizedAccessException ex) {
+            return Unauthorized(Fluxion.Application.DTOs.Common.Result<Fluxion.Application.Features.Financial.FinancialInsightsDto>.Failure(ex.Message));
+        }
+        catch (Exception ex) {
+            return StatusCode(StatusCodes.Status500InternalServerError, Fluxion.Application.DTOs.Common.Result<Fluxion.Application.Features.Financial.FinancialInsightsDto>.Failure(ex.Message));
+        }
     }
 }
 

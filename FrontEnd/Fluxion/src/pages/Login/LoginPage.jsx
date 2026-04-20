@@ -28,6 +28,7 @@ export default function LoginPage() {
     const dotRef = useRef(null);
     const ringRef = useRef(null);
     const googleBtnRef = useRef(null);
+    const gsiInitializedRef = useRef(false);
 
     useEffect(() => {
         const dot = dotRef.current;
@@ -106,10 +107,14 @@ export default function LoginPage() {
 
     useEffect(() => {
         if (window.google && googleBtnRef.current) {
-            window.google.accounts.id.initialize({
-                client_id: GOOGLE_CLIENT_ID,
-                callback: handleGoogleLogin,
-            });
+            if (!gsiInitializedRef.current) {
+                window.google.accounts.id.initialize({
+                    client_id: GOOGLE_CLIENT_ID,
+                    callback: handleGoogleLogin,
+                });
+                gsiInitializedRef.current = true;
+            }
+            googleBtnRef.current.innerHTML = '';
             window.google.accounts.id.renderButton(
                 googleBtnRef.current,
                 {

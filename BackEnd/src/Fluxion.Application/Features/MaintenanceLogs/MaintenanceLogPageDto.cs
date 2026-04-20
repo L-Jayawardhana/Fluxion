@@ -34,6 +34,10 @@ public class MaintenanceLogItemDto
     public string TechnicianName { get; set; } = string.Empty;
     public string? RepairDescription { get; set; }
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public decimal? LaborCost { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public decimal? PartsCost { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public decimal? Cost { get; set; }
     public string? ConditionAfterRepair { get; set; }
     public DateTime LoggedAt { get; set; }
@@ -55,6 +59,8 @@ public class MaintenanceCommentDto
 public class MaintenanceLogSummaryDto
 {
     public int TotalMaintenanceCount { get; set; }
+    public decimal LaborCost { get; set; }
+    public decimal PartsCost { get; set; }
     public decimal TotalCost { get; set; }
     public List<MaintenanceTechnicianCostDto> CostPerTechnician { get; set; } = new();
     public double AverageResolutionTimeHours { get; set; }
@@ -63,6 +69,8 @@ public class MaintenanceLogSummaryDto
 public class MaintenanceTechnicianCostDto
 {
     public string TechnicianName { get; set; } = string.Empty;
+    public decimal LaborCost { get; set; }
+    public decimal PartsCost { get; set; }
     public decimal TotalCost { get; set; }
     public int EventsCount { get; set; }
 }

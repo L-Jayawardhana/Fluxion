@@ -54,7 +54,11 @@ public class GetMaintenanceLogPageQueryHandler : IRequestHandler<GetMaintenanceL
                 .Select(t => t.TicketId)
                 .ToListAsync(cancellationToken);
 
-            if (assignedTicketIds.Count == 0)
+            // Also allow access if the technician has logged repairs for this asset
+            var hasRepairLogs = await _db.MaintenanceLogs
+                .AnyAsync(l => l.AssetId == request.AssetId && l.TechnicianId == userId.Value, cancellationToken);
+
+            if (assignedTicketIds.Count == 0 && !hasRepairLogs)
                 throw new ForbiddenException("Access denied");
         }
         else if (!isOwner)
@@ -88,28 +92,31 @@ public class GetMaintenanceLogPageQueryHandler : IRequestHandler<GetMaintenanceL
             DepartmentName = isOwner ? asset.Department?.DepartmentName : null
         };
 
-        var logsQuery = _db.MaintenanceLogs
-            .Where(l => l.AssetId == request.AssetId && l.IsVisibleToEmployee == null);
+        // Primary source is Tickets to ensure all maintenance history is shown,
+        // even if the technician resolved it without an explicit 'Repair Log' form submission.
+        var ticketsQuery = _db.MaintenanceTickets
+            .Where(t => t.AssetId == request.AssetId);
 
-        if (isTechnician)
-            logsQuery = logsQuery.Where(l => l.TechnicianId == userId.Value);
+        var totalCount = await ticketsQuery.CountAsync(cancellationToken);
 
-        var totalCount = await logsQuery.CountAsync(cancellationToken);
-
-        var pagedLogsRaw = await (from l in logsQuery
-                                  join t in _db.MaintenanceTickets on l.TicketId equals t.TicketId
-                                  join u in _db.Users on l.TechnicianId equals u.UserId into uGroup
+        var pagedLogsRaw = await (from t in ticketsQuery
+                                  join l in _db.MaintenanceLogs.Where(x => x.IsVisibleToEmployee == null)
+                                      on t.TicketId equals l.TicketId into lGroup
+                                  from l in lGroup.DefaultIfEmpty()
+                                  join u in _db.Users on (l != null ? l.TechnicianId : t.AssignedTo) equals u.UserId into uGroup
                                   from u in uGroup.DefaultIfEmpty()
-                                  orderby l.RepairDate descending
+                                  orderby (l != null ? l.RepairDate : t.CreatedAt) descending
                                   select new
                                   {
-                                      LogId = l.LogId,
-                                      TicketId = l.TicketId,
+                                      LogId = l != null ? l.LogId : t.TicketId,
+                                      TicketId = t.TicketId,
                                       TicketTitle = t.Title,
                                       TechnicianName = u != null ? u.FullName : "Technician",
-                                      RepairDescription = l.RepairNotes,
-                                      CostRaw = l.RepairCost,
-                                      LoggedAt = l.RepairDate,
+                                      RepairDescription = l != null ? l.RepairNotes : t.IssueDescription,
+                                      LaborCostRaw = l != null ? l.RepairCost : (decimal?)null,
+                                      PartsCostRaw = l != null ? l.ExternalPartsCost : (decimal?)null,
+                                      CostRaw = l != null ? (l.RepairCost ?? 0m) + (l.ExternalPartsCost ?? 0m) : (decimal?)null,
+                                      LoggedAt = l != null ? l.RepairDate : t.CreatedAt,
                                       ResolvedAt = t.ClosedAt
                                   })
             .Skip((request.PageNumber - 1) * request.PageSize)
@@ -123,6 +130,8 @@ public class GetMaintenanceLogPageQueryHandler : IRequestHandler<GetMaintenanceL
             TicketTitle = l.TicketTitle,
             TechnicianName = l.TechnicianName,
             RepairDescription = l.RepairDescription,
+            LaborCost = isEmployee ? null : l.LaborCostRaw,
+            PartsCost = isEmployee ? null : l.PartsCostRaw,
             Cost = isEmployee ? null : l.CostRaw,
             ConditionAfterRepair = condition,
             LoggedAt = l.LoggedAt,
@@ -133,9 +142,6 @@ public class GetMaintenanceLogPageQueryHandler : IRequestHandler<GetMaintenanceL
 
         var commentsQuery = _db.MaintenanceLogs
             .Where(l => l.AssetId == request.AssetId && l.IsVisibleToEmployee.HasValue);
-
-        if (isTechnician)
-            commentsQuery = commentsQuery.Where(l => assignedTicketIds.Contains(l.TicketId));
 
         if (isEmployee)
             commentsQuery = commentsQuery.Where(l => l.IsVisibleToEmployee == true);
@@ -177,15 +183,21 @@ public class GetMaintenanceLogPageQueryHandler : IRequestHandler<GetMaintenanceL
                 .Where(l => l.AssetId == request.AssetId && l.IsVisibleToEmployee == null);
 
             var totalMaintenanceCount = await summaryQuery.CountAsync(cancellationToken);
-            var totalCost = await summaryQuery
+            var laborCost = await summaryQuery
                 .SumAsync(l => l.RepairCost ?? 0m, cancellationToken);
+            var partsCost = await summaryQuery
+                .SumAsync(l => l.ExternalPartsCost ?? 0m, cancellationToken);
+            var totalCost = await summaryQuery
+                .SumAsync(l => (l.RepairCost ?? 0m) + (l.ExternalPartsCost ?? 0m), cancellationToken);
 
             var costPerTechRaw = await summaryQuery
                 .GroupBy(l => l.TechnicianId)
                 .Select(g => new
                 {
                     TechnicianId = g.Key,
-                    TotalCost = g.Sum(x => x.RepairCost ?? 0m),
+                    LaborCost = g.Sum(x => x.RepairCost ?? 0m),
+                    PartsCost = g.Sum(x => x.ExternalPartsCost ?? 0m),
+                    TotalCost = g.Sum(x => (x.RepairCost ?? 0m) + (x.ExternalPartsCost ?? 0m)),
                     EventsCount = g.Count()
                 })
                 .ToListAsync(cancellationToken);
@@ -205,6 +217,8 @@ public class GetMaintenanceLogPageQueryHandler : IRequestHandler<GetMaintenanceL
                     TechnicianName = c.TechnicianId.HasValue && techNameMap.TryGetValue(c.TechnicianId.Value, out var name)
                         ? name
                         : "Technician",
+                    LaborCost = c.LaborCost,
+                    PartsCost = c.PartsCost,
                     TotalCost = c.TotalCost,
                     EventsCount = c.EventsCount
                 })
@@ -223,6 +237,8 @@ public class GetMaintenanceLogPageQueryHandler : IRequestHandler<GetMaintenanceL
             summary = new MaintenanceLogSummaryDto
             {
                 TotalMaintenanceCount = totalMaintenanceCount,
+                LaborCost = laborCost,
+                PartsCost = partsCost,
                 TotalCost = totalCost,
                 CostPerTechnician = costPerTech,
                 AverageResolutionTimeHours = Math.Round(avgResolutionHours, 1)

@@ -58,7 +58,9 @@ public class GetMaintenanceCostReportQueryHandler
             {
                 AssetId = g.Key,
                 MaintenanceCount = g.Count(),
-                TotalCost = g.Sum(x => x.RepairCost ?? 0)
+                LaborCost = g.Sum(x => x.RepairCost ?? 0),
+                PartsCost = g.Sum(x => x.ExternalPartsCost ?? 0),
+                TotalCost = g.Sum(x => (x.RepairCost ?? 0) + (x.ExternalPartsCost ?? 0))
             });
 
         var totalItems = await aggregatedDataQuery.CountAsync(cancellationToken);
@@ -76,6 +78,8 @@ public class GetMaintenanceCostReportQueryHandler
                     AssetName = a.AssetName,
                     AssetTag = a.SerialNumber ?? a.AssetType ?? "N/A",
                     MaintenanceCount = g.MaintenanceCount,
+                    LaborCost = g.LaborCost,
+                    PartsCost = g.PartsCost,
                     TotalCost = g.TotalCost
                 })
             .ToListAsync(cancellationToken);
@@ -89,7 +93,9 @@ public class GetMaintenanceCostReportQueryHandler
                 {
                     LogId = x.LogId,
                     RepairDate = x.RepairDate,
-                    Cost = x.RepairCost ?? 0,
+                    LaborCost = x.RepairCost ?? 0,
+                    PartsCost = x.ExternalPartsCost ?? 0,
+                    Cost = (x.RepairCost ?? 0) + (x.ExternalPartsCost ?? 0),
                     Remarks = x.RepairNotes
                 })
                 .ToListAsync(cancellationToken);

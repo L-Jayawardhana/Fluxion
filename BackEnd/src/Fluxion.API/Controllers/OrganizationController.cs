@@ -1,11 +1,13 @@
 using Fluxion.Application.Features.Organizations;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Fluxion.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class OrganizationController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -17,7 +19,31 @@ public class OrganizationController : ControllerBase
         _env = env;
     }
 
+    [HttpGet("{id}/plan")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "owner,systemAdmin,admin,manager")]
+    public async Task<IActionResult> GetPlan(int id)
+    {
+        var plan = await _mediator.Send(new GetOrganizationPlanQuery(id));
+        return Ok(new { planName = plan });
+    }
+
+    [HttpPut("{id}/plan")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "owner,systemAdmin,admin")]
+    public async Task<IActionResult> UpdatePlan(int id, [FromBody] UpdatePlanDto dto)
+    {
+        try
+        {
+            await _mediator.Send(new UpdateOrganizationPlanCommand(id, dto.PlanName));
+            return Ok(new { message = "Plan updated successfully." });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
     [HttpGet]
+    [Authorize(Roles = "owner,systemAdmin,admin,manager")]
     public async Task<IActionResult> GetAll()
     {
         var result = await _mediator.Send(new GetAllOrganizationsQuery());
@@ -25,6 +51,7 @@ public class OrganizationController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "owner,systemAdmin")]
     public async Task<IActionResult> Create([FromBody] CreateOrganizationCommand command)
     {
         try
@@ -39,6 +66,7 @@ public class OrganizationController : ControllerBase
     }
 
     [HttpPost("{id}/logo")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "owner,systemAdmin,admin")]
     public async Task<IActionResult> UploadLogo(int id, IFormFile file)
     {
         if (file is null || file.Length == 0)
@@ -72,6 +100,7 @@ public class OrganizationController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "owner,systemAdmin,admin")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateOrganizationCommand command)
     {
         if (id != command.OrgId) return BadRequest("ID mismatch");
@@ -80,6 +109,7 @@ public class OrganizationController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "owner,systemAdmin,admin")]
     public async Task<IActionResult> Delete(int id)
     {
         await _mediator.Send(new DeleteOrganizationCommand(id));
@@ -87,6 +117,7 @@ public class OrganizationController : ControllerBase
     }
 
     [HttpPost("{id}/logo-base64")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "owner,systemAdmin,admin")]
     public async Task<IActionResult> UploadLogoBase64(int id, [FromBody] UploadLogoBase64Dto dto, [FromServices] Fluxion.Application.Interfaces.IImageService imageService)
     {
         if (string.IsNullOrEmpty(dto.Base64))
@@ -125,4 +156,9 @@ public class UploadLogoBase64Dto
 {
     public string? Name { get; set; }
     public string Base64 { get; set; } = string.Empty;
+}
+
+public class UpdatePlanDto
+{
+    public string PlanName { get; set; } = string.Empty;
 }

@@ -8,7 +8,7 @@ function SkeletonRows({ count = 5 }) {
     <>
       {[...Array(count)].map((_, i) => (
         <tr key={i}>
-          {[...Array(4)].map((__, j) => (
+          {[...Array(5)].map((__, j) => (
             <td key={j} style={{ padding: '14px 12px' }}>
               <div className="mc-skeleton" style={{ height: 14, width: j === 0 ? '80%' : '60%' }} />
             </td>
@@ -32,6 +32,10 @@ const fmtDate = (v) => {
 function AssetCostRow({ item }) {
   const [expanded, setExpanded] = useState(false);
 
+  const normalizedLabor = Number(item?.laborCost ?? (item?.partsCost == null ? (item?.totalCost ?? 0) : 0));
+  const normalizedParts = Number(item?.partsCost ?? 0);
+  const normalizedTotal = Number(item?.totalCost ?? (normalizedLabor + normalizedParts));
+
   return (
     <>
       <tr onClick={() => setExpanded(!expanded)} style={{ cursor: 'pointer' }}>
@@ -47,30 +51,47 @@ function AssetCostRow({ item }) {
           </div>
         </td>
         <td data-label="Total Maintenance Events">{item.maintenanceCount}</td>
+        <td data-label="Labour Cost" className="mc-cost-cell">
+          {fmtCurrency(normalizedLabor)}
+        </td>
+        <td data-label="Parts Cost" className="mc-cost-cell">
+          {fmtCurrency(normalizedParts)}
+        </td>
         <td data-label="Total Cost" className="mc-cost-cell">
-          {fmtCurrency(item.totalCost)}
+          {fmtCurrency(normalizedTotal)}
         </td>
       </tr>
       {expanded && (
         <tr className="mc-details-row">
-          <td colSpan={3} style={{ padding: 0, borderBottom: '1px solid var(--mc-border)' }}>
+          <td colSpan={5} style={{ padding: 0, borderBottom: '1px solid var(--mc-border)' }}>
             <div className="mc-details-container">
               {item.details && item.details.length > 0 ? (
                 <table className="mc-details-table">
                   <thead>
                     <tr>
                       <th>Repair Date</th>
-                      <th>Repair Cost</th>
+                      <th>Labour Cost</th>
+                      <th>Parts Cost</th>
+                      <th>Total Cost</th>
                       <th>Remarks</th>
                     </tr>
                   </thead>
                   <tbody>
                     {item.details.map((d) => (
+                      (() => {
+                        const labor = Number(d?.laborCost ?? (d?.partsCost == null ? (d?.cost ?? 0) : 0));
+                        const parts = Number(d?.partsCost ?? 0);
+                        const total = Number(d?.cost ?? (labor + parts));
+                        return (
                       <tr key={d.logId}>
                         <td>{fmtDate(d.repairDate)}</td>
-                        <td className="mc-cost-cell" style={{ fontSize: '12px' }}>{fmtCurrency(d.cost)}</td>
+                        <td className="mc-cost-cell" style={{ fontSize: '12px' }}>{fmtCurrency(labor)}</td>
+                        <td className="mc-cost-cell" style={{ fontSize: '12px' }}>{fmtCurrency(parts)}</td>
+                        <td className="mc-cost-cell" style={{ fontSize: '12px' }}>{fmtCurrency(total)}</td>
                         <td style={{ color: 'var(--mc-muted)' }}>{d.remarks || '—'}</td>
                       </tr>
+                        );
+                      })()
                     ))}
                   </tbody>
                 </table>
@@ -187,6 +208,8 @@ export default function MaintenanceCostPage() {
                 <tr>
                   <th>Asset</th>
                   <th>Total Maintenance Events</th>
+                  <th>Labour Cost</th>
+                  <th>Parts Cost</th>
                   <th>Total Cost</th>
                 </tr>
               </thead>

@@ -26,7 +26,7 @@ const roleBadgeClass = (role) => {
 
 export default function CommentsPanel({ comments, role, loading, ticketId }) {
   const navigate = useNavigate();
-  const isOwner = role === 'owner' || role === 'admin' || role === 'systemadmin';
+  const isOwner = role === 'owner' || role === 'admin' || role === 'systemadmin' || role === 'manager';
   const isTechnician = role === 'technician';
   const isEmployee = role === 'user' || role === 'employee';
 

@@ -53,3 +53,13 @@ export const getMaintenanceCostReport = async ({ startDate, endDate, pageNumber,
     throw toStructuredError(error);
   }
 };
+
+export const getFinancialInsightsReport = async ({ orgId, startDate, endDate } = {}) => {
+  try {
+    const params = cleanParams({ orgId, startDate, endDate });
+    const res = await api.get('/maintenance/financial-insights', { params });
+    return res.data;
+  } catch (error) {
+    throw toStructuredError(error);
+  }
+};

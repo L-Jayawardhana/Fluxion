@@ -9,10 +9,12 @@ namespace Fluxion.Application.Features.MaintenanceTickets;
 public class CreateMaintenanceTicketCommandHandler : IRequestHandler<CreateMaintenanceTicketCommand, CreateMaintenanceTicketResult>
 {
     private readonly IApplicationDbContext _context;
+    private readonly INotificationService _notificationService;
 
-    public CreateMaintenanceTicketCommandHandler(IApplicationDbContext context)
+    public CreateMaintenanceTicketCommandHandler(IApplicationDbContext context, INotificationService notificationService)
     {
         _context = context;
+        _notificationService = notificationService;
     }
 
     public async Task<CreateMaintenanceTicketResult> Handle(CreateMaintenanceTicketCommand request, CancellationToken cancellationToken)
@@ -55,6 +57,27 @@ public class CreateMaintenanceTicketCommandHandler : IRequestHandler<CreateMaint
         asset.Status = AssetStatus.under_maintenance;
 
         await _context.SaveChangesAsync(cancellationToken);
+
+        // Notify Organization Owners and Admins/Managers
+        var ownerIds = await _context.Users
+            .Where(u => u.OrgId == request.OrgId && 
+                   (u.Role == UserRole.owner || u.Role == UserRole.admin || u.Role == UserRole.manager))
+            .Select(u => u.UserId)
+            .ToListAsync(cancellationToken);
+
+        foreach (var ownerId in ownerIds)
+        {
+            await _notificationService.CreateNotificationAsync(
+                orgId: request.OrgId,
+                userId: ownerId,
+                type: "TICKET_CREATED",
+                title: "New Maintenance Ticket",
+                message: $"A new maintenance ticket '{ticket.Title}' was manually raised for asset '{asset.AssetName}'.",
+                ticketId: ticket.TicketId,
+                assetId: asset.AssetId,
+                ct: cancellationToken
+            );
+        }
 
         return new CreateMaintenanceTicketResult(ticket.TicketId);
     }
