@@ -71,9 +71,12 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        if (builder.Environment.IsDevelopment())
+        if (builder.Environment.IsDevelopment() || builder.Environment.IsEnvironment("Testing"))
         {
-            // Local development: allow all origins
+            // Local development / integration tests: allow all origins.
+            // "Testing" is the environment set by FluxionWebApplicationFactory
+            // (WebApplicationFactory) so integration tests can boot the host
+            // without requiring AllowedOrigins env vars to be configured.
             policy.AllowAnyOrigin()
                   .AllowAnyMethod()
                   .AllowAnyHeader();
