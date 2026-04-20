@@ -66,7 +66,7 @@ export default function RegisterPage() {
     useEffect(() => {
         if (location.state?.googleData && step === 1) {
             const data = location.state.googleData;
-            localStorage.setItem('token', data.token);
+            // Store token in state only — final login() call happens at registration completion
             setRegisteredUser({ userId: data.userId, token: data.token });
 
             // Pre-fill name from Google
@@ -100,12 +100,12 @@ export default function RegisterPage() {
 
             if (!data.isNewUser) {
                 // User already exists. Log them in and redirect to welcome.
-                login(data.token, { userId: data.userId, fullName: data.fullName, email: data.email, role: data.role });
+                login(data.token, { userId: data.userId, fullName: data.fullName, email: data.email, role: data.role }, false);
                 navigate('/welcome');
                 return;
             }
 
-            localStorage.setItem('token', data.token);
+            // Store token in state only — final login() call happens at registration completion
             setRegisteredUser({ userId: data.userId, token: data.token });
             // Pre-fill name from Google
             const nameParts = data.fullName?.split(' ') || ['', ''];
@@ -240,8 +240,9 @@ export default function RegisterPage() {
             const res = await authService.register(fullName, form.email, form.password);
             const data = res.data;
             setRegisteredUser({ userId: data.userId, token: data.token });
-            // Store token so subsequent API calls (org creation) are authenticated
-            localStorage.setItem('token', data.token);
+            // Temporarily store token via login() with rememberMe=false so subsequent
+            // API calls (org creation) are authenticated but session expires on browser close
+            login(data.token, null, false);
             setStep(2);
             window.scrollTo({ top: 0, behavior: 'smooth' });
         } catch (err) {
@@ -704,7 +705,7 @@ export default function RegisterPage() {
 
                         <div className="terms-wrap">
                             <input type="checkbox" id="terms" checked={termsAccepted} onChange={(e) => setTermsAccepted(e.target.checked)} />
-                            <label htmlFor="terms">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>. I understand that FLUXION will process my organisation's data in accordance with its privacy policy.</label>
+                            <label htmlFor="terms">I agree to the <a href="/terms" target="_blank" rel="noopener noreferrer">Terms of Service</a> and <a href="/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>. I understand that FLUXION will process my organisation's data in accordance with its privacy policy.</label>
                         </div>
 
                         {apiError && (

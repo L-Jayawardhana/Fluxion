@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace Fluxion.IntegrationTests;
 
@@ -31,6 +32,13 @@ public class FluxionWebApplicationFactory : WebApplicationFactory<Program>
         Environment.SetEnvironmentVariable("JwtSettings__Issuer", TestIssuer);
         Environment.SetEnvironmentVariable("JwtSettings__Audience", TestAudience);
         Environment.SetEnvironmentVariable("JwtSettings__ExpiryMinutes", "5");
+
+        // ── Fix 1: CORS ──────────────────────────────────────────────
+        // The "Testing" environment is NOT IsDevelopment(), so Program.cs
+        // falls into the production CORS branch and throws when no origins
+        // are configured. Inject dummy test origins to satisfy the check.
+        Environment.SetEnvironmentVariable("AllowedOrigins__0", "http://localhost:3000");
+        Environment.SetEnvironmentVariable("AllowedOrigins__1", "http://localhost:5173");
 
         builder.UseEnvironment("Testing");
 
@@ -59,6 +67,23 @@ public class FluxionWebApplicationFactory : WebApplicationFactory<Program>
             if (emailDescriptor != null) services.Remove(emailDescriptor);
             services.AddScoped<IEmailService, NoOpEmailService>();
 
+            // ── Fix 2: Remove background hosted services ─────────────────
+            // Background services (MaintenanceTicketGeneratorService,
+            // WarrantyExpiryNotificationService) call Task.Delay with the
+            // stoppingToken. When the test host shuts down, the token is
+            // cancelled, throwing TaskCanceledException which — under the
+            // default StopHost behaviour — crashes the entire host and
+            // fails every test. Remove them from the test DI container so
+            // they never run during integration tests.
+            var hostedServicesToRemove = services
+                .Where(d =>
+                    d.ServiceType == typeof(IHostedService) &&
+                    d.ImplementationType != null &&
+                    (d.ImplementationType.Name == "MaintenanceTicketGeneratorService" ||
+                     d.ImplementationType.Name == "WarrantyExpiryNotificationService"))
+                .ToList();
+            foreach (var d in hostedServicesToRemove) services.Remove(d);
+
             // ── Ensure DB is created ────────────────────────────────────
             var sp = services.BuildServiceProvider();
             using var scope = sp.CreateScope();
@@ -74,6 +99,8 @@ public class FluxionWebApplicationFactory : WebApplicationFactory<Program>
         Environment.SetEnvironmentVariable("JwtSettings__Issuer", null);
         Environment.SetEnvironmentVariable("JwtSettings__Audience", null);
         Environment.SetEnvironmentVariable("JwtSettings__ExpiryMinutes", null);
+        Environment.SetEnvironmentVariable("AllowedOrigins__0", null);
+        Environment.SetEnvironmentVariable("AllowedOrigins__1", null);
         base.Dispose(disposing);
     }
 }
