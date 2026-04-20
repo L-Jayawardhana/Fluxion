@@ -38,26 +38,11 @@ function userFromToken(token) {
     if (!token || !isTokenValid(token)) return null;
     const payload = decodeToken(token);
     if (!payload) return null;
-
-    const role =
-        payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] ||
-        payload.role ||
-        payload.Role ||
-        null;
-
-    const orgIdRaw =
-        payload.OrgId ??
-        payload.orgId ??
-        payload['http://schemas.fluxion/claims/orgId'] ??
-        null;
-
-    const orgId = orgIdRaw === null || orgIdRaw === '' ? null : Number(orgIdRaw);
-
     return {
-        userId: payload.sub || payload.nameid || payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'],
+        userId: payload.sub,
         email: payload.email,
-        role,
-        orgId: Number.isFinite(orgId) ? orgId : null,
+        role: payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'],
+        orgId: payload.OrgId,
     };
 }
 

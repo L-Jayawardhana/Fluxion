@@ -23,7 +23,7 @@ export default function SummaryStatsBar({ summaryStats, loading }) {
     return (
       <div className="ml-summary">
         <div className="ml-summary-cards">
-          {[...Array(6)].map((_, i) => (
+          {[...Array(4)].map((_, i) => (
             <div key={i} className="ml-summary-card">
               <div className="ml-skeleton" style={{ height: 12, width: '50%' }} />
               <div className="ml-skeleton" style={{ height: 24, width: '70%' }} />
@@ -49,14 +49,6 @@ export default function SummaryStatsBar({ summaryStats, loading }) {
           <div className="ml-summary-value">{summaryStats.totalMaintenanceCount}</div>
         </div>
         <div className="ml-summary-card">
-          <div className="ml-summary-label">Labour Cost</div>
-          <div className="ml-summary-value">{formatCurrency(summaryStats.laborCost)}</div>
-        </div>
-        <div className="ml-summary-card">
-          <div className="ml-summary-label">Parts Cost</div>
-          <div className="ml-summary-value">{formatCurrency(summaryStats.partsCost)}</div>
-        </div>
-        <div className="ml-summary-card">
           <div className="ml-summary-label">Total Cost</div>
           <div className="ml-summary-value">{formatCurrency(summaryStats.totalCost)}</div>
         </div>
@@ -73,8 +65,6 @@ export default function SummaryStatsBar({ summaryStats, loading }) {
       <div className="ml-summary-table">
         <div className="ml-summary-table-head">
           <span>Technician Name</span>
-          <span>Labour</span>
-          <span>Parts</span>
           <span>Total Cost</span>
           <span>Events Count</span>
         </div>
@@ -84,8 +74,6 @@ export default function SummaryStatsBar({ summaryStats, loading }) {
           summaryStats.costPerTechnician.map((t, i) => (
             <div key={`${t.technicianName}-${i}`} className="ml-summary-row">
               <span>{t.technicianName}</span>
-              <span>{formatCurrency(t.laborCost)}</span>
-              <span>{formatCurrency(t.partsCost)}</span>
               <span>{formatCurrency(t.totalCost)}</span>
               <span>{t.eventsCount}</span>
             </div>

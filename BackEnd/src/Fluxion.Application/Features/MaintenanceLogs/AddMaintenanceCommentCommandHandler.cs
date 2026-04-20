@@ -46,7 +46,6 @@ public class AddMaintenanceCommentCommandHandler : IRequestHandler<AddMaintenanc
             TechnicianId = userId.Value,
             RepairDate = DateTime.UtcNow,
             RepairCost = null,
-            ExternalPartsCost = null,
             RepairNotes = request.Content,
             IsVisibleToEmployee = request.IsVisibleToEmployee ?? true
         };

@@ -19,7 +19,7 @@ public class MaintenanceTicketsController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "user,owner,admin,manager")]
+    [Authorize(Roles = "user,owner,admin")]
     public async Task<IActionResult> CreateTicket([FromBody] CreateTicketRequest request)
     {
         var currentUserIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
@@ -54,13 +54,8 @@ public class MaintenanceTicketsController : ControllerBase
             return BadRequest(new { message = ex.Message });
         }
     }
-    /// <summary>
-    /// Lists all maintenance tickets for an organisation (admin/manager view).
-    /// Technicians should use GET /api/technician/tickets to see only their assigned tickets.
-    /// Regular users can also access this to see tickets they raised (filtered client-side or via query params).
-    /// </summary>
     [HttpGet]
-    [Authorize(Roles = "owner,admin,systemAdmin,manager,user")]
+    [Authorize] // All authenticated roles allowed
     public async Task<IActionResult> GetTickets([FromQuery] GetMaintenanceTicketsQuery query)
     {
         var result = await _mediator.Send(query);
@@ -71,7 +66,7 @@ public class MaintenanceTicketsController : ControllerBase
         return Ok(result);
     }
     [HttpPatch("{id:int}/assign")]
-    [Authorize(Roles = "owner,admin,manager")]
+    [Authorize(Roles = "owner,admin")]
     public async Task<IActionResult> AssignTicket(int id, [FromBody] AssignTicketRequest request)
     {
         try

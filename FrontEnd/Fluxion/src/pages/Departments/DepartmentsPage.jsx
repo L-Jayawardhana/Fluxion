@@ -51,7 +51,7 @@ const fmtDate = (iso) =>
 /* ████████████████████████████████████████████████████████ */
 export default function DepartmentsPage() {
   const { user } = useAuth();
-  const isOwner = user?.role === 'owner' || user?.role === 'systemAdmin' || user?.role === 'admin' || user?.role === 'manager';
+  const isOwner = user?.role === 'owner' || user?.role === 'systemAdmin' || user?.role === 'admin';
 
   const [userOrg, setUserOrg]         = useState(null);
   const [departments, setDepartments] = useState([]);
@@ -68,7 +68,6 @@ export default function DepartmentsPage() {
 
   // Confirm deactivate/activate
   const [confirmTarget, setConfirmTarget] = useState(null); // { dept, newIsActive }
-  const [isToggling, setIsToggling]       = useState(false);
 
   const loadData = useCallback(() => {
     setLoading(true);
@@ -154,7 +153,6 @@ export default function DepartmentsPage() {
   /* ── Toggle (activate / deactivate) ───────────────────── */
   const handleToggle = async () => {
     if (!confirmTarget) return;
-    setIsToggling(true);
     const { dept, newIsActive } = confirmTarget;
     try {
       await toggleDepartment(dept.departmentId, userOrg.orgId, newIsActive);
@@ -165,7 +163,6 @@ export default function DepartmentsPage() {
       const msg = err.response?.data?.message || 'Failed to update department status.';
       setError(msg);
     } finally {
-      setIsToggling(false);
       setConfirmTarget(null);
     }
   };
@@ -190,10 +187,10 @@ export default function DepartmentsPage() {
                 : `Reactivate "${confirmTarget.dept.departmentName}" and make it available again.`}
             </div>
             <div className="dp-confirm-acts">
-              <button className="dp-btn dp-btn-secondary" onClick={() => setConfirmTarget(null)} disabled={isToggling}>Cancel</button>
+              <button className="dp-btn dp-btn-secondary" onClick={() => setConfirmTarget(null)}>Cancel</button>
               {confirmTarget.dept.isActive
-                ? <button className="dp-btn dp-btn-danger" onClick={handleToggle} disabled={isToggling}>{isToggling ? 'Deactivating…' : 'Deactivate'}</button>
-                : <button className="dp-btn dp-btn-safe" onClick={handleToggle} disabled={isToggling}>{isToggling ? 'Activating…' : 'Activate'}</button>}
+                ? <button className="dp-btn dp-btn-danger" onClick={handleToggle}>Deactivate</button>
+                : <button className="dp-btn dp-btn-safe" onClick={handleToggle}>Activate</button>}
             </div>
           </div>
         </div>
@@ -392,7 +389,7 @@ export default function DepartmentsPage() {
                             <button
                               className="dp-ract del"
                               title="Deactivate"
-                              onClick={() => setConfirmTarget({ dept, newIsActive: false })}
+                              onClick={() => setConfirmTarget({ dept })}
                             >
                               <DeactivateIcon />
                             </button>
@@ -400,7 +397,7 @@ export default function DepartmentsPage() {
                             <button
                               className="dp-ract act"
                               title="Activate"
-                              onClick={() => setConfirmTarget({ dept, newIsActive: true })}
+                              onClick={() => setConfirmTarget({ dept })}
                             >
                               <ActivateIcon />
                             </button>
@@ -435,11 +432,11 @@ export default function DepartmentsPage() {
                         <EditIcon />
                       </button>
                       {dept.isActive ? (
-                        <button className="dp-ract del" title="Deactivate" onClick={() => setConfirmTarget({ dept, newIsActive: false })}>
+                        <button className="dp-ract del" title="Deactivate" onClick={() => setConfirmTarget({ dept })}>
                           <DeactivateIcon />
                         </button>
                       ) : (
-                        <button className="dp-ract act" title="Activate" onClick={() => setConfirmTarget({ dept, newIsActive: true })}>
+                        <button className="dp-ract act" title="Activate" onClick={() => setConfirmTarget({ dept })}>
                           <ActivateIcon />
                         </button>
                       )}

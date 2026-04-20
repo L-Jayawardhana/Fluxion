@@ -66,7 +66,7 @@ const fmtCost = (cost) =>
 /* ████████████████████████████████████████████████████████████ */
 export default function AllAssetsPage() {
   const { user } = useAuth();
-  const isOwner = user?.role === 'owner' || user?.role === 'systemAdmin' || user?.role === 'admin' || user?.role === 'manager';
+  const isOwner = user?.role === 'owner' || user?.role === 'systemAdmin' || user?.role === 'admin';
 
   const [userOrg, setUserOrg] = useState(null);
   const [departments, setDepartments] = useState([]);

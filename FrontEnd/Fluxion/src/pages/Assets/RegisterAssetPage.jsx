@@ -33,7 +33,6 @@ const emptyForm = {
   purchaseDate: '',
   warrantyEndDate: '',
   cost: '',
-  requiresRegularService: false,
   customAssetType: '',
 };
 
@@ -124,7 +123,6 @@ export default function RegisterAssetPage() {
         purchaseDate: form.purchaseDate || null,
         warrantyEndDate: form.warrantyEndDate || null,
         cost: form.cost !== '' ? Number(form.cost) : null,
-        requiresRegularService: form.requiresRegularService,
         createdBy: Number(user.userId),
       };
 
@@ -419,23 +417,6 @@ export default function RegisterAssetPage() {
                   disabled={submitting}
                 />
                 {errors.cost && <div className="rap-field-err">{errors.cost}</div>}
-              </div>
-
-              {/* Maintenance Schedule */}
-              <div className="rap-field" style={{ gridColumn: '1 / -1' }}>
-                <label className="rap-checkbox-label" style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: 'var(--rap-white)' }}>
-                  <input
-                    type="checkbox"
-                    checked={form.requiresRegularService}
-                    onChange={(e) => set('requiresRegularService', e.target.checked)}
-                    disabled={submitting}
-                    style={{ width: '16px', height: '16px', accentColor: 'var(--rap-accent)' }}
-                  />
-                  <span>Regular service on every 6 months</span>
-                </label>
-                <div style={{ fontSize: '12px', color: 'var(--rap-mist)', marginTop: '4px', marginLeft: '24px' }}>
-                  If checked, the system will automatically raise a maintenance ticket for this asset every 6 months.
-                </div>
               </div>
 
               {/* Actions */}

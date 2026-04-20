@@ -260,18 +260,6 @@
 .ml-sb-gear:hover { color: #E05A3C; }
 .ml-sb-gear svg { width: 14px; height: 14px; }
 
-/* ═══════════════════ SIDEBAR COLLAPSE ═══════════════════ */
-.ml-sidebar {
-  transition: transform .25s cubic-bezier(.4,0,.2,1), width .25s cubic-bezier(.4,0,.2,1);
-}
-.ml-shell.ml-sidebar-collapsed .ml-sidebar {
-  transform: translateX(-100%);
-}
-.ml-shell.ml-sidebar-collapsed .ml-main {
-  margin-left: 0;
-  width: 100%;
-}
-
 /* ═══════════════════ MAIN AREA ═══════════════════ */
 .ml-main {
   margin-left: var(--ml-sb-w);
@@ -280,7 +268,6 @@
   min-height: 100vh;
   background: var(--ml-paper);
   width: calc(100% - var(--ml-sb-w));
-  transition: margin-left .25s cubic-bezier(.4,0,.2,1), width .25s cubic-bezier(.4,0,.2,1);
 }
 
 /* ── Topbar ────────────────────────────────────────────── */
@@ -312,44 +299,12 @@
 }
 
 .ml-tb-right { display: flex; align-items: center; gap: 10px; }
-
-/* ── Sidebar toggle ─────────────────────────────────────── */
-.ml-tb-sidebar-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--ml-dim);
-  padding: 4px;
-  border-radius: 4px;
-  transition: color .15s, background .15s;
-  margin-right: 4px;
-}
-.ml-tb-sidebar-toggle svg { width: 15px; height: 15px; }
-.ml-tb-sidebar-toggle:hover { color: var(--ml-paper); background: rgba(255,255,255,.05); }
-
 .ml-tb-clock {
   font-size: 11px;
   color: var(--ml-dim);
   padding-right: 10px;
   border-right: 1px solid rgba(242,239,232,.06);
 }
-
-/* ── Shortcut hint inside search btn ──────────────────────*/
-.ml-tb-shortcut {
-  display: inline-block;
-  font-size: 8.5px;
-  letter-spacing: .06em;
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(242,239,232,.08);
-  border-radius: 3px;
-  padding: 1px 5px;
-  color: rgba(242,239,232,.3);
-  margin-left: 2px;
-}
-
 .ml-tb-btn {
   display: flex;
   align-items: center;

@@ -164,12 +164,10 @@ function UpdateStatusWidget({ ticket, onUpdate }) {
 function LogRepairForm({ ticket, onUpdate }) {
   const [desc, setDesc] = useState('');
   const [cost, setCost] = useState('');
-  const [externalPartsCost, setExternalPartsCost] = useState('');
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState({ msg: '', type: '' });
 
-  const canLogRepair = ticket.status === 'in_progress' || ticket.status === 'waiting_parts';
-  if (!canLogRepair) return null;
+  if (ticket.status !== 'in_progress') return null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -177,20 +175,13 @@ function LogRepairForm({ ticket, onUpdate }) {
     setLoading(true);
     setToast({ msg: '', type: '' });
     try {
-      await logRepair(
-        ticket.ticketId,
-        desc,
-        cost ? parseFloat(cost) : null,
-        externalPartsCost ? parseFloat(externalPartsCost) : null
-      );
+      await logRepair(ticket.ticketId, desc, cost ? parseFloat(cost) : null);
       setToast({ msg: 'Repair log saved successfully.', type: 'success' });
       setDesc('');
       setCost('');
-      setExternalPartsCost('');
       onUpdate();
-    } catch (err) {
-      const msg = err?.response?.data?.message || 'Failed to save repair log.';
-      setToast({ msg, type: 'error' });
+    } catch {
+      setToast({ msg: 'Failed to save repair log.', type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -198,7 +189,7 @@ function LogRepairForm({ ticket, onUpdate }) {
 
   return (
     <div className="tc-panel">
-      <div className="tc-panel-head"><span className="tc-panel-title">Log Repair & Maintenance Cost</span></div>
+      <div className="tc-panel-head"><span className="tc-panel-title">Log Repair</span></div>
       <div className="tc-panel-body">
         <Toast msg={toast.msg} type={toast.type} />
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -208,17 +199,9 @@ function LogRepairForm({ ticket, onUpdate }) {
               value={desc} onChange={e => setDesc(e.target.value)} />
           </div>
           <div className="tc-field">
-            <label htmlFor="lrf-cost">Labour/Service Cost (optional)</label>
+            <label htmlFor="lrf-cost">Cost (optional)</label>
             <input id="lrf-cost" type="number" min="0" step="0.01" placeholder="e.g. 45.00"
               value={cost} onChange={e => setCost(e.target.value)} />
-          </div>
-          <div className="tc-field">
-            <label htmlFor="lrf-parts-cost">External Parts Cost (optional)</label>
-            <input id="lrf-parts-cost" type="number" min="0" step="0.01" placeholder="e.g. 120.50"
-              value={externalPartsCost} onChange={e => setExternalPartsCost(e.target.value)} />
-          </div>
-          <div style={{ fontSize: 12, color: 'var(--tc-muted)' }}>
-            Total maintenance cost added to organisation reports = Labour/Service Cost + External Parts Cost.
           </div>
           <button id="lrf-submit" type="submit" className="tc-btn tc-btn-primary" disabled={loading || !desc.trim()}>
             {loading ? <><span className="tc-spinner" /> Saving…</> : 'Submit Repair Log'}

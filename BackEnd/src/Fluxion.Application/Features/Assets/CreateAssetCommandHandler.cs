@@ -34,23 +34,6 @@ public class CreateAssetCommandHandler : IRequestHandler<CreateAssetCommand, Ass
             throw new KeyNotFoundException(
                 $"Department with ID {request.DepartmentId} was not found in organisation {request.OrgId}.");
 
-        // Check asset limit based on subscription
-        var orgSub = await _context.OrgSubscriptions
-            .Include(s => s.Plan)
-            .Where(s => s.OrgId == request.OrgId && s.Status == SubscriptionStatus.active)
-            .OrderByDescending(s => s.StartedAt)
-            .FirstOrDefaultAsync(cancellationToken);
-            
-        int? maxAssets = orgSub?.MaxAssets ?? orgSub?.Plan?.MaxAssets ?? 50; // Default Free plan limit
-        if (maxAssets.HasValue)
-        {
-            var currentAssetCount = await _context.Assets.CountAsync(a => a.OrgId == request.OrgId && a.Status != AssetStatus.retired, cancellationToken);
-            if (currentAssetCount >= maxAssets.Value)
-            {
-                throw new InvalidOperationException($"Subscription limit reached. Your plan allows up to {maxAssets.Value} assets.");
-            }
-        }
-
         // 3. Generate AssetTag (AA-001, AA-002, etc. per OrgId)
         var lastAssetWithTag = await _context.Assets
             .Where(a => a.OrgId == request.OrgId && a.AssetTag != null && a.AssetTag.StartsWith("AA-"))
@@ -82,7 +65,6 @@ public class CreateAssetCommandHandler : IRequestHandler<CreateAssetCommand, Ass
             PurchaseDate = request.PurchaseDate,
             WarrantyEndDate = request.WarrantyEndDate,
             Cost = request.Cost,
-            RequiresRegularService = request.RequiresRegularService,
             Status = AssetStatus.available,
             CreatedBy = request.CreatedBy,
             CreatedAt = now,
@@ -96,29 +78,6 @@ public class CreateAssetCommandHandler : IRequestHandler<CreateAssetCommand, Ass
         // 5. Generate QR code value using the newly created AssetId
         asset.QrCode = $"ASSET-{asset.AssetId}";
         await _context.SaveChangesAsync(cancellationToken);
-
-        // If the asset requires regular service, automatically create a schedule
-        if (request.RequiresRegularService)
-        {
-            var schedule = new MaintenanceSchedule
-            {
-                OrgId = request.OrgId,
-                AssetId = asset.AssetId,
-                CreatedByManagerId = request.CreatedBy, // Admin/Owner who added the asset
-                Title = $"Regular Service: {asset.AssetName}",
-                TaskDescription = $"Automated regular service ticket for {asset.AssetName} ({asset.AssetTag ?? asset.SerialNumber ?? "Unknown"})",
-                IntervalDays = 180, // roughly 6 months
-                NextDueDate = now.AddDays(180),
-                IsActive = true,
-                CreatedAt = now,
-                CreatedBy = request.CreatedBy,
-                UpdatedAt = now,
-                UpdatedBy = request.CreatedBy
-            };
-            
-            _context.MaintenanceSchedules.Add(schedule);
-            await _context.SaveChangesAsync(cancellationToken);
-        }
 
         // 6. Return DTO
         return ToDto(asset, department.DepartmentName);

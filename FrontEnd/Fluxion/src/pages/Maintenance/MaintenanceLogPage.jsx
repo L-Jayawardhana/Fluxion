@@ -4,7 +4,6 @@ import { useAuth } from '../../hooks/useAuth';
 import api, { getAssets } from '../../services/api';
 import { getMaintenanceLogPage } from '../../services/maintenanceLogService';
 import { getMaintenanceTickets } from '../../services/maintenanceService';
-import { getTechnicianAssets } from '../../services/technicianService';
 import AssetInfoHeader from '../../components/MaintenanceLogs/AssetInfoHeader';
 import SummaryStatsBar from '../../components/MaintenanceLogs/SummaryStatsBar';
 import MaintenanceLogTable from '../../components/MaintenanceLogs/MaintenanceLogTable';
@@ -18,8 +17,8 @@ export default function MaintenanceLogPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const role = String(user?.role || '').toLowerCase();
-  const showSummary = role === 'owner' || role === 'admin' || role === 'systemadmin' || role === 'manager';
-  const isOwner = role === 'owner' || role === 'admin' || role === 'systemadmin' || role === 'manager';
+  const showSummary = role === 'owner' || role === 'admin' || role === 'systemadmin';
+  const isOwner = role === 'owner' || role === 'admin' || role === 'systemadmin';
   const isTechnician = role === 'technician';
   const isEmployee = role === 'user' || role === 'employee';
 
@@ -93,9 +92,7 @@ export default function MaintenanceLogPage() {
   }, [assetId, isTechnician, commentTicketId]);
 
   useEffect(() => {
-    if (assetId) return;
-    // For technicians the assets API doesn't need orgId, but other roles do
-    if (!isTechnician && !user?.orgId) return;
+    if (assetId || !user?.orgId) return;
     let cancelled = false;
 
     const loadAssets = async () => {
@@ -103,11 +100,7 @@ export default function MaintenanceLogPage() {
       setAssetError('');
       try {
         let assets = [];
-        if (isTechnician) {
-          // Use the dedicated endpoint that returns only assets
-          // this technician has ever been assigned to / worked on.
-          assets = await getTechnicianAssets();
-        } else if (isEmployee) {
+        if (isEmployee) {
           const res = await api.get(`/Asset/user/${user.userId}?orgId=${user.orgId}`);
           assets = res.data || [];
         } else {
@@ -159,11 +152,7 @@ export default function MaintenanceLogPage() {
             ))}
 
             {!assetLoading && assetOptions.length === 0 && (
-              <div className="ml-empty">
-                {isTechnician
-                  ? 'No assets found. You will see assets here once tickets are assigned to you.'
-                  : 'No assets available for maintenance logs.'}
-              </div>
+              <div className="ml-empty">No assets available for maintenance logs.</div>
             )}
 
             {!assetLoading && assetOptions.map((asset) => (

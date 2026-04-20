@@ -30,9 +30,6 @@ export const authService = {
     verifyResetCode: (email, code) =>
         api.post('/Auth/verify-reset-code', { email, code }),
 
-    changePassword: (currentPassword, newPassword) =>
-        api.post('/Auth/change-password', { currentPassword, newPassword }),
-
     createOrganization: (orgName, slug, timezone, ownerId) =>
         api.post('/Organization', { orgName, slug, timezone, ownerId }),
 

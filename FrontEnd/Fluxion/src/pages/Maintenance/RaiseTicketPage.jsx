@@ -59,7 +59,7 @@ export default function RaiseTicketPage() {
   const [fieldErrors, setFieldErrors] = useState({});
   const [touched, setTouched] = useState({});
 
-  const isOwner = user?.role === 'owner' || user?.role === 'systemAdmin' || user?.role === 'manager';
+  const isOwner = user?.role === 'owner' || user?.role === 'systemAdmin';
 
   /* ── Fetch Assets ──────────────────────────────────────────── */
   useEffect(() => {

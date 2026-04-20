@@ -29,20 +29,12 @@ public static class DependencyInjection
 
         // Invitation service
         services.AddScoped<IInvitationService, InvitationService>();
-
-        // Notification service
-        services.AddScoped<INotificationService, NotificationService>();
-
-        // Ticket alert email service
-        services.AddScoped<ITicketAlertEmailService, TicketAlertEmailService>();
-
         // Cloudinary Image service
         services.Configure<Fluxion.Infrastructure.Images.CloudinarySettings>(configuration.GetSection("CloudinarySettings"));
         services.AddScoped<IImageService, Fluxion.Infrastructure.Images.CloudinaryService>();
 
         // Background services
         services.AddHostedService<BackgroundServices.WarrantyExpiryNotificationService>();
-        services.AddHostedService<BackgroundJobs.MaintenanceTicketGeneratorService>();
 
         return services;
     }

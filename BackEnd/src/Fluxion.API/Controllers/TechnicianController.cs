@@ -3,7 +3,6 @@ using Fluxion.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 namespace Fluxion.API.Controllers;
 
@@ -14,22 +13,11 @@ public class TechnicianController : ControllerBase
 {
     private readonly IApplicationDbContext _db;
     private readonly ICurrentUserService _currentUser;
-    private readonly ITicketAlertEmailService _alertEmailService;
-    private readonly INotificationService _notificationService;
-    private readonly ILogger<TechnicianController> _logger;
 
-    public TechnicianController(
-        IApplicationDbContext db,
-        ICurrentUserService currentUser,
-        ITicketAlertEmailService alertEmailService,
-        INotificationService notificationService,
-        ILogger<TechnicianController> logger)
+    public TechnicianController(IApplicationDbContext db, ICurrentUserService currentUser)
     {
         _db = db;
         _currentUser = currentUser;
-        _alertEmailService = alertEmailService;
-        _notificationService = notificationService;
-        _logger = logger;
     }
 
     // ── helper ───────────────────────────────────────────────
@@ -110,8 +98,8 @@ public class TechnicianController : ControllerBase
 
         // Total repair cost from maintenance logs
         var totalCost = await _db.MaintenanceLogs
-            .Where(l => l.TechnicianId == techId)
-            .SumAsync(l => (l.RepairCost ?? 0m) + (l.ExternalPartsCost ?? 0m), ct);
+            .Where(l => l.TechnicianId == techId && l.RepairCost.HasValue)
+            .SumAsync(l => l.RepairCost!.Value, ct);
 
         return Ok(new
         {
@@ -182,9 +170,9 @@ public class TechnicianController : ControllerBase
         // Enrich with cost from maintenance logs
         var ticketIds = tickets.Select(t => t.TicketId).ToList();
         var costs = await _db.MaintenanceLogs
-            .Where(l => ticketIds.Contains(l.TicketId))
+            .Where(l => ticketIds.Contains(l.TicketId) && l.RepairCost.HasValue)
             .GroupBy(l => l.TicketId)
-            .Select(g => new { ticketId = g.Key, totalCost = g.Sum(l => (l.RepairCost ?? 0m) + (l.ExternalPartsCost ?? 0m)) })
+            .Select(g => new { ticketId = g.Key, totalCost = g.Sum(l => l.RepairCost!.Value) })
             .ToListAsync(ct);
 
         var costMap = costs.ToDictionary(c => c.ticketId, c => c.totalCost);
@@ -301,7 +289,6 @@ public class TechnicianController : ControllerBase
         int techId = GetTechnicianId();
 
         var ticket = await _db.MaintenanceTickets
-            .Include(t => t.Asset)
             .FirstOrDefaultAsync(t => t.TicketId == id && t.AssignedTo == techId, ct);
 
         if (ticket is null)
@@ -310,61 +297,12 @@ public class TechnicianController : ControllerBase
         if (!Enum.TryParse<TicketStatus>(req.Status, true, out var newStatus))
             return BadRequest(new { message = $"Invalid status '{req.Status}'." });
 
-        var oldStatus = ticket.Status;
         ticket.Status = newStatus;
         ticket.UpdatedAt = DateTime.UtcNow;
         if (newStatus == TicketStatus.resolved || newStatus == TicketStatus.closed)
             ticket.ClosedAt = DateTime.UtcNow;
 
         await _db.SaveChangesAsync(ct);
-
-        // ── Send email notification to the user who raised the ticket ──
-        try
-        {
-            var reporter = await _db.Users
-                .FirstOrDefaultAsync(u => u.UserId == ticket.RaisedBy, ct);
-            var technician = await _db.Users
-                .FirstOrDefaultAsync(u => u.UserId == techId, ct);
-
-            if (reporter != null)
-            {
-                await _alertEmailService.SendTicketStatusUpdatedEmailAsync(
-                    toEmail:        reporter.Email,
-                    recipientName:  reporter.FullName,
-                    ticketId:       ticket.TicketId,
-                    ticketTitle:    ticket.Title,
-                    oldStatus:      oldStatus.ToString(),
-                    newStatus:      newStatus.ToString(),
-                    technicianName: technician?.FullName ?? "A technician",
-                    assetName:      ticket.Asset?.AssetName ?? "Unknown Asset"
-                );
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to send ticket status update email for ticket {TicketId}", id);
-        }
-
-        // ── Persist in-app notification ──
-        {
-            var reporter = await _db.Users.FirstOrDefaultAsync(u => u.UserId == ticket.RaisedBy, ct);
-            var techUser = await _db.Users.FirstOrDefaultAsync(u => u.UserId == techId, ct);
-            if (reporter != null)
-            {
-                var statusLabel = newStatus.ToString().Replace("_", " ");
-                await _notificationService.CreateNotificationAsync(
-                    orgId:    ticket.OrgId,
-                    userId:   reporter.UserId,
-                    type:     "ticket_status_updated",
-                    title:    "Ticket Status Updated",
-                    message:  $"Your ticket \"{ticket.Title}\" has been updated to {statusLabel} by {techUser?.FullName ?? "a technician"}.",
-                    ticketId: ticket.TicketId,
-                    assetId:  ticket.AssetId,
-                    ct:       ct
-                );
-            }
-        }
-
         return Ok(new { message = "Status updated.", status = ticket.Status });
     }
 
@@ -382,19 +320,8 @@ public class TechnicianController : ControllerBase
         if (ticket is null)
             return NotFound(new { message = "Ticket not found or not assigned to you." });
 
-        if (ticket.Status != TicketStatus.assigned && ticket.Status != TicketStatus.in_progress && ticket.Status != TicketStatus.waiting_parts)
-            return BadRequest(new { message = "Repair log can only be submitted for Assigned, In Progress, or Waiting Parts tickets." });
-
-        if (ticket.Status == TicketStatus.assigned)
-            ticket.Status = TicketStatus.in_progress;
-
-        var laborCost = req.Cost ?? 0m;
-        var externalPartsCost = req.ExternalPartsCost ?? 0m;
-
-        if (laborCost < 0 || externalPartsCost < 0)
-            return BadRequest(new { message = "Cost values cannot be negative." });
-
-        var totalMaintenanceCost = laborCost + externalPartsCost;
+        if (ticket.Status != TicketStatus.in_progress)
+            return BadRequest(new { message = "Repair log can only be submitted for In Progress tickets." });
 
         var log = new Fluxion.Domain.Entities.MaintenanceLog
         {
@@ -403,8 +330,7 @@ public class TechnicianController : ControllerBase
             AssetId = ticket.AssetId,
             TechnicianId = techId,
             RepairDate = DateTime.UtcNow,
-            RepairCost = laborCost,
-            ExternalPartsCost = externalPartsCost,
+            RepairCost = req.Cost,
             RepairNotes = req.RepairDescription,
             IsVisibleToEmployee = null
         };
@@ -413,14 +339,7 @@ public class TechnicianController : ControllerBase
         ticket.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync(ct);
 
-        return Ok(new
-        {
-            message = "Repair log saved.",
-            logId = log.LogId,
-            laborCost,
-            externalPartsCost,
-            totalMaintenanceCost
-        });
+        return Ok(new { message = "Repair log saved.", logId = log.LogId });
     }
 
     // ─────────────────────────────────────────────────────────
@@ -445,7 +364,6 @@ public class TechnicianController : ControllerBase
             TechnicianId = techId,
             RepairDate = DateTime.UtcNow,
             RepairCost = null,
-            ExternalPartsCost = null,
             RepairNotes = req.Content,
             IsVisibleToEmployee = req.IsVisibleToEmployee ?? true
         };
@@ -465,59 +383,11 @@ public class TechnicianController : ControllerBase
     }
 
     // ─────────────────────────────────────────────────────────
-    // GET /api/technician/assets
-    // Returns distinct assets this technician has been assigned to
-    // (via tickets or direct repair logs) — used by the maintenance
-    // log asset picker.
-    // ─────────────────────────────────────────────────────────
-    [HttpGet("assets")]
-    public async Task<IActionResult> GetTechnicianAssets(CancellationToken ct)
-    {
-        int techId = GetTechnicianId();
-
-        // Asset IDs from assigned tickets
-        var assetIdsFromTickets = await _db.MaintenanceTickets
-            .Where(t => t.AssignedTo == techId)
-            .Select(t => t.AssetId)
-            .Distinct()
-            .ToListAsync(ct);
-
-        // Asset IDs from direct repair logs
-        var assetIdsFromLogs = await _db.MaintenanceLogs
-            .Where(l => l.TechnicianId == techId)
-            .Select(l => l.AssetId)
-            .Distinct()
-            .ToListAsync(ct);
-
-        var allAssetIds = assetIdsFromTickets.Union(assetIdsFromLogs).Distinct().ToList();
-
-        if (allAssetIds.Count == 0)
-            return Ok(Array.Empty<object>());
-
-        var assets = await _db.Assets
-            .Where(a => allAssetIds.Contains(a.AssetId))
-            .Select(a => new
-            {
-                assetId      = a.AssetId,
-                assetName    = a.AssetName,
-                assetType    = a.AssetType,
-                serialNumber = a.SerialNumber,
-                status       = a.Status.ToString()
-            })
-            .OrderBy(a => a.assetName)
-            .ToListAsync(ct);
-
-        return Ok(assets);
-    }
-
-    // ─────────────────────────────────────────────────────────
     // PATCH /api/technician/assets/:assetId/condition
     // ─────────────────────────────────────────────────────────
     [HttpPatch("assets/{assetId:int}/condition")]
     public async Task<IActionResult> UpdateAssetCondition(int assetId, [FromBody] UpdateConditionRequest req, CancellationToken ct)
     {
-        int techId = GetTechnicianId();
-
         var asset = await _db.Assets.FirstOrDefaultAsync(a => a.AssetId == assetId, ct);
         if (asset is null)
             return NotFound(new { message = "Asset not found." });
@@ -525,64 +395,9 @@ public class TechnicianController : ControllerBase
         if (!Enum.TryParse<AssetStatus>(req.Condition, true, out var newCondition))
             return BadRequest(new { message = $"Invalid condition '{req.Condition}'." });
 
-        var oldCondition = asset.Status;
         asset.Status = newCondition;
         asset.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync(ct);
-
-        // ── Send email to the currently assigned user ──
-        try
-        {
-            var currentAssignment = await _db.AssetAssignments
-                .Include(aa => aa.User)
-                .Where(aa => aa.AssetId == assetId && aa.ReturnDate == null)
-                .OrderByDescending(aa => aa.AssignedDate)
-                .FirstOrDefaultAsync(ct);
-
-            var technician = await _db.Users
-                .FirstOrDefaultAsync(u => u.UserId == techId, ct);
-
-            if (currentAssignment?.User != null)
-            {
-                await _alertEmailService.SendAssetConditionUpdatedEmailAsync(
-                    toEmail:        currentAssignment.User.Email,
-                    recipientName:  currentAssignment.User.FullName,
-                    assetName:      asset.AssetName,
-                    assetType:      asset.AssetType,
-                    serialNumber:   asset.SerialNumber,
-                    oldCondition:   oldCondition.ToString(),
-                    newCondition:   newCondition.ToString(),
-                    technicianName: technician?.FullName ?? "A technician"
-                );
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to send asset condition update email for asset {AssetId}", assetId);
-        }
-
-        // ── Persist in-app notification ──
-        {
-            var currentAssign = await _db.AssetAssignments
-                .Where(aa => aa.AssetId == assetId && aa.ReturnDate == null)
-                .OrderByDescending(aa => aa.AssignedDate)
-                .FirstOrDefaultAsync(ct);
-            var techUser = await _db.Users.FirstOrDefaultAsync(u => u.UserId == techId, ct);
-
-            if (currentAssign != null)
-            {
-                var condLabel = newCondition.ToString().Replace("_", " ");
-                await _notificationService.CreateNotificationAsync(
-                    orgId:   asset.OrgId,
-                    userId:  currentAssign.UserId,
-                    type:    "asset_condition_updated",
-                    title:   "Asset Condition Updated",
-                    message: $"The condition of {asset.AssetName} has been updated to {condLabel} by {techUser?.FullName ?? "a technician"}.",
-                    assetId: asset.AssetId,
-                    ct:      ct
-                );
-            }
-        }
 
         return Ok(new { message = "Asset condition updated.", condition = asset.Status });
     }
@@ -590,6 +405,6 @@ public class TechnicianController : ControllerBase
 
 // ── Request DTOs ─────────────────────────────────────────────
 public record UpdateStatusRequest(string Status);
-public record LogRepairRequest(string RepairDescription, decimal? Cost, decimal? ExternalPartsCost);
+public record LogRepairRequest(string RepairDescription, decimal? Cost);
 public record AddCommentRequest(string Content, bool? IsVisibleToEmployee = null);
 public record UpdateConditionRequest(string Condition);

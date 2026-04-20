@@ -32,8 +32,6 @@ public class Asset : IAuditable
     public bool IsWarrantyExpiryNotified { get; set; } = false;
     public bool IsWarrantyReminderNotified { get; set; } = false;
 
-    public bool RequiresRegularService { get; set; } = false;
-
     [Column(TypeName = "decimal(10,2)")]
     public decimal? Cost { get; set; }
 

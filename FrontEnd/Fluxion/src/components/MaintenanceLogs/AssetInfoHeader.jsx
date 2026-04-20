@@ -24,7 +24,7 @@ const conditionClass = (value) => {
 };
 
 export default function AssetInfoHeader({ assetInfo, role, loading }) {
-  const isOwner = role === 'owner' || role === 'admin' || role === 'systemadmin' || role === 'manager';
+  const isOwner = role === 'owner' || role === 'admin' || role === 'systemadmin';
 
   if (loading) {
     return (

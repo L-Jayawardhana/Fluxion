@@ -15,8 +15,6 @@ public interface IApplicationDbContext
     DbSet<AssetAssignment> AssetAssignments { get; }
     DbSet<MaintenanceTicket> MaintenanceTickets { get; }
     DbSet<MaintenanceLog> MaintenanceLogs { get; }
-    DbSet<Notification> Notifications { get; }
-    DbSet<MaintenanceSchedule> MaintenanceSchedules { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

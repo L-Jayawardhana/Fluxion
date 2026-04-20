@@ -72,9 +72,6 @@ namespace Fluxion.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
 
-                    b.Property<bool>("RequiresRegularService")
-                        .HasColumnType("tinyint(1)");
-
                     b.Property<DateTime?>("RetiredAt")
                         .HasColumnType("datetime(6)");
 
@@ -199,9 +196,6 @@ namespace Fluxion.Persistence.Migrations
                     b.Property<int>("AssetId")
                         .HasColumnType("int");
 
-                    b.Property<decimal?>("ExternalPartsCost")
-                        .HasColumnType("decimal(10,2)");
-
                     b.Property<bool?>("IsVisibleToEmployee")
                         .HasColumnType("tinyint(1)");
 
@@ -228,64 +222,6 @@ namespace Fluxion.Persistence.Migrations
                     b.HasIndex("TicketId");
 
                     b.ToTable("MaintenanceLogs");
-                });
-
-            modelBuilder.Entity("Fluxion.Domain.Entities.MaintenanceSchedule", b =>
-                {
-                    b.Property<int>("ScheduleId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("ScheduleId"));
-
-                    b.Property<int?>("AssetId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("AssetType")
-                        .HasColumnType("longtext");
-
-                    b.Property<int?>("AssignedTechnicianId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int>("CreatedBy")
-                        .HasColumnType("int");
-
-                    b.Property<int>("CreatedByManagerId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("IntervalDays")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<DateTime>("NextDueDate")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int>("OrgId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("TaskDescription")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("varchar(200)");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int?>("UpdatedBy")
-                        .HasColumnType("int");
-
-                    b.HasKey("ScheduleId");
-
-                    b.ToTable("MaintenanceSchedules");
                 });
 
             modelBuilder.Entity("Fluxion.Domain.Entities.MaintenanceTicket", b =>
@@ -344,54 +280,6 @@ namespace Fluxion.Persistence.Migrations
                     b.HasIndex("AssetId");
 
                     b.ToTable("MaintenanceTickets");
-                });
-
-            modelBuilder.Entity("Fluxion.Domain.Entities.Notification", b =>
-                {
-                    b.Property<int>("NotificationId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("NotificationId"));
-
-                    b.Property<int?>("AssetId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<bool>("IsRead")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("Message")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<int>("OrgId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("TicketId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("varchar(200)");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("NotificationId");
-
-                    b.ToTable("Notifications");
                 });
 
             modelBuilder.Entity("Fluxion.Domain.Entities.OrgSubscription", b =>

@@ -211,7 +211,7 @@ export default function UsersPage() {
                             </div>
                           </div>
                         </td>
-                        <td><span className="up-role-chip">{u.role?.toLowerCase() === 'owner' ? 'Admin' : u.role}</span></td>
+                        <td><span className="up-role-chip">{u.role}</span></td>
                         <td>
                           <span className={`up-inv-badge ${u.invitationAccepted ? 'accepted' : 'pending'}`}>
                             {u.invitationAccepted ? Icons.check : Icons.clock}
@@ -260,7 +260,7 @@ export default function UsersPage() {
                     </button>
                   </div>
                   <div className="up-card-row">
-                    <span className="up-role-chip">{u.role?.toLowerCase() === 'owner' ? 'Admin' : u.role}</span>
+                    <span className="up-role-chip">{u.role}</span>
                     <span className={`up-inv-badge ${u.invitationAccepted ? 'accepted' : 'pending'}`}>
                       {u.invitationAccepted ? Icons.check : Icons.clock}
                       {u.invitationAccepted ? 'Accepted' : 'Pending'}

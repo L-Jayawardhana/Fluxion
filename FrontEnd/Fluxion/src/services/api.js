@@ -68,21 +68,6 @@ export const getOrganizations = async () => {
   return response.data;
 };
 
-export const updateOrganization = async (orgId, data) => {
-  const response = await api.put(`/organization/${orgId}`, data);
-  return response.data;
-};
-
-export const getUsers = async (orgId) => {
-  const response = await api.get('/user', { params: { orgId } });
-  return response.data;
-};
-
-export const updateUser = async (userId, data) => {
-  const response = await api.put(`/user/${userId}`, data);
-  return response.data;
-};
-
 export const createDepartment = async (data) => {
   const response = await api.post('/department', data);
   return response.data;

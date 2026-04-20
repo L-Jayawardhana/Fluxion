@@ -22,19 +22,6 @@ public class ToggleDepartmentHandler : IRequestHandler<ToggleDepartmentCommand>
         if (department is null)
             throw new KeyNotFoundException("Department not found.");
 
-        if (request.IsActive && !department.IsActive)
-        {
-            var duplicate = await _context.Departments
-                .AnyAsync(d => d.OrgId == request.OrgId &&
-                               d.DepartmentName == department.DepartmentName &&
-                               d.DepartmentId != request.DepartmentId &&
-                               d.IsActive,
-                          cancellationToken);
-
-            if (duplicate)
-                throw new InvalidOperationException("Cannot reactivate: a department with this name already exists and is active.");
-        }
-
         department.IsActive = request.IsActive;
         department.UpdatedAt = DateTime.UtcNow;
 

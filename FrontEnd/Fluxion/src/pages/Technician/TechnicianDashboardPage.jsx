@@ -62,9 +62,7 @@ function fmtStatus(s) {
 
 function timeAgo(dateStr) {
   if (!dateStr) return '';
-  const parsedDateStr = dateStr.endsWith('Z') ? dateStr : `${dateStr}Z`;
-  const diff = Date.now() - new Date(parsedDateStr).getTime();
-  if (diff < 0) return 'just now'; // Handle slight clock skews
+  const diff = Date.now() - new Date(dateStr).getTime();
   const m = Math.floor(diff / 60000);
   if (m < 1) return 'just now';
   if (m < 60) return `${m}m ago`;

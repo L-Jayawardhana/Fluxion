@@ -18,7 +18,7 @@ const AllTicketsPage = () => {
   });
 
   React.useEffect(() => {
-    if ((user?.role === 'owner' || user?.role === 'admin' || user?.role === 'manager') && user?.orgId) {
+    if ((user?.role === 'owner' || user?.role === 'admin') && user?.orgId) {
       getTechnicians(user.orgId).then(setTechnicians).catch(console.error);
     }
   }, [user]);
@@ -53,7 +53,7 @@ const AllTicketsPage = () => {
         onFilterChange={handleFilterChange} 
         onClearFilters={clearFilters}
         technicians={technicians}
-        showTechnicianFilter={user?.role === 'owner' || user?.role === 'admin' || user?.role === 'manager'}
+        showTechnicianFilter={user?.role === 'owner' || user?.role === 'admin'}
       />
       
       <TicketList filters={filters} />

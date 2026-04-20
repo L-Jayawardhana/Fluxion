@@ -33,11 +33,11 @@ export default function AdminAssetAssignmentsPage() {
     try {
       setLoading(true);
       const [usersRes, assetsRes] = await Promise.all([
-        api.get(`/User?orgId=${user.orgId}`),
+        api.get(`/User`),
         api.get(`/Asset?orgId=${user.orgId}`)
       ]);
       const registeredEmployees = usersRes.data.filter(u =>
-        (u.role?.toLowerCase() === 'user' || u.role?.toLowerCase() === 'technician') && u.invitationAccepted === true
+        u.role?.toLowerCase() === 'user' && u.invitationAccepted === true
       );
       setUsers(registeredEmployees);
       setAllAssets(assetsRes.data);

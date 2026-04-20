@@ -1,11 +1,6 @@
 import { useState, useEffect, useRef, useMemo, memo } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import api from '../../services/api';
-import { getFinancialInsightsReport } from '../../services/maintenanceLogService';
-import * as XLSX from 'xlsx';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
 import InviteUserModal from './InviteUserModal';
 import './DashboardPage.css';
 
@@ -30,591 +25,165 @@ function AnimVal({ val, suffix = '' }) {
 }
 
 /* ── Helpers ──────────────────────────────────────────────── */
+function greetingText() {
+  const h = new Date().getHours();
+  if (h < 12) return 'Good morning';
+  if (h < 17) return 'Good afternoon';
+  return 'Good evening';
+}
 
-const fmtDate = (d) => {
-  if (!d) return '—';
-  const date = new Date(d);
-  if (isNaN(date.getTime())) return '—';
-  return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
-};
+/* ── Bar chart data (static placeholder) ─────────────────── */
+const MONTHS_COST = [
+  { month: 'Aug', pct: 52 },
+  { month: 'Sep', pct: 68 },
+  { month: 'Oct', pct: 44 },
+  { month: 'Nov', pct: 78 },
+  { month: 'Dec', pct: 55 },
+  { month: 'Jan', pct: 40 },
+  { month: 'Feb', pct: 88, current: true },
+];
 
-const getTokenOrgIdFallback = () => {
-  try {
-    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-    if (!token) return null;
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    const rawOrgId = payload?.OrgId ?? payload?.orgId ?? null;
-    if (rawOrgId === null || rawOrgId === '') return null;
-    const parsed = Number(rawOrgId);
-    return Number.isFinite(parsed) ? parsed : null;
-  } catch {
-    return null;
-  }
-};
+/* ── Donut segments (static placeholder) ─────────────────── */
+const DONUT_DATA = [
+  { name: 'Laptops', pct: 46, count: 114, color: 'var(--db-blue)' },
+  { name: 'Printers', pct: 19, count: 47, color: 'var(--db-green)' },
+  { name: 'Vehicles', pct: 15, count: 37, color: 'var(--db-rust)' },
+  { name: 'Other', pct: 20, count: 50, color: 'var(--db-amber)' },
+];
 
-const ArrowIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="16" height="16">
-    <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
+/* ── Tickets placeholder ─────────────────────────────────── */
+const TICKETS = [
+  { asset: 'MacBook Pro M3', dept: 'IT Dept', issue: 'Screen flicker on startup', status: 'open', statusLabel: 'Open', priority: 'crit', priorityLabel: 'Critical', age: '2d' },
+  { asset: 'Canon iR2625', dept: 'Finance', issue: 'Paper jam — tray 2', status: 'prog', statusLabel: 'In Progress', priority: 'med', priorityLabel: 'Medium', age: '1d' },
+  { asset: 'Toyota Hilux GR', dept: 'Logistics', issue: 'Scheduled oil change due', status: 'wait', statusLabel: 'Waiting Parts', priority: 'high', priorityLabel: 'High', age: '4d' },
+  { asset: 'Dell UltraSharp 27"', dept: 'Design', issue: 'Dead pixels — centre area', status: 'open', statusLabel: 'Open', priority: 'med', priorityLabel: 'Medium', age: '6h' },
+  { asset: 'Cisco IP Phone', dept: 'Reception', issue: 'No dial tone intermittent', status: 'prog', statusLabel: 'In Progress', priority: 'low', priorityLabel: 'Low', age: '3d' },
+];
 
-/* ── Financial Insights Sub-Page ──────────────────────────── */
-const FinancialInsights = memo(function FinancialInsights({ insights: initialInsights, loading: initialLoading, error: initialError, orgId }) {
-  const [data, setData] = useState(initialInsights);
-  const [loading, setLoading] = useState(initialLoading);
-  const [error, setError] = useState(initialError);
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+/* ── Recent assets placeholder ───────────────────────────── */
+const RECENT_ASSETS = [
+  { emoji: '💻', name: 'MacBook Air M2', meta: 'IT · SN: C02XF8K5JGH5', badge: 'done', badgeLabel: 'Active' },
+  { emoji: '🖨️', name: 'HP LaserJet Pro', meta: 'Finance · SN: CNBKC27943', badge: 'done', badgeLabel: 'Active' },
+  { emoji: '🚗', name: 'Toyota Prius 2024', meta: 'Logistics · LPR: WP-4821', badge: 'prog', badgeLabel: 'Assigned' },
+  { emoji: '📱', name: 'iPad Pro 12.9"', meta: 'Sales · SN: DMPXK84LQ1GN', badge: 'done', badgeLabel: 'Active' },
+  { emoji: '🖥️', name: 'Dell XPS 15 9530', meta: 'Engineering · SN: 8FGT9X3', badge: 'open', badgeLabel: 'Maintenance' },
+];
 
-  // Sync initial loading metrics if we haven't filtered
-  useEffect(() => {
-    if (!startDate && !endDate) {
-      setData(initialInsights);
-      setLoading(initialLoading);
-      setError(initialError);
-    }
-  }, [initialInsights, initialLoading, initialError, startDate, endDate]);
+/* ── Team placeholder ────────────────────────────────────── */
+const TEAM_MEMBERS = [
+  { initials: 'AK', name: 'Ali Khan', role: 'Admin', color: '#2A6FC8', online: true },
+  { initials: 'SR', name: 'Sara Ramos', role: 'Technician', color: '#2D9456', online: true },
+  { initials: 'TN', name: 'Tom Ng', role: 'Admin', color: '#7B5EA7', online: false },
+  { initials: 'MW', name: 'Maya W.', role: 'Technician', color: '#C84B2F', online: true },
+  { initials: 'PL', name: 'Paul Lee', role: 'User', color: '#E8960A', online: false },
+  { initials: 'EF', name: 'Eva F.', role: 'User', color: '#546E7A', online: true },
+];
 
-  const loadData = async () => {
-    setLoading(true);
-    setError('');
-    try {
-      const res = await getFinancialInsightsReport({
-        orgId: orgId || undefined,
-        startDate: startDate || undefined,
-        endDate: endDate || undefined,
-      });
+/* ── Department bars ─────────────────────────────────────── */
+const DEPARTMENTS = [
+  { name: 'Information Technology', used: 84, total: 100, color: 'var(--db-blue)' },
+  { name: 'Logistics', used: 56, total: 80, color: 'var(--db-amber)' },
+  { name: 'Finance', used: 38, total: 60, color: 'var(--db-green)' },
+  { name: 'Human Resources', used: 22, total: 40, color: 'var(--db-rust)' },
+  { name: 'Design & Creative', used: 28, total: 40, color: '#7B5EA7' },
+  { name: 'Unassigned', used: 20, total: null, color: 'rgba(13,13,13,.18)' },
+];
 
-      if (res?.isSuccess === false) {
-        setError(res?.errorMessage || 'Failed to load financial insights');
-        setData(null);
-      } else {
-        const payload = res?.data ?? res;
-        setData(payload || null);
-      }
-    } catch (err) {
-      setError(err.response?.data?.errorMessage || err.message || 'Failed to load financial insights');
-      setData(null);
-    } finally {
-      setLoading(false);
-    }
-  };
+/* ── Activity feed placeholder ───────────────────────────── */
+const ACTIVITY = [
+  { icon: '✅', bg: 'rgba(45,148,86,.15)', text: <>Ticket <strong>#T-0042</strong> closed by Sara Ramos</>, time: '14 min ago' },
+  { icon: '👤', bg: 'rgba(42,111,200,.15)', text: <><strong>Kai Patel</strong> was added as a Technician</>, time: '1h ago' },
+  { icon: '🎫', bg: 'rgba(200,75,47,.15)', text: <>New ticket <strong>#T-0047</strong> raised by Paul Lee</>, time: '2h ago' },
+  { icon: '🔄', bg: 'rgba(232,150,10,.15)', text: <><strong>MacBook Air M2</strong> assigned to Eva F.</>, time: '3h ago' },
+];
 
-  const handleExportPDF = () => {
-    if (!data) return;
+/* ── Warranty alerts placeholder ─────────────────────────── */
+const WARRANTIES = [
+  { icon: '🚨', name: 'HP ProBook 450', days: 7, cls: 'crit' },
+  { icon: '⚠️', name: 'Canon iR2625', days: 23, cls: 'warn' },
+  { icon: '⚠️', name: 'Toyota Hilux', days: 31, cls: 'warn' },
+  { icon: '✅', name: 'MacBook Pro M3', days: 142, cls: 'ok' },
+];
 
-    const doc = new jsPDF();
-    let currentY = 14;
-
-    doc.setFontSize(16);
-    doc.text('Financial Insights Report', 14, currentY);
-    currentY += 10;
-
-    const formatCurrency = (v) => `$${(v || 0).toFixed(2)}`;
-
-    // Budget vs Actual
-    doc.setFontSize(12);
-    doc.text('Budget vs Actual', 14, currentY);
-    currentY += 5;
-    doc.autoTable({
-      startY: currentY,
-      head: [['Metric', 'Value']],
-      body: [
-        ['Total Budget', formatCurrency(data.budgetComparison?.totalBudget)],
-        ['Actual Spend', formatCurrency(data.budgetComparison?.actualSpend)],
-        ['Variance', formatCurrency(data.budgetComparison?.variance)]
-      ],
-      margin: { left: 14 }
-    });
-    currentY = doc.lastAutoTable.finalY + 10;
-
-    // Spend By Department
-    if (spendByDepartment && spendByDepartment.length > 0) {
-      if (currentY > 250) { doc.addPage(); currentY = 14; }
-      doc.text('Spend by Department', 14, currentY);
-      doc.autoTable({
-        startY: currentY + 5,
-        head: [['Department', 'Labour', 'Parts', 'Total Maintenance', 'Total Spend']],
-        body: spendByDepartment.map(d => [
-          d.departmentName,
-          formatCurrency(d.laborSpend),
-          formatCurrency(d.partsSpend),
-          formatCurrency(d.maintenanceSpend),
-          formatCurrency(d.totalSpend)
-        ]),
-        margin: { left: 14 }
-      });
-      currentY = doc.lastAutoTable.finalY + 10;
-    }
-
-    // Cost Per Technician
-    if (costPerTechnician && costPerTechnician.length > 0) {
-      if (currentY > 250) { doc.addPage(); currentY = 14; }
-      doc.text('Cost per Technician', 14, currentY);
-      doc.autoTable({
-        startY: currentY + 5,
-        head: [['Technician', 'Labour', 'Parts', 'Total']],
-        body: costPerTechnician.map(t => [
-          t.technicianName,
-          formatCurrency(t.laborCost),
-          formatCurrency(t.partsCost),
-          formatCurrency(t.totalCost)
-        ]),
-        margin: { left: 14 }
-      });
-      currentY = doc.lastAutoTable.finalY + 10;
-    }
-
-    // Cost Per Asset
-    if (costPerAsset && costPerAsset.length > 0) {
-      if (currentY > 250) { doc.addPage(); currentY = 14; }
-      doc.text('Cost per Asset (Top 10)', 14, currentY);
-      doc.autoTable({
-        startY: currentY + 5,
-        head: [['Asset', 'Initial Cost', 'Labour', 'Parts', 'Total Maint.', 'Total Cost']],
-        body: costPerAsset.map(a => [
-          a.assetName,
-          formatCurrency(a.purchaseCost),
-          formatCurrency(a.laborCost),
-          formatCurrency(a.partsCost),
-          formatCurrency(a.maintenanceCost),
-          formatCurrency(a.totalCost)
-        ]),
-        margin: { left: 14 }
-      });
-      currentY = doc.lastAutoTable.finalY + 10;
-    }
-
-    // Monthly Trends
-    if (monthlyTrends && monthlyTrends.length > 0) {
-      if (currentY > 250) { doc.addPage(); currentY = 14; }
-      doc.text('Monthly Spend Trends', 14, currentY);
-      doc.autoTable({
-        startY: currentY + 5,
-        head: [['Month', 'Labour', 'Parts', 'Total']],
-        body: monthlyTrends.map(m => [
-          m.month,
-          formatCurrency(m.laborSpend),
-          formatCurrency(m.partsSpend),
-          formatCurrency(m.spend)
-        ]),
-        margin: { left: 14 }
-      });
-    }
-
-    doc.save(`Financial_Insights_${startDate || 'All'}_to_${endDate || 'All'}.pdf`);
-  };
-
-  const handleExportExcel = () => {
-    if (!data) return;
-
-    const wb = XLSX.utils.book_new();
-
-    const statsData = [
-      ['Metric', 'Value'],
-      ['Total Budget', data.budgetComparison?.totalBudget || 0],
-      ['Actual Spend', data.budgetComparison?.actualSpend || 0],
-      ['Variance', data.budgetComparison?.variance || 0],
-    ];
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(statsData), 'Budget vs Actual');
-
-    if (data.spendByDepartment) {
-      const deptWs = XLSX.utils.json_to_sheet(data.spendByDepartment);
-      XLSX.utils.book_append_sheet(wb, deptWs, 'Spend by Department');
-    }
-
-    if (data.costPerTechnician) {
-      const techWs = XLSX.utils.json_to_sheet(data.costPerTechnician);
-      XLSX.utils.book_append_sheet(wb, techWs, 'Cost per Technician');
-    }
-
-    if (data.costPerAsset) {
-      const assetWs = XLSX.utils.json_to_sheet(data.costPerAsset);
-      XLSX.utils.book_append_sheet(wb, assetWs, 'Cost per Asset');
-    }
-
-    if (data.monthlyTrends) {
-      const trendWs = XLSX.utils.json_to_sheet(data.monthlyTrends);
-      XLSX.utils.book_append_sheet(wb, trendWs, 'Monthly Trends');
-    }
-
-    XLSX.writeFile(wb, 'Financial_Insights.xlsx');
-  };
-
-  const totalCost = data?.budgetComparison?.actualSpend
-    ?? data?.costPerAsset?.reduce((sum, item) => sum + (item.totalCost || 0), 0)
-    ?? 0;
-
-  const costPerAsset = (data?.costPerAsset || []).map((a) => {
-    const labor = Number(a?.laborCost ?? 0);
-    const parts = Number(a?.partsCost ?? 0);
-    const maintenance = Number(a?.maintenanceCost ?? (labor + parts));
-    const total = Number(a?.totalCost ?? 0);
-    const initial = Number(
-      a?.purchaseCost ?? Math.max(total - maintenance, 0)
-    );
-
-    return {
-      ...a,
-      laborCost: labor,
-      partsCost: parts,
-      maintenanceCost: maintenance,
-      purchaseCost: initial,
-      totalCost: total,
-    };
-  });
-
-  const spendByDepartment = (data?.spendByDepartment || []).map((d) => {
-    const maintenance = Number(d?.maintenanceSpend ?? 0);
-    const fallbackLabour = d?.laborSpend == null && d?.partsSpend == null ? maintenance : 0;
-    return {
-      ...d,
-      laborSpend: Number(d?.laborSpend ?? fallbackLabour),
-      partsSpend: Number(d?.partsSpend ?? 0),
-      maintenanceSpend: Number(d?.maintenanceSpend ?? Number(d?.laborSpend ?? 0) + Number(d?.partsSpend ?? 0)),
-      totalSpend: Number(d?.totalSpend ?? 0),
-    };
-  });
-
-  const costPerTechnician = (data?.costPerTechnician || []).map((t) => {
-    const total = Number(t?.totalCost ?? 0);
-    const fallbackLabour = t?.laborCost == null && t?.partsCost == null ? total : 0;
-    return {
-      ...t,
-      laborCost: Number(t?.laborCost ?? fallbackLabour),
-      partsCost: Number(t?.partsCost ?? 0),
-      totalCost: total,
-    };
-  });
-
-  const monthlyTrends = (data?.monthlyTrends || []).map((m) => {
-    const total = Number(m?.spend ?? 0);
-    const fallbackLabour = m?.laborSpend == null && m?.partsSpend == null ? total : 0;
-    return {
-      ...m,
-      laborSpend: Number(m?.laborSpend ?? fallbackLabour),
-      partsSpend: Number(m?.partsSpend ?? 0),
-      spend: total,
-    };
-  });
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      
-      <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', flexWrap: 'wrap', alignItems: 'center' }}>
-        <input 
-          type="date" 
-          value={startDate} 
-          onChange={(e) => setStartDate(e.target.value)} 
-          style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--db-border)', background: 'var(--db-surface)' }}
-        />
-        <input 
-          type="date" 
-          value={endDate} 
-          onChange={(e) => setEndDate(e.target.value)} 
-          style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--db-border)', background: 'var(--db-surface)' }}
-        />
-        <button 
-          style={{ padding: '8px 16px', borderRadius: '6px', background: 'var(--db-text)', color: 'var(--db-bg)', fontWeight: 600, border: 'none', cursor: 'pointer' }}
-          onClick={loadData}>Apply</button>
-        <button 
-          style={{ padding: '8px 16px', borderRadius: '6px', background: 'transparent', border: '1px solid var(--db-border)', color: 'var(--db-text)', fontWeight: 500, cursor: 'pointer' }}
-          onClick={handleExportPDF}>Export PDF</button>
-        <button 
-          style={{ padding: '8px 16px', borderRadius: '6px', background: 'transparent', border: '1px solid var(--db-border)', color: 'var(--db-text)', fontWeight: 500, cursor: 'pointer' }}
-          onClick={handleExportExcel}>Export Excel</button>
-      </div>
-
-      {error && (
-        <div className="db-panel" style={{ borderLeft: '3px solid var(--db-rust)' }}>
-          <div className="db-panel-body" style={{ color: 'var(--db-rust)', fontWeight: 600 }}>
-            {error}
-          </div>
-        </div>
-      )}
-
-      <div className="db-kpi-grid">
-        <div className="db-kpi db-kpi-rust">
-          <div className="db-kpi-icon">💰</div>
-          <div className="db-kpi-label">Total Organization Spend</div>
-          <div className="db-kpi-value"><AnimVal val={totalCost} suffix="" /></div>
-          <div className="db-kpi-sub">Lifetime maintenance cost (includes external parts)</div>
-        </div>
-      </div>
-
-      {loading && (
-        <div className="db-panel">
-          <div className="db-panel-body" style={{ textAlign: 'center', opacity: 0.7 }}>Loading financial insights...</div>
-        </div>
-      )}
-      
-      <div className="db-panel">
-        <div className="db-panel-head">
-          <span className="db-panel-title">Cost Breakdown by Asset</span>
-        </div>
-        <div className="db-panel-body" style={{ paddingTop: 8 }}>
-          <table className="db-ticket-table">
-            <thead>
-              <tr>
-                <th>Asset Name</th>
-                <th>Initial Cost</th>
-                <th>Labour</th>
-                <th>Parts</th>
-                <th>Total Maintenance</th>
-                <th>Total Cost</th>
-              </tr>
-            </thead>
-            <tbody>
-              {costPerAsset.map((r, idx) => (
-                <tr key={`${r.assetName}-${idx}`}>
-                  <td>{r.assetName}</td>
-                  <td>${(r.purchaseCost || 0).toFixed(2)}</td>
-                  <td>${(r.laborCost || 0).toFixed(2)}</td>
-                  <td>${(r.partsCost || 0).toFixed(2)}</td>
-                  <td>${(r.maintenanceCost || 0).toFixed(2)}</td>
-                  <td style={{color: 'var(--db-rust)', fontWeight: 600}}>${r.totalCost?.toFixed(2)}</td>
-                </tr>
-              ))}
-              {costPerAsset.length === 0 && !loading && (
-                <tr><td colSpan="6" style={{textAlign: 'center', padding: '20px'}}>No financial data available.</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div className="db-row db-row-3-2 db-d6">
-        <div className="db-panel">
-          <div className="db-panel-head">
-            <span className="db-panel-title">Spend by Department</span>
-          </div>
-          <div className="db-panel-body" style={{ paddingTop: 8 }}>
-            <table className="db-ticket-table">
-              <thead><tr><th>Department</th><th>Labour</th><th>Parts</th><th>Total Maintenance</th><th>Total Spend</th></tr></thead>
-              <tbody>
-                {spendByDepartment.map((d, idx) => (
-                  <tr key={`${d.departmentName}-${idx}`}>
-                    <td>{d.departmentName}</td>
-                    <td>${(d.laborSpend || 0).toFixed(2)}</td>
-                    <td>${(d.partsSpend || 0).toFixed(2)}</td>
-                    <td>${(d.maintenanceSpend || 0).toFixed(2)}</td>
-                    <td>${(d.totalSpend || 0).toFixed(2)}</td>
-                  </tr>
-                ))}
-                {spendByDepartment.length === 0 && !loading && <tr><td colSpan="5" style={{textAlign:'center'}}>No data</td></tr>}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div className="db-panel">
-          <div className="db-panel-head">
-            <span className="db-panel-title">Cost per Technician</span>
-          </div>
-          <div className="db-panel-body" style={{ paddingTop: 8 }}>
-            <table className="db-ticket-table">
-              <thead><tr><th>Technician</th><th>Labour</th><th>Parts</th><th>Total</th></tr></thead>
-              <tbody>
-                {costPerTechnician.map((t, idx) => (
-                  <tr key={`${t.technicianName}-${idx}`}>
-                    <td>{t.technicianName}</td>
-                    <td>${(t.laborCost || 0).toFixed(2)}</td>
-                    <td>${(t.partsCost || 0).toFixed(2)}</td>
-                    <td>${(t.totalCost || 0).toFixed(2)}</td>
-                  </tr>
-                ))}
-                {costPerTechnician.length === 0 && !loading && <tr><td colSpan="4" style={{textAlign:'center'}}>No data</td></tr>}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <div className="db-panel">
-        <div className="db-panel-head">
-          <span className="db-panel-title">Monthly Maintenance Trends (incl. external parts)</span>
-        </div>
-        <div className="db-panel-body" style={{ paddingTop: 8 }}>
-          <table className="db-ticket-table">
-            <thead><tr><th>Month</th><th>Labour</th><th>Parts</th><th>Total</th></tr></thead>
-            <tbody>
-              {monthlyTrends.map((m, idx) => (
-                <tr key={`${m.month}-${idx}`}>
-                  <td>{m.month}</td>
-                  <td>${(m.laborSpend || 0).toFixed(2)}</td>
-                  <td>${(m.partsSpend || 0).toFixed(2)}</td>
-                  <td>${(m.spend || 0).toFixed(2)}</td>
-                </tr>
-              ))}
-              {monthlyTrends.length === 0 && !loading && <tr><td colSpan="4" style={{textAlign:'center'}}>No data</td></tr>}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  );
-});
+/* ── SVG Icons ───────────────────────────────────────────── */
+const ArrowIcon = () => <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 8h10M9 4l4 4-4 4" /></svg>;
 
 /* ── Memoised heavy sub-components ────────────────────────── */
-const TicketTable = memo(function TicketTable({ tickets }) {
+const TicketTable = memo(function TicketTable() {
   return (
     <table className="db-ticket-table">
       <thead>
         <tr>
-          <th>Asset</th><th>Issue Title</th><th>Status</th><th>Priority</th><th>Logged</th><th></th>
+          <th>Asset / Dept</th><th>Issue</th><th>Status</th><th>Priority</th><th>Age</th><th></th>
         </tr>
       </thead>
       <tbody>
-        {tickets.map((t, i) => {
-          let statusColor = 'open';
-          if (t.status === 2) statusColor = 'prog';
-          if (t.status >= 3) statusColor = 'done';
-          return (
-          <tr key={t.ticketId || i}>
-            <td><div className="db-t-asset">Asset #{t.assetId}</div></td>
-            <td><div className="db-t-issue">{t.title}</div></td>
-            <td><span className={`db-badge db-badge-${statusColor}`}>{t.status === 1 ? 'Open' : t.status === 2 ? 'Assigned' : 'Resolved'}</span></td>
-            <td><span className={`db-priority db-priority-${t.priority === 1 ? 'crit' : 'med'}`}>Priority {t.priority}</span></td>
-            <td className="db-t-age">{fmtDate(t.createdAt)}</td>
+        {TICKETS.map((t, i) => (
+          <tr key={i}>
+            <td><div className="db-t-asset">{t.asset}</div><div className="db-t-dept">{t.dept}</div></td>
+            <td><div className="db-t-issue">{t.issue}</div></td>
+            <td><span className={`db-badge db-badge-${t.status}`}>{t.statusLabel}</span></td>
+            <td><span className={`db-priority db-priority-${t.priority}`}>{t.priorityLabel}</span></td>
+            <td className="db-t-age">{t.age}</td>
             <td><button className="db-t-action"><ArrowIcon /></button></td>
           </tr>
-        )})}
-        {tickets.length === 0 && <tr><td colSpan="6" style={{textAlign:'center', padding:'20px'}}>No open tickets</td></tr>}
+        ))}
       </tbody>
     </table>
   );
 });
 
-const AssetList = memo(function AssetList({ assets }) {
+const AssetList = memo(function AssetList() {
   return (
     <div className="db-asset-list">
-      {assets.slice(0, 5).map((a, i) => (
+      {RECENT_ASSETS.map((a, i) => (
         <div className="db-asset-item" key={i}>
-          <div className="db-asset-thumb">💻</div>
+          <div className="db-asset-thumb">{a.emoji}</div>
           <div className="db-asset-info">
-            <div className="db-asset-name">{a.assetName}</div>
-            <div className="db-asset-meta">SN: {a.serialNumber || 'N/A'}</div>
+            <div className="db-asset-name">{a.name}</div>
+            <div className="db-asset-meta">{a.meta}</div>
           </div>
-          <span className={`db-badge db-badge-${a.status?.toLowerCase() === 'available' ? 'done' : 'open'}`}>{a.status}</span>
+          <span className={`db-badge db-badge-${a.badge}`}>{a.badgeLabel}</span>
         </div>
       ))}
-      {assets.length === 0 && <div style={{padding:'20px', textAlign:'center'}}>No assets found</div>}
     </div>
   );
 });
 
-const EmployeeDashboardPage = () => (
-  <div className="tc-page" style={{padding: '40px', textAlign: 'center'}}>
-    <h2>Welcome to the Employee Portal</h2>
-    <p style={{opacity: 0.7}}>Access your assigned assets and maintenance requests from the sidebar.</p>
-  </div>
-);
-
-
 /* ████████████████████████████████████████████████████████████ */
 export default function DashboardPage() {
   const { user } = useAuth();
-  const navigate = useNavigate();
   
   // Employee users render a dedicated dashboard view.
   const isEmployee = user?.role?.toLowerCase() === 'user';
 
-  const [dashboardData, setDashboardData] = useState({
-    users: [],
-    assets: [],
-    tickets: [],
-    costReport: []
-  });
-  const [financialInsights, setFinancialInsights] = useState(null);
-  const [financialLoading, setFinancialLoading] = useState(false);
-  const [financialError, setFinancialError] = useState('');
-  const [activeTab, setActiveTab] = useState('overview');
+  const [orgData, setOrgData] = useState({ totalUsers: 17, activeUsers: 17 });
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const barRefs = useRef([]);
   const deptRefs = useRef([]);
   const mounted = useRef(false);
 
-  const currentOrgId = user?.orgId ?? getTokenOrgIdFallback();
-
+  const rawName = user?.email?.split('@')[0] || 'User';
+  const userName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
+  const currentOrgId = user?.orgId; // needed for department fetching
 
   /* ── Fetch data (non-blocking — page renders instantly) ── */
   useEffect(() => {
     let cancelled = false;
-
-    const loadData = async () => {
-      try {
-        setFinancialLoading(true);
-        setFinancialError('');
-
-        const usersRes = await api.get('/User', {
-          params: { orgId: currentOrgId }
-        });
-
-        const users = Array.isArray(usersRes?.data)
-          ? usersRes.data
-          : usersRes?.data?.data || [];
-
-        const resolvedOrgId =
-          currentOrgId ||
-          Number(users.find(u => String(u.userId) === String(user?.userId))?.orgId) ||
-          Number(users[0]?.orgId) ||
-          null;
-
-        const [aRes, tRes, cRes, fRes] = await Promise.allSettled([
-          resolvedOrgId
-            ? api.get('/Asset', { params: { orgId: resolvedOrgId } })
-            : Promise.resolve({ data: [] }),
-          api.get('/maintenance-tickets', { params: { pageSize: 100 } }),
-          api.get('/Maintenance/reports/cost', { params: { pageSize: 100 } }),
-          getFinancialInsightsReport({ orgId: resolvedOrgId || undefined })
-        ]);
-
+    api.get('/User')
+      .then(res => {
         if (cancelled) return;
-
-        const assets = aRes.status === 'fulfilled'
-          ? (Array.isArray(aRes.value?.data) ? aRes.value.data : (aRes.value?.data?.data || []))
-          : [];
-
-        const tickets = tRes.status === 'fulfilled'
-          ? (tRes.value?.data?.data?.items || tRes.value?.data?.items || [])
-          : [];
-
-        const costReport = cRes.status === 'fulfilled'
-          ? (cRes.value?.data?.data?.data?.items || cRes.value?.data?.data?.items || [])
-          : [];
-
-        if (fRes.status === 'fulfilled') {
-          const payload = fRes.value?.data ?? fRes.value;
-          if (payload?.isSuccess === false) {
-            setFinancialError(payload?.errorMessage || 'Failed to load financial insights');
-            setFinancialInsights(null);
-          } else {
-            setFinancialInsights(payload?.data ?? payload ?? null);
-          }
-        } else {
-          setFinancialError('Failed to load financial insights');
-          setFinancialInsights(null);
-        }
-
-        setDashboardData({
-          users,
-          assets,
-          tickets,
-          costReport
+        const all = res.data;
+        setOrgData({
+          totalUsers: all.length,
+          activeUsers: all.filter(u => u.isActive).length,
         });
-      } catch (err) {
-        console.error('Failed to fetch dashboard data', err);
-        setFinancialError('Failed to load financial insights');
-      } finally {
-        if (!cancelled) setFinancialLoading(false);
-      }
-    };
-    
-    loadData();
+      })
+      .catch(() => { /* keep defaults */ });
     return () => { cancelled = true; };
-  }, [currentOrgId, user?.userId]);
+  }, []);
 
-  /* ── Animate items on mount ── */
+  /* ── Animate bars on mount (runs once immediately) ── */
   useEffect(() => {
     if (mounted.current) return;
     mounted.current = true;
@@ -640,171 +209,16 @@ export default function DashboardPage() {
     return () => timers.forEach(clearTimeout);
   });
 
-
-  /* ── KPI data ── */
-  const activeUsers = dashboardData.users.filter(u => u.isActive).length;
-  const underMaintenance = dashboardData.assets.filter(a => {
-    const s = a.status?.toLowerCase();
-    return s === 'under_maintenance' || s === 'undermaintenance';
-  }).length;
-  const openTicketsCount = dashboardData.tickets.filter(t => t.status === 1 || t.status === 2).length;
-
+  /* ── KPI data (updates reactively when orgData arrives) ── */
   const kpis = useMemo(() => [
-    { color: 'blue', emoji: '💻', label: 'Total Assets', val: dashboardData.assets.length, delta: '—', deltaCls: 'up', sub: 'in organisation' },
-    { color: 'rust', emoji: '🎫', label: 'Open Tickets', val: openTicketsCount, delta: '—', deltaCls: 'down', sub: 'pending fixes' },
-    { color: 'amber', emoji: '🔧', label: 'Under Maintenance', val: underMaintenance, delta: '—', deltaCls: 'up', sub: 'currently deployed' },
-    { color: 'green', emoji: '👥', label: 'Active Users', val: activeUsers, delta: '—', deltaCls: 'up', sub: 'in system' },
-  ], [dashboardData.assets.length, openTicketsCount, underMaintenance, activeUsers]);
+    { color: 'blue', emoji: '💻', label: 'Total Assets', val: 248, delta: '↑ 12', deltaCls: 'up', sub: 'this month' },
+    { color: 'rust', emoji: '🎫', label: 'Open Tickets', val: 12, delta: '↑ 3', deltaCls: 'down', sub: 'vs last week' },
+    { color: 'amber', emoji: '🔧', label: 'Under Maintenance', val: 7, delta: '↓ 2', deltaCls: 'up', sub: 'resolved today' },
+    { color: 'green', emoji: '👥', label: 'Active Users', val: orgData.activeUsers, delta: '↑ 2', deltaCls: 'up', sub: 'added this week' },
+  ], [orgData.activeUsers]);
 
-  /* ── Dynamic Donut Data ── */
-  const donutDataRaw = useMemo(() => {
-    const counts = {};
-    dashboardData.assets.forEach(a => {
-      const type = a.assetType || 'Other';
-      counts[type] = (counts[type] || 0) + 1;
-    });
-    // sort by count
-    const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
-    const top3 = sorted.slice(0, 3);
-    const other = sorted.slice(3).reduce((acc, item) => acc + item[1], 0);
-    
-    const colors = ['var(--db-blue)', 'var(--db-green)', 'var(--db-rust)', 'var(--db-amber)'];
-    let finalData = top3.map(([name, count], i) => ({ name, count, color: colors[i] }));
-    if (other > 0 || finalData.length === 0) {
-      finalData.push({ name: 'Other', count: other, color: 'var(--db-amber)' });
-    }
-    const total = dashboardData.assets.length || 1;
-    let runningPct = 0;
-    finalData.forEach((d, i) => {
-      d.pct = Math.round((d.count / total) * 100);
-      if (i === finalData.length - 1) d.pct = 100 - runningPct; // ensure it adds to 100%
-      runningPct += d.pct;
-    });
-    return finalData;
-  }, [dashboardData.assets]);
-
-  const donutGradient = useMemo(() => {
-    if (donutDataRaw.length === 0) return `conic-gradient(var(--db-blue) 0% 100%)`;
-    let grad = [];
-    let acc = 0;
-    donutDataRaw.forEach((d) => {
-      const next = acc + d.pct;
-      grad.push(`${d.color} ${acc}% ${next}%`);
-      acc = next;
-    });
-    return `conic-gradient(${grad.join(', ')})`;
-  }, [donutDataRaw]);
-
-  /* ── Dynamic Bar Chart Data ── */
-  const { monthCostData, totalYtdCost, thisMonthCost } = useMemo(() => {
-    const currentMonthIndex = new Date().getMonth();
-    const currentYear = new Date().getFullYear();
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    let ytd = 0;
-    let thisMonth = 0;
-    const last6Months = [];
-    
-    for (let i = 5; i >= 0; i--) {
-      let m = new Date();
-      m.setMonth(currentMonthIndex - i);
-      last6Months.push({ 
-        month: months[m.getMonth()], 
-        monthIdx: m.getMonth(), 
-        year: m.getFullYear(), 
-        total: 0, 
-        pct: 0, 
-        current: i === 0 
-      });
-    }
-
-    const trends = financialInsights?.monthlyTrends || [];
-
-    if (trends.length > 0) {
-      trends.forEach((t) => {
-        const [yStr, mStr] = String(t.month || '').split('-');
-        const year = Number(yStr);
-        const monthIdx = Number(mStr) - 1;
-        const spend = Number(t.spend || 0);
-
-        if (!Number.isFinite(year) || !Number.isFinite(monthIdx) || monthIdx < 0 || monthIdx > 11) return;
-
-        if (year === currentYear) ytd += spend;
-        if (year === currentYear && monthIdx === currentMonthIndex) thisMonth += spend;
-
-        last6Months.forEach((m) => {
-          if (m.monthIdx === monthIdx && m.year === year) {
-            m.total += spend;
-          }
-        });
-      });
-    } else {
-      // Fallback: derive from maintenance cost report details
-      dashboardData.costReport.forEach(asset => {
-        asset.details?.forEach(d => {
-          const cost = Number(d.cost || 0);
-          const date = new Date(d.repairDate);
-          if (Number.isNaN(date.getTime())) return;
-
-          if (date.getFullYear() === currentYear) ytd += cost;
-          if (date.getMonth() === currentMonthIndex && date.getFullYear() === currentYear) {
-            thisMonth += cost;
-          }
-
-          last6Months.forEach(m => {
-            if (m.monthIdx === date.getMonth() && m.year === date.getFullYear()) {
-              m.total += cost;
-            }
-          });
-        });
-      });
-    }
-
-    let maxTotal = Math.max(...last6Months.map(m => m.total));
-    if (maxTotal === 0) maxTotal = 100; // prevent divide by zero
-
-    last6Months.forEach(m => {
-      m.pct = Math.round((m.total / maxTotal) * 100);
-      if (m.total > 0) m.pct = Math.max(m.pct, 5); // insure non-zero bars have some height
-    });
-
-    return { monthCostData: last6Months, totalYtdCost: ytd, thisMonthCost: thisMonth };
-  }, [dashboardData.costReport, financialInsights]);
-
-  /* ── Dynamic Department Data ── */
-  const deptDataRaw = useMemo(() => {
-    const counts = {};
-    dashboardData.assets.forEach(a => {
-      const dbDept = a.departmentName || 'Unassigned';
-      counts[dbDept] = (counts[dbDept] || 0) + 1;
-    });
-
-    const colors = ['var(--db-blue)', 'var(--db-amber)', 'var(--db-green)', 'var(--db-rust)', '#7B5EA7', 'rgba(13,13,13,.18)'];
-    
-    return Object.entries(counts)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 6)
-      .map(([name, used], i) => ({
-        name,
-        used,
-        total: Math.max(used * 1.5, 10).toFixed(0), // Mocked department total limit
-        color: colors[i % colors.length]
-      }));
-  }, [dashboardData.assets]);
-
-  /* ── Dynamic Warranty Data ── */
-  const warrantyDataRaw = useMemo(() => {
-    if(dashboardData.assets.length === 0) return [];
-    const withLength = dashboardData.assets.slice(0, 4);
-    return withLength.map((a, i) => {
-       const days = [7, 23, 76, 142][i % 4];
-       let cls = 'ok', icon = '✅';
-       if (days < 10) { cls = 'crit'; icon = '🚨'; }
-       else if (days < 30) { cls = 'warn'; icon = '⚠️'; }
-       return { icon, name: a.assetName || `Asset #${a.assetId}`, days, cls };
-    });
-  }, [dashboardData.assets]);
-  /* ── Dynamic Activity Data ── */
-
+  /* ── Donut gradient ────────────────────────────────────── */
+  const donutGradient = `conic-gradient(var(--db-blue) 0% 46%, var(--db-green) 46% 65%, var(--db-rust) 65% 80%, var(--db-amber) 80% 100%)`;
 
   if (isEmployee) {
     return <EmployeeDashboardPage />;
@@ -815,84 +229,67 @@ export default function DashboardPage() {
     <div className="page db-page">
 
       {/* ── Greeting ─────────────────────────────────────── */}
-      {/* ── Tabs header ─────────────────────────────────────── */}
-      <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', borderBottom: '1px solid rgba(13,13,13,0.12)', paddingBottom: '6px' }}>
-        <button 
-          style={{
-            padding: '8px 16px',
-            background: activeTab === 'overview' ? 'rgba(42,111,200,0.12)' : 'transparent',
-            border: 'none',
-            borderBottom: activeTab === 'overview' ? '2px solid var(--db-blue)' : '2px solid transparent',
-            color: activeTab === 'overview' ? 'var(--db-text)' : 'rgba(13,13,13,0.62)',
-            cursor: 'pointer',
-            fontSize: '15px',
-            fontWeight: 600,
-            borderRadius: '8px'
-          }}
-          onClick={() => setActiveTab('overview')}
-        >
-          Overview
-        </button>
-        <button 
-          style={{
-            padding: '8px 16px',
-            background: activeTab === 'financial' ? 'rgba(200,75,47,0.12)' : 'transparent',
-            border: 'none',
-            borderBottom: activeTab === 'financial' ? '2px solid var(--db-rust)' : '2px solid transparent',
-            color: activeTab === 'financial' ? 'var(--db-text)' : 'rgba(13,13,13,0.62)',
-            cursor: 'pointer',
-            fontSize: '15px',
-            fontWeight: 600,
-            borderRadius: '8px'
-          }}
-          onClick={() => setActiveTab('financial')}
-        >
-          Financial Insights
-        </button>
+      <div className="db-greeting">
+        <div className="db-greeting-text">
+          <h2>{greetingText()}, <em>{userName}.</em></h2>
+          <p>Here's what's happening across your organisation today.</p>
+        </div>
+        <div className="db-greeting-meta">
+          <div className="db-gm-item">
+            <div className="db-gm-label">Open Tickets</div>
+            <div className="db-gm-value" style={{ color: 'var(--db-rust)' }}>12</div>
+          </div>
+          <div className="db-gm-item">
+            <div className="db-gm-label">Overdue</div>
+            <div className="db-gm-value" style={{ color: 'var(--db-amber)' }}>3</div>
+          </div>
+          <div className="db-gm-item">
+            <div className="db-gm-label">Expiring Soon</div>
+            <div className="db-gm-value" style={{ color: 'var(--db-mist)' }}>5</div>
+          </div>
+        </div>
       </div>
 
-      {activeTab === 'financial' ? (
-        <FinancialInsights insights={financialInsights} loading={financialLoading} error={financialError} orgId={currentOrgId} />
-      ) : (
-      <>
       {/* ── KPIs ─────────────────────────────────────────── */}
       <div className="db-kpi-grid">
         {kpis.map((k, i) => (
-          <div className={`db-kpi db-kpi-${k.color}`} key={i}>
+          <div className={`db-kpi db-kpi-${k.color}`} key={i} style={{ animationDelay: `${0.05 + i * 0.05}s` }}>
             <div className="db-kpi-icon">{k.emoji}</div>
             <div className="db-kpi-label">{k.label}</div>
             <div className="db-kpi-value"><AnimVal val={k.val} /></div>
-            <div className="db-kpi-sub">{k.sub}</div>
+            <div className="db-kpi-sub">
+              <span className={`db-kpi-delta db-delta-${k.deltaCls}`}>{k.delta}</span> {k.sub}
+            </div>
           </div>
         ))}
       </div>
 
-      {/* ── Row 1: Charts ── */}
+      {/* ── Row 1: Bar Chart + Donut ─────────────────────── */}
       <div className="db-row db-row-3-2 db-d5">
         {/* Monthly Maintenance Cost */}
         <div className="db-panel">
           <div className="db-panel-head">
             <span className="db-panel-title">Monthly Maintenance Cost</span>
-            <button className="db-panel-action" onClick={() => navigate('/financial-insights')}>View report →</button>
+            <button className="db-panel-action">View report →</button>
           </div>
           <div className="db-panel-body">
             <div className="db-cost-header">
               <div>
                 <div className="db-cost-label">YTD Total</div>
-                <div className="db-cost-big">${totalYtdCost.toFixed(0)}</div>
+                <div className="db-cost-big">$14,820</div>
               </div>
               <div style={{ textAlign: 'right' }}>
                 <div className="db-cost-label">This month</div>
-                <div className="db-cost-month">${thisMonthCost.toFixed(0)}</div>
+                <div className="db-cost-month">$2,340</div>
               </div>
             </div>
             <div className="db-bar-chart">
-              {monthCostData.map((m, i) => (
+              {MONTHS_COST.map((m, i) => (
                 <div className="db-bar-col" key={i}>
                   <div className="db-bar-wrap">
                     <div
                       className={`db-bar-fill ${m.current ? 'current' : 'dim'}`}
-                      ref={el => { if (barRefs.current) barRefs.current[i] = el; }}
+                      ref={el => barRefs.current[i] = el}
                       data-h={m.pct}
                     />
                   </div>
@@ -907,18 +304,18 @@ export default function DashboardPage() {
         <div className="db-panel">
           <div className="db-panel-head">
             <span className="db-panel-title">Asset Breakdown</span>
-            <button className="db-panel-action" onClick={() => navigate('/maintenance-logs')}>All assets →</button>
+            <button className="db-panel-action">All assets →</button>
           </div>
           <div className="db-panel-body">
             <div className="db-donut-wrap">
               <div className="db-donut" style={{ background: donutGradient }}>
                 <div className="db-donut-centre">
-                  <div className="db-donut-num">{dashboardData.assets.length}</div>
+                  <div className="db-donut-num">248</div>
                   <div className="db-donut-lbl">Total</div>
                 </div>
               </div>
               <div className="db-donut-legend">
-                {donutDataRaw.map((d, i) => (
+                {DONUT_DATA.map((d, i) => (
                   <div className="db-legend-item" key={i}>
                     <div className="db-legend-dot" style={{ background: d.color }} />
                     <div className="db-legend-name">{d.name}</div>
@@ -934,72 +331,72 @@ export default function DashboardPage() {
 
       {/* ── Row 2: Tickets + Recent Assets ───────────────── */}
       <div className="db-row db-row-3-2 db-d6">
+        {/* Tickets table */}
         <div className="db-panel">
           <div className="db-panel-head">
-            <span className="db-panel-title">Recent Tickets</span>
-            <button className="db-panel-action" onClick={() => navigate('/tickets')}>All tickets →</button>
+            <span className="db-panel-title">Open Maintenance Tickets</span>
+            <button className="db-panel-action">All tickets →</button>
           </div>
           <div className="db-panel-body" style={{ paddingTop: 8 }}>
-            <TicketTable tickets={dashboardData.tickets.filter(t => t.status < 3).slice(0, 5)} />
+            <TicketTable />
           </div>
         </div>
 
+        {/* Recently Added Assets */}
         <div className="db-panel">
           <div className="db-panel-head">
-            <span className="db-panel-title">Recent Assets</span>
-            <button className="db-panel-action" onClick={() => navigate('/assets')}>All assets →</button>
+            <span className="db-panel-title">Recently Added Assets</span>
+            <button className="db-panel-action">All assets →</button>
           </div>
           <div className="db-panel-body" style={{ paddingTop: 8 }}>
-            <AssetList assets={dashboardData.assets} />
+            <AssetList />
           </div>
         </div>
       </div>
 
       {/* ── Row 3: Team + Departments + Activity/Warranty ── */}
       <div className="db-row db-row-3 db-d7">
+        {/* Team */}
         <div className="db-panel">
           <div className="db-panel-head">
-            <span className="db-panel-title">Team Structure</span>
-            <button className="db-panel-action" onClick={() => navigate('/users')}>Manage users →</button>
+            <span className="db-panel-title">Team</span>
+            <button className="db-panel-action" onClick={() => setIsInviteModalOpen(true)}>Manage users →</button>
           </div>
           <div className="db-panel-body" style={{ paddingTop: 12 }}>
             <div className="db-team-grid">
-              {dashboardData.users.slice(0, 6).map((m, i) => {
-                 const initials = (m.fullName || m.email || 'U').substring(0,2).toUpperCase();
-                 return (
+              {TEAM_MEMBERS.map((m, i) => (
                 <div className="db-member" key={i}>
-                  <div className="db-m-avatar" style={{ background: '#2A6FC8' }}>{initials}</div>
+                  <div className="db-m-avatar" style={{ background: m.color }}>{m.initials}</div>
                   <div>
-                    <div className="db-m-name">{m.fullName || m.email}</div>
+                    <div className="db-m-name">{m.name}</div>
                     <div className="db-m-role">{m.role}</div>
                   </div>
-                  <div className={`db-m-status ${m.isActive ? 'on' : 'off'}`} />
+                  <div className={`db-m-status ${m.online ? 'on' : 'off'}`} />
                 </div>
-              )})}
+              ))}
             </div>
-            {/* Adding back plan usage logic referencing Dashboard Data limit */}
             <div className="db-plan-usage">
               <div className="db-plan-label">Plan usage</div>
               <div className="db-plan-track">
-                <div className="db-plan-fill" style={{ width: `${Math.min(100, Math.round((dashboardData.users.length / 25) * 100))}%` }} />
+                <div className="db-plan-fill" style={{ width: '68%' }} />
               </div>
               <div className="db-plan-nums">
-                <span>{dashboardData.users.length} of 25 seats used</span>
-                <span style={{ color: 'var(--db-text)' }}>{Math.min(100, Math.round((dashboardData.users.length / 25) * 100))}%</span>
+                <span>{orgData.totalUsers} of 25 seats used</span>
+                <span style={{ color: 'var(--db-text)' }}>68%</span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Department Usage restored */}
+        {/* Department Usage */}
         <div className="db-panel">
           <div className="db-panel-head">
             <span className="db-panel-title">Assets by Department</span>
-            <button className="db-panel-action" onClick={() => navigate('/departments')}>Departments →</button>
+            <button className="db-panel-action">Departments →</button>
           </div>
           <div className="db-panel-body" style={{ paddingTop: 14 }}>
             <div className="db-dept-bars">
-              {deptDataRaw.map((d, i) => (
+              {DEPARTMENTS.map((d, i) => (
                 <div className="db-dept-row" key={i}>
                   <div className="db-dept-meta">
                     <span className="db-dept-name">{d.name}</span>
@@ -1008,42 +405,60 @@ export default function DashboardPage() {
                   <div className="db-dept-track">
                     <div
                       className="db-dept-fill"
-                      ref={el => { if (deptRefs.current) deptRefs.current[i] = el; }}
+                      ref={el => deptRefs.current[i] = el}
                       data-w={d.total ? Math.round((d.used / d.total) * 100) : 20}
                       style={{ background: d.color }}
                     />
                   </div>
                 </div>
               ))}
-              {deptDataRaw.length === 0 && <div style={{textAlign: 'center', opacity: 0.5}}>No assets deployed yet</div>}
             </div>
           </div>
         </div>
 
+        {/* Activity + Warranty col */}
         <div className="db-stacked-col">
+          {/* Activity Feed */}
+          <div className="db-panel db-panel-flex">
+            <div className="db-panel-head">
+              <span className="db-panel-title">Recent Activity</span>
+              <button className="db-panel-action">View all →</button>
+            </div>
+            <div className="db-panel-body" style={{ paddingTop: 8 }}>
+              <div className="db-activity">
+                {ACTIVITY.map((a, i) => (
+                  <div className="db-act-item" key={i}>
+                    <div className="db-act-icon" style={{ background: a.bg }}>{a.icon}</div>
+                    <div className="db-act-body">
+                      <div className="db-act-text">{a.text}</div>
+                      <div className="db-act-time">{a.time}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
           {/* Warranty Alerts */}
           <div className="db-panel">
             <div className="db-panel-head">
               <span className="db-panel-title">Warranty Expiry</span>
-              <button className="db-panel-action" onClick={() => navigate('/report-warranty')}>Full report →</button>
+              <button className="db-panel-action">Full report →</button>
             </div>
             <div className="db-panel-body" style={{ paddingTop: 8 }}>
               <div className="db-warranty-list">
-                {warrantyDataRaw.map((w, i) => (
+                {WARRANTIES.map((w, i) => (
                   <div className="db-w-item" key={i}>
                     <div className="db-w-icon">{w.icon}</div>
                     <div className="db-w-name">{w.name}</div>
                     <span className={`db-w-days db-w-${w.cls}`}>{w.days} days</span>
                   </div>
                 ))}
-                {warrantyDataRaw.length === 0 && <div style={{textAlign: 'center', opacity: 0.5}}>No assets nearing expiry</div>}
               </div>
             </div>
           </div>
         </div>
       </div>
-      </>
-      )}
 
       {/* Invite User Modal */}
       <InviteUserModal
@@ -1051,8 +466,13 @@ export default function DashboardPage() {
         onClose={() => setIsInviteModalOpen(false)}
         orgId={currentOrgId}
         onUserInvited={() => {
-          api.get('/User', { params: { orgId: currentOrgId } }).then(res => {
-            setDashboardData(prev => ({ ...prev, users: res.data || [] }));
+          // Optionally refresh dashboard user count here
+          api.get('/User').then(res => {
+            const all = res.data;
+            setOrgData({
+              totalUsers: all.length,
+              activeUsers: all.filter(u => u.isActive).length,
+            });
           }).catch(() => { });
         }}
       />

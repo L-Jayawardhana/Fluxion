@@ -13,7 +13,7 @@ test_command="dotnet test Integration Tests"
 echo "🔗 Running Integration Tests..."
 
 # Capture test output
-test_output=$(dotnet test "$REPO_ROOT/BackEnd/tests/Fluxion.IntegrationTests/Fluxion.IntegrationTests.csproj" \
+test_output=$(dotnet test "$REPO_ROOT/tests/Fluxion.IntegrationTests/Fluxion.IntegrationTests.csproj" \
   --configuration Release \
   --logger "console;verbosity=normal" \
   --logger "trx;LogFileName=integration-tests.trx" \

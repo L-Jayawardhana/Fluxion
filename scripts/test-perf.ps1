@@ -8,7 +8,7 @@
 $ErrorActionPreference = "Stop"
 $ScriptDir  = Split-Path -Parent $MyInvocation.MyCommand.Path
 $RepoRoot   = Split-Path -Parent $ScriptDir
-$JmeterDir  = Join-Path $RepoRoot "qa\jmeter"
+$JmeterDir  = Join-Path $RepoRoot "tests\jmeter"
 $ResultsDir = Join-Path $JmeterDir "results"
 
 $Plan = if ($args.Count -gt 0) { $args[0] } else { "smoke" }

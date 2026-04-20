@@ -32,12 +32,8 @@ export const updateTicketStatus = async (id, status) => {
   return res.data;
 };
 
-export const logRepair = async (id, repairDescription, cost, externalPartsCost) => {
-  const res = await api.put(`/technician/tickets/${id}/repair`, {
-    repairDescription,
-    cost,
-    externalPartsCost,
-  });
+export const logRepair = async (id, repairDescription, cost) => {
+  const res = await api.put(`/technician/tickets/${id}/repair`, { repairDescription, cost });
   return res.data;
 };
 
@@ -46,19 +42,8 @@ export const addComment = async (id, content) => {
   return res.data;
 };
 
-// ── Asset ─────────────────────────────────────────────────────────────────
+// ── Asset ─────────────────────────────────────────────────────
 export const updateAssetCondition = async (assetId, condition) => {
   const res = await api.patch(`/technician/assets/${assetId}/condition`, { condition });
   return res.data;
 };
-
-/**
- * Returns distinct assets the technician has been assigned to
- * (via tickets or direct repair logs).  Used by the maintenance log
- * asset picker so technicians only see relevant assets.
- */
-export const getTechnicianAssets = async () => {
-  const res = await api.get('/technician/assets');
-  return res.data;
-};
-

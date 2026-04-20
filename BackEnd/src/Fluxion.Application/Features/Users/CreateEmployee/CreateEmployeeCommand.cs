@@ -9,6 +9,6 @@ public record CreateEmployeeCommand(
     string Email,
     string Password,
     int OrgId,
-    int? DepartmentId,
+    int DepartmentId,
     string Role = "user"
 ) : IRequest<RegisterResponse>;

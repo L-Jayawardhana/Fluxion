@@ -86,7 +86,7 @@ export default function InviteUserPage() {
         email: formData.email,
         password: formData.password,
         orgId: parseInt(currentOrgId, 10),
-        departmentId: (formData.role === 'manager' || formData.role === 'technician') ? null : parseInt(formData.departmentId, 10),
+        departmentId: parseInt(formData.departmentId, 10),
         role: formData.role,
       });
       const invitedName = `${formData.firstName} ${formData.lastName}`;
@@ -98,7 +98,6 @@ export default function InviteUserPage() {
       ]);
       setFormData({ firstName: '', lastName: '', email: '', password: '', role: 'user', departmentId: departments.length > 0 ? departments[0].departmentId : '' });
     } catch (err) {
-      console.error(err);
       setErrorMsg(err.response?.data?.message || 'Failed to send invitation. Please try again.');
     } finally {
       setIsSubmitting(false);
@@ -231,38 +230,29 @@ export default function InviteUserPage() {
                     value={formData.role} onChange={handleChange} disabled={isSubmitting}>
                     <option value="user">Employee</option>
                     <option value="technician">Technician</option>
-                    {(user?.role === 'owner' || user?.role === 'admin' || user?.role === 'systemadmin') && (
-                      <option value="manager">Manager</option>
-                    )}
                   </select>
                 </div>
               </div>
-              {(formData.role !== 'manager' && formData.role !== 'technician') && (
-                <div className="iu-field">
-                  <label htmlFor="iu-dept">Department</label>
-                  <div className="iu-input-wrap">
-                    <span className="iu-in-icon">{Icons.dept}</span>
-                    <select id="iu-dept" name="departmentId" required
-                      value={formData.departmentId} onChange={handleChange}
-                      disabled={isSubmitting || loadingDepts || departments.length === 0}>
-                      {loadingDepts && <option value="">Loading departments…</option>}
-                      {!loadingDepts && departments.length === 0 && <option value="">No active departments</option>}
-                      {!loadingDepts && departments.map(d => (
-                        <option key={d.departmentId} value={d.departmentId}>{d.departmentName}</option>
-                      ))}
-                    </select>
-                  </div>
+              <div className="iu-field">
+                <label htmlFor="iu-dept">Department</label>
+                <div className="iu-input-wrap">
+                  <span className="iu-in-icon">{Icons.dept}</span>
+                  <select id="iu-dept" name="departmentId" required
+                    value={formData.departmentId} onChange={handleChange}
+                    disabled={isSubmitting || loadingDepts || departments.length === 0}>
+                    {loadingDepts && <option value="">Loading departments…</option>}
+                    {!loadingDepts && departments.length === 0 && <option value="">No active departments</option>}
+                    {!loadingDepts && departments.map(d => (
+                      <option key={d.departmentId} value={d.departmentId}>{d.departmentName}</option>
+                    ))}
+                  </select>
                 </div>
-              )}
+              </div>
             </div>
 
             {/* Submit */}
             <div className="iu-footer">
-              <button 
-                type="submit" 
-                className="iu-btn-submit" 
-                disabled={isSubmitting || ((formData.role !== 'manager' && formData.role !== 'technician') && departments.length === 0)}
-              >
+              <button type="submit" className="iu-btn-submit" disabled={isSubmitting || departments.length === 0}>
                 {isSubmitting ? (
                   <><span className="iu-spinner" /> Sending…</>
                 ) : (
