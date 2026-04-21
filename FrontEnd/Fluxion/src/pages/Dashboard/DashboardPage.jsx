@@ -4,8 +4,8 @@ import { useAuth } from '../../hooks/useAuth';
 import api from '../../services/api';
 import { getFinancialInsightsReport } from '../../services/maintenanceLogService';
 import * as XLSX from 'xlsx';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import InviteUserModal from './InviteUserModal';
 import './DashboardPage.css';
 
@@ -100,168 +100,15 @@ const FinancialInsights = memo(function FinancialInsights({ insights: initialIns
     }
   };
 
-  const handleExportPDF = () => {
-    if (!data) return;
-
-    const doc = new jsPDF();
-    let currentY = 14;
-
-    doc.setFontSize(16);
-    doc.text('Financial Insights Report', 14, currentY);
-    currentY += 10;
-
-    const formatCurrency = (v) => `$${(v || 0).toFixed(2)}`;
-
-    // Budget vs Actual
-    doc.setFontSize(12);
-    doc.text('Budget vs Actual', 14, currentY);
-    currentY += 5;
-    doc.autoTable({
-      startY: currentY,
-      head: [['Metric', 'Value']],
-      body: [
-        ['Total Budget', formatCurrency(data.budgetComparison?.totalBudget)],
-        ['Actual Spend', formatCurrency(data.budgetComparison?.actualSpend)],
-        ['Variance', formatCurrency(data.budgetComparison?.variance)]
-      ],
-      margin: { left: 14 }
-    });
-    currentY = doc.lastAutoTable.finalY + 10;
-
-    // Spend By Department
-    if (spendByDepartment && spendByDepartment.length > 0) {
-      if (currentY > 250) { doc.addPage(); currentY = 14; }
-      doc.text('Spend by Department', 14, currentY);
-      doc.autoTable({
-        startY: currentY + 5,
-        head: [['Department', 'Labour', 'Parts', 'Total Maintenance', 'Total Spend']],
-        body: spendByDepartment.map(d => [
-          d.departmentName,
-          formatCurrency(d.laborSpend),
-          formatCurrency(d.partsSpend),
-          formatCurrency(d.maintenanceSpend),
-          formatCurrency(d.totalSpend)
-        ]),
-        margin: { left: 14 }
-      });
-      currentY = doc.lastAutoTable.finalY + 10;
-    }
-
-    // Cost Per Technician
-    if (costPerTechnician && costPerTechnician.length > 0) {
-      if (currentY > 250) { doc.addPage(); currentY = 14; }
-      doc.text('Cost per Technician', 14, currentY);
-      doc.autoTable({
-        startY: currentY + 5,
-        head: [['Technician', 'Labour', 'Parts', 'Total']],
-        body: costPerTechnician.map(t => [
-          t.technicianName,
-          formatCurrency(t.laborCost),
-          formatCurrency(t.partsCost),
-          formatCurrency(t.totalCost)
-        ]),
-        margin: { left: 14 }
-      });
-      currentY = doc.lastAutoTable.finalY + 10;
-    }
-
-    // Cost Per Asset
-    if (costPerAsset && costPerAsset.length > 0) {
-      if (currentY > 250) { doc.addPage(); currentY = 14; }
-      doc.text('Cost per Asset (Top 10)', 14, currentY);
-      doc.autoTable({
-        startY: currentY + 5,
-        head: [['Asset', 'Initial Cost', 'Labour', 'Parts', 'Total Maint.', 'Total Cost']],
-        body: costPerAsset.map(a => [
-          a.assetName,
-          formatCurrency(a.purchaseCost),
-          formatCurrency(a.laborCost),
-          formatCurrency(a.partsCost),
-          formatCurrency(a.maintenanceCost),
-          formatCurrency(a.totalCost)
-        ]),
-        margin: { left: 14 }
-      });
-      currentY = doc.lastAutoTable.finalY + 10;
-    }
-
-    // Monthly Trends
-    if (monthlyTrends && monthlyTrends.length > 0) {
-      if (currentY > 250) { doc.addPage(); currentY = 14; }
-      doc.text('Monthly Spend Trends', 14, currentY);
-      doc.autoTable({
-        startY: currentY + 5,
-        head: [['Month', 'Labour', 'Parts', 'Total']],
-        body: monthlyTrends.map(m => [
-          m.month,
-          formatCurrency(m.laborSpend),
-          formatCurrency(m.partsSpend),
-          formatCurrency(m.spend)
-        ]),
-        margin: { left: 14 }
-      });
-    }
-
-    doc.save(`Financial_Insights_${startDate || 'All'}_to_${endDate || 'All'}.pdf`);
-  };
-
-  const handleExportExcel = () => {
-    if (!data) return;
-
-    const wb = XLSX.utils.book_new();
-
-    const statsData = [
-      ['Metric', 'Value'],
-      ['Total Budget', data.budgetComparison?.totalBudget || 0],
-      ['Actual Spend', data.budgetComparison?.actualSpend || 0],
-      ['Variance', data.budgetComparison?.variance || 0],
-    ];
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(statsData), 'Budget vs Actual');
-
-    if (data.spendByDepartment) {
-      const deptWs = XLSX.utils.json_to_sheet(data.spendByDepartment);
-      XLSX.utils.book_append_sheet(wb, deptWs, 'Spend by Department');
-    }
-
-    if (data.costPerTechnician) {
-      const techWs = XLSX.utils.json_to_sheet(data.costPerTechnician);
-      XLSX.utils.book_append_sheet(wb, techWs, 'Cost per Technician');
-    }
-
-    if (data.costPerAsset) {
-      const assetWs = XLSX.utils.json_to_sheet(data.costPerAsset);
-      XLSX.utils.book_append_sheet(wb, assetWs, 'Cost per Asset');
-    }
-
-    if (data.monthlyTrends) {
-      const trendWs = XLSX.utils.json_to_sheet(data.monthlyTrends);
-      XLSX.utils.book_append_sheet(wb, trendWs, 'Monthly Trends');
-    }
-
-    XLSX.writeFile(wb, 'Financial_Insights.xlsx');
-  };
-
-  const totalCost = data?.budgetComparison?.actualSpend
-    ?? data?.costPerAsset?.reduce((sum, item) => sum + (item.totalCost || 0), 0)
-    ?? 0;
+  // ── Computed / normalised data arrays (must be declared BEFORE export handlers) ──
 
   const costPerAsset = (data?.costPerAsset || []).map((a) => {
     const labor = Number(a?.laborCost ?? 0);
     const parts = Number(a?.partsCost ?? 0);
     const maintenance = Number(a?.maintenanceCost ?? (labor + parts));
     const total = Number(a?.totalCost ?? 0);
-    const initial = Number(
-      a?.purchaseCost ?? Math.max(total - maintenance, 0)
-    );
-
-    return {
-      ...a,
-      laborCost: labor,
-      partsCost: parts,
-      maintenanceCost: maintenance,
-      purchaseCost: initial,
-      totalCost: total,
-    };
+    const initial = Number(a?.purchaseCost ?? Math.max(total - maintenance, 0));
+    return { ...a, laborCost: labor, partsCost: parts, maintenanceCost: maintenance, purchaseCost: initial, totalCost: total };
   });
 
   const spendByDepartment = (data?.spendByDepartment || []).map((d) => {
@@ -279,24 +126,242 @@ const FinancialInsights = memo(function FinancialInsights({ insights: initialIns
   const costPerTechnician = (data?.costPerTechnician || []).map((t) => {
     const total = Number(t?.totalCost ?? 0);
     const fallbackLabour = t?.laborCost == null && t?.partsCost == null ? total : 0;
-    return {
-      ...t,
-      laborCost: Number(t?.laborCost ?? fallbackLabour),
-      partsCost: Number(t?.partsCost ?? 0),
-      totalCost: total,
-    };
+    return { ...t, laborCost: Number(t?.laborCost ?? fallbackLabour), partsCost: Number(t?.partsCost ?? 0), totalCost: total };
   });
 
   const monthlyTrends = (data?.monthlyTrends || []).map((m) => {
     const total = Number(m?.spend ?? 0);
     const fallbackLabour = m?.laborSpend == null && m?.partsSpend == null ? total : 0;
-    return {
-      ...m,
-      laborSpend: Number(m?.laborSpend ?? fallbackLabour),
-      partsSpend: Number(m?.partsSpend ?? 0),
-      spend: total,
-    };
+    return { ...m, laborSpend: Number(m?.laborSpend ?? fallbackLabour), partsSpend: Number(m?.partsSpend ?? 0), spend: total };
   });
+
+  const totalCost = data?.budgetComparison?.actualSpend
+    ?? costPerAsset.reduce((sum, item) => sum + (item.totalCost || 0), 0);
+
+  const formatCurrency = (v) => `$${(Number(v) || 0).toFixed(2)}`;
+  const reportDateRange = startDate || endDate
+    ? `${startDate || 'Start'} to ${endDate || 'Present'}`
+    : 'All Time';
+
+  // ── PDF Export ──────────────────────────────────────────────────────────────
+  const handleExportPDF = () => {
+    if (!data) return;
+
+    const doc = new jsPDF();
+    const pageW = doc.internal.pageSize.getWidth();
+    let y = 14;
+
+    // ── Cover header
+    doc.setFillColor(200, 75, 47);
+    doc.rect(0, 0, pageW, 28, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Financial Insights Report', 14, 18);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Period: ${reportDateRange}   |   Generated: ${new Date().toLocaleDateString()}`, 14, 25);
+    doc.setTextColor(30, 30, 30);
+    y = 38;
+
+    // ── Summary KPIs
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Summary', 14, y);
+    y += 4;
+    autoTable(doc, {
+      startY: y,
+      head: [['Metric', 'Value']],
+      body: [
+        ['Total Organisation Spend (Actual)', formatCurrency(totalCost)],
+        ['Total Budget', formatCurrency(data.budgetComparison?.totalBudget)],
+        ['Actual Spend', formatCurrency(data.budgetComparison?.actualSpend)],
+        ['Budget Variance', formatCurrency(data.budgetComparison?.variance)],
+      ],
+      headStyles: { fillColor: [200, 75, 47] },
+      margin: { left: 14, right: 14 },
+    });
+    y = doc.lastAutoTable.finalY + 10;
+
+    // ── Cost Breakdown by Asset
+    if (costPerAsset.length > 0) {
+      if (y > 240) { doc.addPage(); y = 14; }
+      doc.setFont('helvetica', 'bold');
+      doc.text('Cost Breakdown by Asset', 14, y);
+      y += 4;
+      autoTable(doc, {
+        startY: y,
+        head: [['Asset Name', 'Initial Cost', 'Labour', 'Parts', 'Total Maintenance', 'Total Cost']],
+        body: costPerAsset.map(a => [
+          a.assetName || '—',
+          formatCurrency(a.purchaseCost),
+          formatCurrency(a.laborCost),
+          formatCurrency(a.partsCost),
+          formatCurrency(a.maintenanceCost),
+          formatCurrency(a.totalCost),
+        ]),
+        headStyles: { fillColor: [42, 111, 200] },
+        margin: { left: 14, right: 14 },
+      });
+      y = doc.lastAutoTable.finalY + 10;
+    }
+
+    // ── Spend by Department
+    if (spendByDepartment.length > 0) {
+      if (y > 240) { doc.addPage(); y = 14; }
+      doc.setFont('helvetica', 'bold');
+      doc.text('Spend by Department', 14, y);
+      y += 4;
+      autoTable(doc, {
+        startY: y,
+        head: [['Department', 'Labour', 'Parts', 'Total Maintenance', 'Total Spend']],
+        body: spendByDepartment.map(d => [
+          d.departmentName || '—',
+          formatCurrency(d.laborSpend),
+          formatCurrency(d.partsSpend),
+          formatCurrency(d.maintenanceSpend),
+          formatCurrency(d.totalSpend),
+        ]),
+        headStyles: { fillColor: [42, 111, 200] },
+        margin: { left: 14, right: 14 },
+      });
+      y = doc.lastAutoTable.finalY + 10;
+    }
+
+    // ── Cost per Technician
+    if (costPerTechnician.length > 0) {
+      if (y > 240) { doc.addPage(); y = 14; }
+      doc.setFont('helvetica', 'bold');
+      doc.text('Cost per Technician', 14, y);
+      y += 4;
+      autoTable(doc, {
+        startY: y,
+        head: [['Technician', 'Labour', 'Parts', 'Total']],
+        body: costPerTechnician.map(t => [
+          t.technicianName || '—',
+          formatCurrency(t.laborCost),
+          formatCurrency(t.partsCost),
+          formatCurrency(t.totalCost),
+        ]),
+        headStyles: { fillColor: [42, 111, 200] },
+        margin: { left: 14, right: 14 },
+      });
+      y = doc.lastAutoTable.finalY + 10;
+    }
+
+    // ── Monthly Spend Trends
+    if (monthlyTrends.length > 0) {
+      if (y > 240) { doc.addPage(); y = 14; }
+      doc.setFont('helvetica', 'bold');
+      doc.text('Monthly Spend Trends', 14, y);
+      y += 4;
+      autoTable(doc, {
+        startY: y,
+        head: [['Month', 'Labour', 'Parts', 'Total']],
+        body: monthlyTrends.map(m => [
+          m.month || '—',
+          formatCurrency(m.laborSpend),
+          formatCurrency(m.partsSpend),
+          formatCurrency(m.spend),
+        ]),
+        headStyles: { fillColor: [42, 111, 200] },
+        margin: { left: 14, right: 14 },
+      });
+    }
+
+    // ── Footer on every page
+    const totalPages = doc.internal.getNumberOfPages();
+    for (let p = 1; p <= totalPages; p++) {
+      doc.setPage(p);
+      doc.setFontSize(8);
+      doc.setTextColor(150);
+      doc.text(`Fluxion · Financial Insights · Page ${p} of ${totalPages}`, 14, doc.internal.pageSize.getHeight() - 8);
+    }
+
+    doc.save(`Financial_Insights_${(startDate || 'All').replace(/-/g,'')}_${(endDate || 'All').replace(/-/g,'')}.pdf`);
+  };
+
+  // ── Excel Export ─────────────────────────────────────────────────────────────
+  const handleExportExcel = () => {
+    if (!data) return;
+
+    const wb = XLSX.utils.book_new();
+
+    // Sheet 1 – Summary
+    const summaryRows = [
+      ['Financial Insights Report'],
+      [`Period: ${reportDateRange}`],
+      [`Generated: ${new Date().toLocaleString()}`],
+      [],
+      ['Metric', 'Value'],
+      ['Total Organisation Spend (Actual)', totalCost],
+      ['Total Budget', data.budgetComparison?.totalBudget ?? ''],
+      ['Actual Spend', data.budgetComparison?.actualSpend ?? ''],
+      ['Budget Variance', data.budgetComparison?.variance ?? ''],
+    ];
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(summaryRows), 'Summary');
+
+    // Sheet 2 – Cost by Asset
+    if (costPerAsset.length > 0) {
+      const assetRows = [
+        ['Asset Name', 'Initial Cost ($)', 'Labour Cost ($)', 'Parts Cost ($)', 'Total Maintenance ($)', 'Total Cost ($)'],
+        ...costPerAsset.map(a => [
+          a.assetName || '',
+          a.purchaseCost,
+          a.laborCost,
+          a.partsCost,
+          a.maintenanceCost,
+          a.totalCost,
+        ])
+      ];
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(assetRows), 'Cost by Asset');
+    }
+
+    // Sheet 3 – Spend by Department
+    if (spendByDepartment.length > 0) {
+      const deptRows = [
+        ['Department', 'Labour ($)', 'Parts ($)', 'Total Maintenance ($)', 'Total Spend ($)'],
+        ...spendByDepartment.map(d => [
+          d.departmentName || '',
+          d.laborSpend,
+          d.partsSpend,
+          d.maintenanceSpend,
+          d.totalSpend,
+        ])
+      ];
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(deptRows), 'Spend by Department');
+    }
+
+    // Sheet 4 – Cost per Technician
+    if (costPerTechnician.length > 0) {
+      const techRows = [
+        ['Technician', 'Labour ($)', 'Parts ($)', 'Total ($)'],
+        ...costPerTechnician.map(t => [
+          t.technicianName || '',
+          t.laborCost,
+          t.partsCost,
+          t.totalCost,
+        ])
+      ];
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(techRows), 'Cost per Technician');
+    }
+
+    // Sheet 5 – Monthly Trends
+    if (monthlyTrends.length > 0) {
+      const trendRows = [
+        ['Month', 'Labour ($)', 'Parts ($)', 'Total ($)'],
+        ...monthlyTrends.map(m => [
+          m.month || '',
+          m.laborSpend,
+          m.partsSpend,
+          m.spend,
+        ])
+      ];
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(trendRows), 'Monthly Trends');
+    }
+
+    XLSX.writeFile(wb, `Financial_Insights_${(startDate || 'All').replace(/-/g,'')}_${(endDate || 'All').replace(/-/g,'')}.xlsx`);
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>

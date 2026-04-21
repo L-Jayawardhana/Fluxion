@@ -1,5 +1,5 @@
 import { useState, lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider } from './hooks/useAuth';
 import ProtectedRoute, { RoleRoute } from './components/ProtectedRoute';
 import MainLayout from './layouts/MainLayout';
@@ -53,6 +53,27 @@ const TechnicianTicketsPage     = lazy(() => import('./pages/Technician/Technici
 const TechnicianTicketDetailPage= lazy(() => import('./pages/Technician/TechnicianTicketDetailPage'));
 const TechnicianPerformancePage = lazy(() => import('./pages/Technician/TechnicianPerformancePage'));
 
+/* ── Splash Wrapper (only show on public entry points) ───────── */
+function SplashWrapper({ splashDone, onComplete }) {
+  const location = useLocation();
+  const publicPaths = ['/', '/login', '/register', '/forgot-password'];
+  
+  // Only show splash if on a public path AND not already shown this session
+  if (splashDone || !publicPaths.includes(location.pathname)) return null;
+  
+  return <SplashScreen onComplete={onComplete} />;
+}
+
+/* ── Transition Wrapper (only show on public pages) ────────── */
+function TransitionWrapper() {
+  const location = useLocation();
+  const publicPaths = ['/', '/login', '/register', '/forgot-password'];
+  
+  if (!publicPaths.includes(location.pathname)) return null;
+  
+  return <RouteTransitionLoader />;
+}
+
 /* ████████████████████████████████████████████████████████ */
 function App() {
   const [splashDone, setSplashDone] = useState(
@@ -66,9 +87,9 @@ function App() {
 
   return (
     <AuthProvider>
-      {!splashDone && <SplashScreen onComplete={handleSplashComplete} />}
       <BrowserRouter>
-        <RouteTransitionLoader />
+        <SplashWrapper splashDone={splashDone} onComplete={handleSplashComplete} />
+        <TransitionWrapper />
         <Suspense fallback={<SpeedLoader label="Loading page…" />}>
           <Routes>
             {/* Public */}
