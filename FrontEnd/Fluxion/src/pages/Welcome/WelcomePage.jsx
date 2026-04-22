@@ -7,6 +7,23 @@ import InviteTeamGraphic from '../../components/InviteTeamGraphic';
 import AssignAssetsGraphic from '../../components/AssignAssetsGraphic';
 import './WelcomePage.css';
 
+/**
+ * Safely render a step string that may contain <strong>…</strong> markup.
+ *
+ * Instead of dangerouslySetInnerHTML (which would be an XSS risk if the
+ * data source ever changes), we split on the <strong> / </strong> tags
+ * and return a React fragment with alternating plain and bold spans.
+ * Only the exact <strong>…</strong> pattern is handled — no other HTML
+ * is ever interpreted as markup.
+ */
+function renderStep(text) {
+  const parts = text.split(/(<strong>.*?<\/strong>)/g);
+  return parts.map((part, idx) => {
+    const match = part.match(/^<strong>(.*?)<\/strong>$/);
+    return match ? <strong key={idx}>{match[1]}</strong> : part;
+  });
+}
+
 /* ── icons ──────────────────────────────────────────────── */
 const IC = {
   department: <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.4"><rect x="2" y="9" width="5" height="8" rx="1" /><rect x="7.5" y="5" width="5" height="12" rx="1" /><rect x="13" y="2" width="5" height="15" rx="1" /></svg>,
@@ -305,7 +322,7 @@ export default function WelcomePage() {
             )}
             <ul className="wl-wf-steps">
               {w.steps.map((s, j) => (
-                <li key={j} dangerouslySetInnerHTML={{ __html: s }} />
+                <li key={j}>{renderStep(s)}</li>
               ))}
             </ul>
             <div className="wl-wf-status-row">

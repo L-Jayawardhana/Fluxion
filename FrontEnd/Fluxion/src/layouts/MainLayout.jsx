@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef, Suspense } from 'react';
 import { Outlet, NavLink, Link, useLocation, useNavigate } from 'react-router-dom';
 import { getUnreadCount } from '../services/notificationService';
 import { getPlan } from '../services/subscriptionService';
@@ -400,7 +400,9 @@ export default function MainLayout() {
 
         {/* Content */}
         <div className="ml-content">
-          <Outlet />
+          <Suspense fallback={<div className="ml-inner-loader"></div>}>
+            <Outlet />
+          </Suspense>
         </div>
 
       </div>

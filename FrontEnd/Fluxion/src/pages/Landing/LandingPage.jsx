@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import './LandingPage.css';
@@ -7,6 +7,7 @@ import './LandingPage.css';
 export default function LandingPage() {
     const cursorDotRef = useRef(null);
     const cursorRingRef = useRef(null);
+    const navigate = useNavigate();
 
     const scrollToSection = (e, id) => {
         e.preventDefault();
@@ -359,7 +360,7 @@ export default function LandingPage() {
                             <li className="muted">PDF / CSV export</li>
                             <li className="muted">SLA reports</li>
                         </ul>
-                        <button className="plan-btn outline">Get started</button>
+                        <button className="plan-btn outline" onClick={() => navigate('/register')}>Get started</button>
                     </div>
                     <div className="plan featured">
                         <div className="plan-badge">Most popular</div>
@@ -375,7 +376,7 @@ export default function LandingPage() {
                             <li>PDF / CSV export</li>
                             <li className="muted">SLA reports</li>
                         </ul>
-                        <button className="plan-btn dark">Start trial</button>
+                        <button className="plan-btn dark" onClick={() => navigate('/register')}>Start trial</button>
                     </div>
                     <div className="plan">
                         <div className="plan-name">Enterprise</div>
@@ -390,7 +391,7 @@ export default function LandingPage() {
                             <li>PDF / CSV export</li>
                             <li>SLA reports</li>
                         </ul>
-                        <button className="plan-btn outline">Start trial</button>
+                        <button className="plan-btn outline" onClick={() => navigate('/register')}>Start trial</button>
                     </div>
                 </div>
             </section>
@@ -404,7 +405,7 @@ export default function LandingPage() {
                         Start for free
                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 8h10M9 4l4 4-4 4" /></svg>
                     </Link>
-                    <a href="#" className="btn-white-outline">Book a demo</a>
+                    <a href="mailto:demo@fluxion.io?subject=Book%20a%20Demo" className="btn-white-outline">Book a demo</a>
                 </div>
             </section>
 
