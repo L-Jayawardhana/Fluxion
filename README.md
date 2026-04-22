@@ -3,7 +3,6 @@
 A web-based application to help organizations manage assets, track assignments, handle maintenance requests, and generate lifecycle reports — all with role-based access control.
 
 🔗 **Frontend:** https://fluxion-nu.vercel.app  
-🔗 **Admin Panel:** https://fluxion-admindash.vercel.app
 
 ---
 
