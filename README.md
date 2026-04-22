@@ -3,7 +3,6 @@
 A web-based application to help organizations manage assets, track assignments, handle maintenance requests, and generate lifecycle reports — all with role-based access control.
 
 🔗 **Frontend:** https://fluxion-nu.vercel.app  
-🔗 **Admin Panel:** https://fluxion-admindash.vercel.app
 
 ---
 
@@ -31,7 +30,7 @@ EAMMS is designed to streamline how organizations handle their physical assets �
 **Key Goals:**
 - Reduce asset loss through accurate tracking
 - Improve maintenance efficiency with ticket management
-- Provide data-driven insights via reports and dashboards
+- Provide data-driven insights via reports and dashboards.
 
 ---
 

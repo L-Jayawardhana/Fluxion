@@ -96,7 +96,7 @@ public class AssignMaintenanceTicketCommandHandler : IRequestHandler<AssignMaint
         // ── Send email notification in background to avoid slowing API response ──
         if (reporter != null)
         {
-            var reporterEmail = reporter.Email;
+            var reporterEmail = reporter!.Email;
             var reporterName = reporter.FullName;
             var ticketId = ticket.TicketId;
             var ticketTitle = ticket.Title;

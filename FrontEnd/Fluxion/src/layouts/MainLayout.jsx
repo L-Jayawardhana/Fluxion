@@ -71,7 +71,7 @@ const NAV = [
   },
   {
     label: 'Maintenance', items: [
-      { to: '/tickets',           icon: I.ticket, text: 'All Tickets' },
+      { to: '/tickets',           icon: I.ticket, text: 'All Tickets', ownerOnly: true },
       { to: '/raise-ticket',      icon: I.raise,  text: 'Raise Ticket' },
       { to: '/maintenance-logs',  icon: I.log,    text: 'Maintenance Logs' },
     ]

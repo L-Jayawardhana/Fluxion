@@ -32,7 +32,7 @@ public class UserControllerTests
         var method = typeof(UserController).GetMethod(nameof(UserController.CreateEmployee))!;
         
         // Assert
-        var attr = method.GetCustomAttribute<AuthorizeAttribute>();
+        var attr = method!.GetCustomAttribute<AuthorizeAttribute>();
         attr.Should().NotBeNull();
         attr!.Roles.Should().Be("owner,admin,manager");
     }
@@ -44,7 +44,7 @@ public class UserControllerTests
         var method = typeof(UserController).GetMethod(nameof(UserController.AcceptInvite))!;
         
         // Assert
-        method.GetCustomAttribute<AllowAnonymousAttribute>().Should().NotBeNull();
+        method!.GetCustomAttribute<AllowAnonymousAttribute>().Should().NotBeNull();
     }
 
     [Fact]
@@ -54,7 +54,7 @@ public class UserControllerTests
         var method = typeof(UserController).GetMethod(nameof(UserController.Delete))!;
         
         // Assert
-        var attr = method.GetCustomAttribute<AuthorizeAttribute>();
+        var attr = method!.GetCustomAttribute<AuthorizeAttribute>();
         attr.Should().NotBeNull();
         attr!.Roles.Should().Be("owner,admin");
     }

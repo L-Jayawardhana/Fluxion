@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getOrganizations, deleteOrganization, updateOrganization } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
 import ConfirmModal from '../../components/ConfirmModal';
@@ -10,6 +10,16 @@ function pctColor(pct) {
   if (pct > 70) return '#F59E0B';
   return '#22C55E';
 }
+
+// Helper to generate consistent color from string
+const stringToColor = (str) => {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const c = (hash & 0x00FFFFFF).toString(16).toUpperCase();
+  return '#' + '00000'.substring(0, 6 - c.length) + c;
+};
 
 export default function OrganizationsPage() {
   const [filter, setFilter] = useState('All');
@@ -41,7 +51,10 @@ export default function OrganizationsPage() {
   }, [addToast]);
 
   useEffect(() => {
-    fetchData();
+    const load = async () => {
+      await fetchData();
+    };
+    load();
   }, [fetchData]);
 
   const handleDelete = async () => {
@@ -84,16 +97,6 @@ export default function OrganizationsPage() {
   const handleCancelEdit = () => {
     setEditingOrg(null);
   };
-
-  // Helper to generate consistent color from string
-  const stringToColor = (str) => {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-        hash = str.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    const c = (hash & 0x00FFFFFF).toString(16).toUpperCase();
-    return '#' + '00000'.substring(0, 6 - c.length) + c;
-  }
 
   const filtered = filter === 'All' 
     ? orgs 
