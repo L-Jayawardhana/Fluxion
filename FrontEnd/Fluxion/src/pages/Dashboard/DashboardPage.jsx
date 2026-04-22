@@ -679,33 +679,6 @@ export default function DashboardPage() {
     return () => { cancelled = true; };
   }, [currentOrgId, user?.userId]);
 
-  /* ── Animate items on mount ── */
-  useEffect(() => {
-    if (mounted.current) return;
-    mounted.current = true;
-    const timers = [];
-    barRefs.current.forEach((bar, i) => {
-      if (!bar) return;
-      const h = bar.dataset.h;
-      bar.style.height = '0%';
-      timers.push(setTimeout(() => {
-        bar.style.transition = 'height .7s cubic-bezier(.34,1,.64,1)';
-        bar.style.height = h + '%';
-      }, 200 + i * 60));
-    });
-    deptRefs.current.forEach((fill, i) => {
-      if (!fill) return;
-      const w = fill.dataset.w;
-      fill.style.width = '0%';
-      timers.push(setTimeout(() => {
-        fill.style.transition = 'width .8s cubic-bezier(.34,1,.64,1)';
-        fill.style.width = w + '%';
-      }, 300 + i * 80));
-    });
-    return () => timers.forEach(clearTimeout);
-  });
-
-
   /* ── KPI data ── */
   const activeUsers = dashboardData.users.filter(u => u.isActive).length;
   const underMaintenance = dashboardData.assets.filter(a => {
@@ -868,6 +841,30 @@ export default function DashboardPage() {
        return { icon, name: a.assetName || `Asset #${a.assetId}`, days, cls };
     });
   }, [dashboardData.assets]);
+
+  /* ── Animate items on mount ── */
+  useEffect(() => {
+    const timers = [];
+    barRefs.current.forEach((bar, i) => {
+      if (!bar) return;
+      const h = bar.dataset.h;
+      bar.style.height = '0%';
+      timers.push(setTimeout(() => {
+        bar.style.transition = 'height .7s cubic-bezier(.34,1,.64,1)';
+        bar.style.height = h + '%';
+      }, 200 + i * 60));
+    });
+    deptRefs.current.forEach((fill, i) => {
+      if (!fill) return;
+      const w = fill.dataset.w;
+      fill.style.width = '0%';
+      timers.push(setTimeout(() => {
+        fill.style.transition = 'width .8s cubic-bezier(.34,1,.64,1)';
+        fill.style.width = w + '%';
+      }, 300 + i * 80));
+    });
+    return () => timers.forEach(clearTimeout);
+  }, [monthCostData, deptDataRaw, activeTab]);
   /* ── Dynamic Activity Data ── */
 
 
@@ -938,7 +935,7 @@ export default function DashboardPage() {
         <div className="db-panel">
           <div className="db-panel-head">
             <span className="db-panel-title">Monthly Maintenance Cost</span>
-            <button className="db-panel-action" onClick={() => navigate('/financial-insights')}>View report →</button>
+            <button className="db-panel-action" onClick={() => setActiveTab('financial')}>View report →</button>
           </div>
           <div className="db-panel-body">
             <div className="db-cost-header">
