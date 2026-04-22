@@ -597,7 +597,6 @@ export default function DashboardPage() {
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const barRefs = useRef([]);
   const deptRefs = useRef([]);
-  const mounted = useRef(false);
 
   const currentOrgId = user?.orgId ?? getTokenOrgIdFallback();
 
