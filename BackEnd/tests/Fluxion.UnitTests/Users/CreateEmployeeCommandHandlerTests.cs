@@ -109,7 +109,7 @@ public class CreateEmployeeCommandHandlerTests : IDisposable
         // Assert
         var user = _dbContext.Users.Include(u => u.UserDepartments).First(u => u.Email == "user2@fluxion.dev");
         user.UserDepartments.Should().HaveCount(1);
-        user.UserDepartments.First().DepartmentId.Should().Be(1);
+        user.UserDepartments!.First().DepartmentId.Should().Be(1);
     }
 
     [Fact]

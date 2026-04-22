@@ -73,7 +73,7 @@ public class GetFinancialInsightsQueryHandlerTests
         // Assert
         result.Should().NotBeNull();
         
-        var itSpend = result.SpendByDepartment.FirstOrDefault(d => d.DepartmentName == "IT");
+        var itSpend = result!.SpendByDepartment.FirstOrDefault(d => d.DepartmentName == "IT");
         var hrSpend = result.SpendByDepartment.FirstOrDefault(d => d.DepartmentName == "HR");
         
         itSpend.Should().NotBeNull();

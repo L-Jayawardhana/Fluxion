@@ -96,13 +96,13 @@ public class AssignMaintenanceTicketCommandHandler : IRequestHandler<AssignMaint
         // ── Send email notification in background to avoid slowing API response ──
         if (reporter != null)
         {
-            var reporterEmail = reporter.Email;
+            var reporterEmail = reporter!.Email;
             var reporterName = reporter.FullName;
             var ticketId = ticket.TicketId;
             var ticketTitle = ticket.Title;
             var oldStatusText = oldStatus.ToString();
             var newStatusText = ticket.Status.ToString();
-            var technicianName = technician.FullName;
+            var technicianName = technician!.FullName;
             var assetName = ticket.Asset?.AssetName ?? "Unknown Asset";
 
             _ = Task.Run(async () =>
