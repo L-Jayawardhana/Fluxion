@@ -26,7 +26,6 @@ vi.mock('axios', () => {
 });
 
 // We need to import AFTER mocking axios so the module uses our mock
-import axios from 'axios';
 import api, {
   getOrganizations,
   getUsers,

@@ -47,20 +47,28 @@ export default function DepartmentsPage() {
 
   // Load orgs on mount
   useEffect(() => {
-    setOrgsLoading(true);
-    getOrganizations()
-      .then(data => {
+    const load = async () => {
+      setOrgsLoading(true);
+      try {
+        const data = await getOrganizations();
         setOrgs(data);
         if (data.length > 0) setSelectedOrgId(String(data[0].orgId));
-      })
-      .catch(() => addToast('Failed to load organisations', 'error'))
-      .finally(() => setOrgsLoading(false));
+      } catch {
+        addToast('Failed to load organisations', 'error');
+      } finally {
+        setOrgsLoading(false);
+      }
+    };
+    load();
   }, [addToast]);
 
   // Load departments when selected org changes
   useEffect(() => {
     if (!selectedOrgId) return;
-    fetchDepts();
+    const load = async () => {
+      await fetchDepts();
+    };
+    load();
   }, [selectedOrgId, fetchDepts]);
 
   // ── Filtered list ────────────────────────────────────────────────
