@@ -102,6 +102,10 @@ export default function SettingsPage() {
   const handlePasswordChange = async (e) => {
     e.preventDefault();
     if (!currentPassword || !newPassword) return;
+    if (newPassword.length < 8) {
+      showMessage('New password must be at least 8 characters.', true);
+      return;
+    }
     setUpdating(true);
     try {
       await authService.changePassword(currentPassword, newPassword);
