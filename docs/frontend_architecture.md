@@ -111,9 +111,13 @@ MainLayout renders with user context
   <Routes>
     {/* Public */}
     <Route path="/"                element={<LandingPage />} />
-    <Route path="/login"           element={<LoginPage />} />
-    <Route path="/register"        element={<RegisterPage />} />
-    <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+
+    {/* Auth — wrapped in AuthLayout for transitions */}
+    <Route element={<AuthLayout />}>
+      <Route path="/login"           element={<LoginPage />} />
+      <Route path="/register"        element={<RegisterPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+    </Route>
 
     {/* Protected — wrapped in sidebar layout */}
     <Route element={<ProtectedRoute />}>
@@ -166,7 +170,7 @@ MainLayout renders with user context
 - **Shell**: CSS Grid with fixed sidebar (240px) + flexible main area.
 - **Sidebar**: Dark `#0D0D0D` background, 7 grouped nav sections, SVG icons, profile footer.
 - **Topbar**: Breadcrumb trail, live clock, search button, notification bell.
-- **Content Area**: `<Outlet />` renders the active page.
+- **Content Area**: `<Outlet />` renders the active page within a lightweight `Suspense` boundary to ensure non-blocking internal navigation.
 
 ### `SplashScreen`
 - Shows once per browser session (`sessionStorage.splashShown`).

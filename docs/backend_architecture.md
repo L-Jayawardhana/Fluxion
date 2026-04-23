@@ -680,7 +680,7 @@ Development:
 Production:
   → AllowedOrigins from env vars (AllowedOrigins__0, AllowedOrigins__1)
   → AllowCredentials
-  → Fallback to AllowAnyOrigin if no origins configured
+  → Fails with InvalidOperationException if no origins configured (security hardening)
 ```
 
 Environment variables (set via GitHub Secrets → VM `.env`):
