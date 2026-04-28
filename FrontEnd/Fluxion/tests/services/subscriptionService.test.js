@@ -29,7 +29,8 @@ describe('subscriptionService', () => {
   it('updatePlan should call PUT /Organization/:id/plan with planName', async () => {
     api.put.mockResolvedValue({ data: { message: 'Plan updated' } });
     const result = await updatePlan(5, 'Enterprise');
-    expect(api.put).toHaveBeenCalledWith('/Organization/5/plan', { planName: 'Enterprise' });
+    // Service always passes a config object as 3rd arg ({} when no token supplied)
+    expect(api.put).toHaveBeenCalledWith('/Organization/5/plan', { planName: 'Enterprise' }, {});
     expect(result).toEqual({ message: 'Plan updated' });
   });
 });
