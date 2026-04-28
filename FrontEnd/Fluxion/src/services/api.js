@@ -39,12 +39,15 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      clearStoredAuth();
-
-      // Only redirect if not already on a public/auth page
+      // Only redirect and clear auth if NOT on a public/auth page.
+      // On public pages (like /register), a 401 must NOT wipe the token —
+      // the registration flow stores a fresh token in sessionStorage after Step 1
+      // and uses it immediately in Step 2 to create the organisation.
       const publicPaths = ['/login', '/register', '/accept-invite', '/'];
       const isPublicPage = publicPaths.some((p) => window.location.pathname === p || window.location.pathname.startsWith(p + '?'));
       if (!isPublicPage) {
+        clearStoredAuth();
+
         // Show a brief toast/alert before navigating
         const toast = document.createElement('div');
         toast.textContent = 'Your session has expired. Please sign in again.';

@@ -33,10 +33,15 @@ export const authService = {
     changePassword: (currentPassword, newPassword) =>
         api.post('/Auth/change-password', { currentPassword, newPassword }),
 
-    createOrganization: (orgName, slug, timezone, ownerId) =>
-        api.post('/Organization', { orgName, slug, timezone, ownerId }),
+    createOrganization: (orgName, slug, timezone, ownerId, token = null) => {
+        // During registration, the fresh JWT is passed explicitly to avoid
+        // any sessionStorage read-timing issues in the Axios interceptor.
+        const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+        return api.post('/Organization', { orgName, slug, timezone, ownerId }, config);
+    },
 
-    uploadOrgLogo: (orgId, logoData) => {
-        return api.post(`/Organization/${orgId}/logo-base64`, logoData);
+    uploadOrgLogo: (orgId, logoData, token = null) => {
+        const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+        return api.post(`/Organization/${orgId}/logo-base64`, logoData, config);
     },
 };

@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { authService, GOOGLE_CLIENT_ID } from '../../services/authService';
+import { authService } from '../../services/authService';
+import { initializeGSI, renderGSIButton } from '../../services/gsiService';
 import { updatePlan } from '../../services/subscriptionService';
 import PaymentModal from '../../components/PaymentModal/PaymentModal';
 import './RegisterPage.css';
@@ -38,7 +39,8 @@ export default function RegisterPage() {
     const ringRef = useRef(null);
     const fileInputRef = useRef(null);
     const googleBtnRef = useRef(null);
-    const gsiInitializedRef = useRef(false);
+    // Stable ref to the latest Google callback — avoids stale closures without re-initializing GSI
+    const handleGoogleSignUpRef = useRef(null);
 
     // Custom cursor
     useEffect(() => {
@@ -125,29 +127,17 @@ export default function RegisterPage() {
         }
     }, [login, navigate]);
 
+    // Always keep ref pointing to latest callback — no re-init of GSI needed
     useEffect(() => {
-        if (window.google && step === 1 && googleBtnRef.current) {
-            if (!gsiInitializedRef.current) {
-                window.google.accounts.id.initialize({
-                    client_id: GOOGLE_CLIENT_ID,
-                    callback: handleGoogleSignUp,
-                });
-                gsiInitializedRef.current = true;
-            }
-            googleBtnRef.current.innerHTML = '';
-            window.google.accounts.id.renderButton(
-                googleBtnRef.current,
-                {
-                    type: 'standard',
-                    theme: 'outline',
-                    size: 'large',
-                    text: 'continue_with',
-                    shape: 'rectangular',
-                    width: 420,
-                }
-            );
-        }
-    }, [handleGoogleSignUp, step]);
+        handleGoogleSignUpRef.current = handleGoogleSignUp;
+    }, [handleGoogleSignUp]);
+
+    // Google Sign-In: initialize once via shared gsiService, re-render button when step changes
+    useEffect(() => {
+        if (!window.google || step !== 1 || !googleBtnRef.current) return;
+        initializeGSI(handleGoogleSignUpRef);
+        renderGSIButton(googleBtnRef, { width: 420 });
+    }, [step]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -271,14 +261,14 @@ export default function RegisterPage() {
         setApiError('');
         setLoading(true);
         try {
-            const res = await authService.createOrganization(form.orgName, slug, orgTimezone, registeredUser.userId);
+            const res = await authService.createOrganization(form.orgName, slug, orgTimezone, registeredUser.userId, registeredUser.token);
             const orgData = res.data;
             setCreatedOrg(orgData);
 
             // Upload logo if provided
             if (logoFile) {
                 try {
-                    await authService.uploadOrgLogo(orgData.orgId, logoFile);
+                    await authService.uploadOrgLogo(orgData.orgId, logoFile, registeredUser.token);
                 } catch {
                     // Logo upload is non-critical, continue
                 }
@@ -340,7 +330,7 @@ export default function RegisterPage() {
         if (createdOrg?.orgId) {
             try {
                 const planLabel = plan.charAt(0).toUpperCase() + plan.slice(1);
-                await updatePlan(createdOrg.orgId, planLabel);
+                await updatePlan(createdOrg.orgId, planLabel, registeredUser?.token);
             } catch (err) {
                  console.error("Could not link plan to org", err);
             }

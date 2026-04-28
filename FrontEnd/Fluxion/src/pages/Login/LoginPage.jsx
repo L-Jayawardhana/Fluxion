@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { authService, GOOGLE_CLIENT_ID } from '../../services/authService';
+import { authService } from '../../services/authService';
+import { initializeGSI, renderGSIButton } from '../../services/gsiService';
 import { useAuth } from '../../hooks/useAuth';
 import './LoginPage.css';
 
@@ -28,7 +29,8 @@ export default function LoginPage() {
     const dotRef = useRef(null);
     const ringRef = useRef(null);
     const googleBtnRef = useRef(null);
-    const gsiInitializedRef = useRef(false);
+    // Stable ref to the latest callback — passed to gsiService so init only runs once
+    const handleGoogleLoginRef = useRef(null);
 
     useEffect(() => {
         const dot = dotRef.current;
@@ -105,29 +107,17 @@ export default function LoginPage() {
         }
     }, [login, navigate, from]);
 
+    // Keep ref in sync with the latest callback
     useEffect(() => {
-        if (window.google && googleBtnRef.current) {
-            if (!gsiInitializedRef.current) {
-                window.google.accounts.id.initialize({
-                    client_id: GOOGLE_CLIENT_ID,
-                    callback: handleGoogleLogin,
-                });
-                gsiInitializedRef.current = true;
-            }
-            googleBtnRef.current.innerHTML = '';
-            window.google.accounts.id.renderButton(
-                googleBtnRef.current,
-                {
-                    type: 'standard',
-                    theme: 'outline',
-                    size: 'large',
-                    text: 'continue_with',
-                    shape: 'rectangular',
-                    width: 376,
-                }
-            );
-        }
+        handleGoogleLoginRef.current = handleGoogleLogin;
     }, [handleGoogleLogin]);
+
+    // Initialize GSI once (shared module-level guard) and render the button
+    useEffect(() => {
+        if (!window.google || !googleBtnRef.current) return;
+        initializeGSI(handleGoogleLoginRef);
+        renderGSIButton(googleBtnRef, { width: 376 });
+    }, []);
 
     return (
         <div className="login-page">
