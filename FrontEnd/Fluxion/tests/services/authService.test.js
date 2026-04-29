@@ -151,12 +151,13 @@ describe('authService', () => {
 
     await authService.createOrganization('Acme', 'acme', 'UTC', 1);
 
+    // Service always passes a config object as 3rd arg ({} when no token supplied)
     expect(api.post).toHaveBeenCalledWith('/Organization', {
       orgName: 'Acme',
       slug: 'acme',
       timezone: 'UTC',
       ownerId: 1,
-    });
+    }, {});
   });
 
   // ── uploadOrgLogo ─────────────────────────────────────────────────
@@ -165,8 +166,9 @@ describe('authService', () => {
 
     await authService.uploadOrgLogo(5, { base64: 'data:image/png;base64,abc' });
 
+    // Service always passes a config object as 3rd arg ({} when no token supplied)
     expect(api.post).toHaveBeenCalledWith('/Organization/5/logo-base64', {
       base64: 'data:image/png;base64,abc',
-    });
+    }, {});
   });
 });

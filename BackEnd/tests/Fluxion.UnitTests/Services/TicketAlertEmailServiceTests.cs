@@ -1,5 +1,6 @@
 using Fluxion.Application.Interfaces;
 using Fluxion.Infrastructure.Services;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
 
@@ -9,13 +10,16 @@ public class TicketAlertEmailServiceTests
 {
     private readonly Mock<IEmailService> _emailServiceMock;
     private readonly Mock<ILogger<TicketAlertEmailService>> _loggerMock;
+    private readonly Mock<IConfiguration> _configurationMock;
     private readonly TicketAlertEmailService _service;
 
     public TicketAlertEmailServiceTests()
     {
         _emailServiceMock = new Mock<IEmailService>();
         _loggerMock = new Mock<ILogger<TicketAlertEmailService>>();
-        _service = new TicketAlertEmailService(_emailServiceMock.Object, _loggerMock.Object);
+        _configurationMock = new Mock<IConfiguration>();
+        _configurationMock.Setup(c => c["FrontendUrl"]).Returns("https://test.example.com");
+        _service = new TicketAlertEmailService(_emailServiceMock.Object, _loggerMock.Object, _configurationMock.Object);
     }
 
     [Fact]

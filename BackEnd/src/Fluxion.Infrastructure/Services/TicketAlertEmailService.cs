@@ -1,5 +1,6 @@
 using Fluxion.Application.Interfaces;
 using Fluxion.Infrastructure.Email;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace Fluxion.Infrastructure.Services;
@@ -12,11 +13,13 @@ public class TicketAlertEmailService : ITicketAlertEmailService
 {
     private readonly IEmailService _emailService;
     private readonly ILogger<TicketAlertEmailService> _logger;
+    private readonly string _frontendUrl;
 
-    public TicketAlertEmailService(IEmailService emailService, ILogger<TicketAlertEmailService> logger)
+    public TicketAlertEmailService(IEmailService emailService, ILogger<TicketAlertEmailService> logger, IConfiguration configuration)
     {
         _emailService = emailService;
         _logger = logger;
+        _frontendUrl = configuration["FrontendUrl"] ?? "http://localhost:5173";
     }
 
     public async Task SendAssetAssignedEmailAsync(
@@ -29,7 +32,7 @@ public class TicketAlertEmailService : ITicketAlertEmailService
         DateTime assignedDate)
     {
         var html = FluxionEmailTemplates.AssetAssigned(
-            assigneeName, assignedByName, assetName, assetType, serialNumber, assignedDate);
+            assigneeName, assignedByName, assetName, assetType, serialNumber, assignedDate, _frontendUrl);
 
         await _emailService.SendEmailAsync(
             toEmail,
@@ -48,7 +51,7 @@ public class TicketAlertEmailService : ITicketAlertEmailService
         string assetName)
     {
         var html = FluxionEmailTemplates.TicketStatusUpdated(
-            recipientName, ticketId, ticketTitle, oldStatus, newStatus, technicianName, assetName);
+            recipientName, ticketId, ticketTitle, oldStatus, newStatus, technicianName, assetName, _frontendUrl);
 
         await _emailService.SendEmailAsync(
             toEmail,
@@ -67,7 +70,7 @@ public class TicketAlertEmailService : ITicketAlertEmailService
         string technicianName)
     {
         var html = FluxionEmailTemplates.AssetConditionUpdated(
-            recipientName, assetName, assetType, serialNumber, oldCondition, newCondition, technicianName);
+            recipientName, assetName, assetType, serialNumber, oldCondition, newCondition, technicianName, _frontendUrl);
 
         await _emailService.SendEmailAsync(
             toEmail,

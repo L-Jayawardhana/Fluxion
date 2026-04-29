@@ -9,14 +9,13 @@ export default function AcceptInvitePage() {
   const navigate = useNavigate();
 
   const [status, setStatus] = useState(token ? 'processing' : 'error'); // processing, error, success
-  const [errorMessage, setErrorMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState(
+    token ? '' : 'No invitation token was found in the link. Please check the URL and try again.'
+  );
   const processed = useRef(false);
 
   useEffect(() => {
-    if (!token) {
-      setErrorMessage('No invitation token was found in the link. Please check the URL and try again.');
-      return;
-    }
+    if (!token) return;
 
     if (processed.current) return;
     processed.current = true;

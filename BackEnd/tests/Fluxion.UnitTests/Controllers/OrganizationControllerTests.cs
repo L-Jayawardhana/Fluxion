@@ -38,23 +38,25 @@ public class OrganizationControllerTests
     }
 
     [Fact]
-    public void Create_ShouldBeRestrictedToOwnerAndSystemAdmin()
+    public void Create_ShouldRequireAuthorization()
     {
         var method = typeof(OrganizationController).GetMethod(nameof(OrganizationController.Create));
 
         var attr = method!.GetCustomAttribute<AuthorizeAttribute>();
-        attr.Should().NotBeNull();
-        attr!.Roles.Should().Be("owner,systemAdmin");
+        attr.Should().NotBeNull("Create should require authorization");
+        // No specific Roles — any authenticated user can create their first org;
+        // the handler promotes the user to owner in the DB.
     }
 
     [Fact]
-    public void UpdatePlan_ShouldBeRestrictedToOwnerSystemAdminAndAdmin()
+    public void UpdatePlan_ShouldRequireAuthorization()
     {
         var method = typeof(OrganizationController).GetMethod(nameof(OrganizationController.UpdatePlan));
 
         var attr = method!.GetCustomAttribute<AuthorizeAttribute>();
-        attr.Should().NotBeNull();
-        attr!.Roles.Should().Be("owner,systemAdmin,admin");
+        attr.Should().NotBeNull("UpdatePlan should require authorization");
+        // No specific Roles — JWT at registration still carries "User" role;
+        // the handler validates ownership.
     }
 
     [Fact]

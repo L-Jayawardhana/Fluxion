@@ -89,6 +89,8 @@ function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+        <SplashWrapper splashDone={splashDone} onComplete={handleSplashComplete} />
+        <TransitionWrapper />
         <Suspense fallback={<div className="minimal-root-loader" />}>
           <Routes>
             {/* Public Layout Wrapper */}

@@ -28,7 +28,7 @@ public class OrganizationController : ControllerBase
     }
 
     [HttpPut("{id}/plan")]
-    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "owner,systemAdmin,admin")]
+    [Authorize] // JWT at registration time still carries "User" role; handler validates ownership
     public async Task<IActionResult> UpdatePlan(int id, [FromBody] UpdatePlanDto dto)
     {
         try
@@ -51,7 +51,7 @@ public class OrganizationController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "owner,systemAdmin")]
+    [Authorize] // Any authenticated user can create their first org; handler promotes role to owner
     public async Task<IActionResult> Create([FromBody] CreateOrganizationCommand command)
     {
         try

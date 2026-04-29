@@ -5,7 +5,8 @@ export const getPlan = async (orgId) => {
   return response.data;
 };
 
-export const updatePlan = async (orgId, planName) => {
-  const response = await api.put(`/Organization/${orgId}/plan`, { planName });
+export const updatePlan = async (orgId, planName, token = null) => {
+  const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+  const response = await api.put(`/Organization/${orgId}/plan`, { planName }, config);
   return response.data;
 };

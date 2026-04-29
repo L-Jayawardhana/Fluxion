@@ -28,6 +28,7 @@ services:
       # CORS — Vercel frontend origins (set via GitHub Secrets → VM .env)
       - AllowedOrigins__0=${ALLOWED_ORIGIN_0}
       - AllowedOrigins__1=${ALLOWED_ORIGIN_1}
+      - FrontendUrl=${FRONTEND_URL}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:80/api/health"]
       interval: 30s
