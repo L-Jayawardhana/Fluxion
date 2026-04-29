@@ -174,7 +174,7 @@ public static class FluxionEmailTemplates
             <table role=""presentation"" cellpadding=""0"" cellspacing=""0"" border=""0"">
             <tr>
               <td style=""background-color:#0D0D0D;border-radius:8px;"">
-                <a href=""http://localhost:5173/assigned-assets"" style=""display:block;padding:15px 36px;font-family:'Poppins',sans-serif;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#ffffff;text-decoration:none;"">
+                <a href=""https://fluxion-nu.vercel.app/assigned-assets"" style=""display:block;padding:15px 36px;font-family:'Poppins',sans-serif;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#ffffff;text-decoration:none;"">
                   → &nbsp;View My Assets
                 </a>
               </td>
@@ -244,7 +244,7 @@ public static class FluxionEmailTemplates
             <table role=""presentation"" cellpadding=""0"" cellspacing=""0"" border=""0"">
             <tr>
               <td style=""background-color:#0D0D0D;border-radius:8px;"">
-                <a href=""http://localhost:5173/tickets"" style=""display:block;padding:15px 36px;font-family:'Poppins',sans-serif;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#ffffff;text-decoration:none;"">
+                <a href=""https://fluxion-nu.vercel.app/tickets"" style=""display:block;padding:15px 36px;font-family:'Poppins',sans-serif;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#ffffff;text-decoration:none;"">
                   → &nbsp;View My Tickets
                 </a>
               </td>
@@ -315,7 +315,7 @@ public static class FluxionEmailTemplates
             <table role=""presentation"" cellpadding=""0"" cellspacing=""0"" border=""0"">
             <tr>
               <td style=""background-color:#0D0D0D;border-radius:8px;"">
-                <a href=""http://localhost:5173/assigned-assets"" style=""display:block;padding:15px 36px;font-family:'Poppins',sans-serif;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#ffffff;text-decoration:none;"">
+                <a href=""https://fluxion-nu.vercel.app/assigned-assets"" style=""display:block;padding:15px 36px;font-family:'Poppins',sans-serif;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#ffffff;text-decoration:none;"">
                   → &nbsp;View My Assets
                 </a>
               </td>
