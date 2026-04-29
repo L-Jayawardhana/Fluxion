@@ -86,12 +86,27 @@ builder.Services.AddCors(options =>
             // Production: allow the Vercel frontend origins configured via env vars.
             // AllowedOrigins__0 = https://your-user-app.vercel.app
             // AllowedOrigins__1 = https://your-admin-app.vercel.app
-            var allowedOrigins = builder.Configuration
+            var rawOrigins = builder.Configuration
                 .GetSection("AllowedOrigins")
                 .Get<string[]>() ?? [];
 
+            // Also include FrontendUrl as an allowed origin so the email-link
+            // target is always CORS-permitted, even if it wasn't duplicated
+            // in the AllowedOrigins list.
+            var frontendUrl = builder.Configuration["FrontendUrl"];
+
+            var allowedOrigins = rawOrigins
+                .Concat(new[] { frontendUrl ?? "" })
+                .Select(o => o?.Trim().TrimEnd('/') ?? "")
+                .Where(o => !string.IsNullOrWhiteSpace(o))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+
             if (allowedOrigins.Length > 0)
             {
+                // Log configured origins at startup for easier debugging.
+                Console.WriteLine($"[CORS] Production allowed origins: {string.Join(", ", allowedOrigins)}");
+
                 policy.WithOrigins(allowedOrigins)
                       .AllowAnyMethod()
                       .AllowAnyHeader()
@@ -102,7 +117,7 @@ builder.Services.AddCors(options =>
                 // Security Hardening: Never fallback to AllowAnyOrigin in production.
                 // Fail-fast to ensure the environment is correctly configured.
                 throw new InvalidOperationException("CORS AllowedOrigins configuration is missing or empty for Production. " +
-                                                   "Please set AllowedOrigins__0, AllowedOrigins__1, etc. in your environment variables.");
+                                                   "Please set AllowedOrigins__0, AllowedOrigins__1, etc. or FrontendUrl in your environment variables.");
             }
         }
     });
