@@ -166,6 +166,7 @@ jobs:
             CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }}
             ALLOWED_ORIGIN_0=${{ secrets.ALLOWED_ORIGIN_0 }}
             ALLOWED_ORIGIN_1=${{ secrets.ALLOWED_ORIGIN_1 }}
+            FRONTEND_URL=${{ secrets.FRONTEND_URL }}
             EOF
 
             # Ensure docker-compose v2 plugin is available, fall back to v1

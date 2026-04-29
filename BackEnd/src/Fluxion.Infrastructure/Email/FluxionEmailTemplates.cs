@@ -145,7 +145,8 @@ public static class FluxionEmailTemplates
         string assetName,
         string assetType,
         string? serialNumber,
-        DateTime assignedDate)
+        DateTime assignedDate,
+        string frontendUrl = "http://localhost:5173")
     {
         var body = $@"
             <p style=""font-size:32px;margin:0 0 20px;line-height:1;"">📦</p>
@@ -174,7 +175,7 @@ public static class FluxionEmailTemplates
             <table role=""presentation"" cellpadding=""0"" cellspacing=""0"" border=""0"">
             <tr>
               <td style=""background-color:#0D0D0D;border-radius:8px;"">
-                <a href=""http://localhost:5173/assigned-assets"" style=""display:block;padding:15px 36px;font-family:'Poppins',sans-serif;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#ffffff;text-decoration:none;"">
+                <a href=""{frontendUrl}/assigned-assets"" style=""display:block;padding:15px 36px;font-family:'Poppins',sans-serif;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#ffffff;text-decoration:none;"">
                   → &nbsp;View My Assets
                 </a>
               </td>
@@ -197,7 +198,8 @@ public static class FluxionEmailTemplates
         string oldStatus,
         string newStatus,
         string technicianName,
-        string assetName)
+        string assetName,
+        string frontendUrl = "http://localhost:5173")
     {
         var statusColor = newStatus.ToLower() switch
         {
@@ -244,7 +246,7 @@ public static class FluxionEmailTemplates
             <table role=""presentation"" cellpadding=""0"" cellspacing=""0"" border=""0"">
             <tr>
               <td style=""background-color:#0D0D0D;border-radius:8px;"">
-                <a href=""http://localhost:5173/tickets"" style=""display:block;padding:15px 36px;font-family:'Poppins',sans-serif;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#ffffff;text-decoration:none;"">
+                <a href=""{frontendUrl}/tickets"" style=""display:block;padding:15px 36px;font-family:'Poppins',sans-serif;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#ffffff;text-decoration:none;"">
                   → &nbsp;View My Tickets
                 </a>
               </td>
@@ -267,7 +269,8 @@ public static class FluxionEmailTemplates
         string? serialNumber,
         string oldCondition,
         string newCondition,
-        string technicianName)
+        string technicianName,
+        string frontendUrl = "http://localhost:5173")
     {
         var conditionColor = newCondition.ToLower() switch
         {
@@ -315,7 +318,7 @@ public static class FluxionEmailTemplates
             <table role=""presentation"" cellpadding=""0"" cellspacing=""0"" border=""0"">
             <tr>
               <td style=""background-color:#0D0D0D;border-radius:8px;"">
-                <a href=""http://localhost:5173/assigned-assets"" style=""display:block;padding:15px 36px;font-family:'Poppins',sans-serif;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#ffffff;text-decoration:none;"">
+                <a href=""{frontendUrl}/assigned-assets"" style=""display:block;padding:15px 36px;font-family:'Poppins',sans-serif;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#ffffff;text-decoration:none;"">
                   → &nbsp;View My Assets
                 </a>
               </td>

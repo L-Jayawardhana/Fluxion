@@ -7,14 +7,18 @@ namespace Fluxion.Application.Features.Authentication.Welcome;
 public class SendWelcomeEmailHandler : IRequestHandler<SendWelcomeEmailCommand, Unit>
 {
     private readonly IEmailService _emailService;
+    private readonly IConfiguration _configuration;
 
-    public SendWelcomeEmailHandler(IEmailService emailService)
+    public SendWelcomeEmailHandler(IEmailService emailService, IConfiguration configuration)
     {
         _emailService = emailService;
+        _configuration = configuration;
     }
 
     public async Task<Unit> Handle(SendWelcomeEmailCommand req, CancellationToken ct)
     {
+        var frontendUrl = _configuration["FrontendUrl"] ?? "http://localhost:5173";
+
         var logoImg = @"
           <table role=""presentation"" cellpadding=""0"" cellspacing=""0"" border=""0"">
           <tr>
@@ -128,7 +132,7 @@ public class SendWelcomeEmailHandler : IRequestHandler<SendWelcomeEmailCommand, 
             <table role=""presentation"" cellpadding=""0"" cellspacing=""0"" border=""0"" style=""margin-bottom:10px;"">
             <tr>
               <td style=""background-color:#0D0D0D;border-radius:8px;"">
-                <a href=""http://localhost:5173/login"" style=""display:block;padding:15px 36px;font-family:'Poppins',sans-serif;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#ffffff;text-decoration:none;"">
+                <a href=""{frontendUrl}/login"" style=""display:block;padding:15px 36px;font-family:'Poppins',sans-serif;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#ffffff;text-decoration:none;"">
                   → &nbsp;Open My Workspace
                 </a>
               </td>
@@ -330,7 +334,7 @@ public class SendWelcomeEmailHandler : IRequestHandler<SendWelcomeEmailCommand, 
             <table role=""presentation"" cellpadding=""0"" cellspacing=""0"" border=""0"">
             <tr>
               <td style=""background-color:#C84B2F;border-radius:7px;"">
-                <a href=""http://localhost:5173/login"" style=""display:block;padding:13px 30px;font-family:'Poppins',sans-serif;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#ffffff;text-decoration:none;"">
+                <a href=""{frontendUrl}/login"" style=""display:block;padding:13px 30px;font-family:'Poppins',sans-serif;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#ffffff;text-decoration:none;"">
                   🚀 &nbsp;Get Started Now
                 </a>
               </td>
