@@ -115,13 +115,13 @@ cd frontend
 npm install
 cp .env.example .env
 # Update API base URL in .env
-npm start
+npm run dev
 ```
 
 ### Backend
 
 ```bash
-cd backend
+cd backend/src/Fluxion.API
 dotnet restore
 # Update connection string in appsettings.json
 dotnet run
@@ -146,15 +146,15 @@ docker-compose up --build
 
 | Service | Default URL |
 |---|---|
-| Frontend | `http://localhost:3000` |
-| Backend API | `http://localhost:5000` |
-| Swagger Docs | `http://localhost:5000/swagger` |
+| Frontend | `http://localhost:5173` |
+| Backend API | `http://localhost:5226` |
+| Swagger Docs | `http://localhost:5226/swagger/index.html` |
 
 ---
 
 ## 📚 API Documentation
 
-Full API documentation is available via Swagger at `/swagger` when the backend is running locally.
+Full API documentation is available via Swagger at `http://localhost:5226/swagger/index.html` when the backend is running locally.
 
 ---
 
