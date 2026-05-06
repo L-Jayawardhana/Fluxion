@@ -111,7 +111,7 @@ cd eamms
 ### Frontend
 
 ```bash
-cd frontend
+cd frontend/Fluxion
 npm install
 cp .env.example .env
 # Update API base URL in .env
