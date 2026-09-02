@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { getWarrantyExpiryReport, notifyWarrantyExpiry } from '../../services/warrantyService';
+import { exportRowsToCsv } from '../../utils/csvExport';
 import './WarrantyExpiryPage.css';
 
 /* ── Helpers ─────────────────────────────────────────────── */
@@ -112,6 +113,7 @@ export default function WarrantyExpiryPage() {
   const [error, setError]     = useState('');
   const [notifyingId, setNotifyingId] = useState(null);
   const [toast, setToast]     = useState(null);
+  const [exporting, setExporting] = useState(false);
 
   const pushToast = (type, message) => {
     setToast({ type, message });
@@ -160,6 +162,41 @@ export default function WarrantyExpiryPage() {
     setPageNumber(1);
   };
 
+  const CSV_COLUMNS = [
+    { key: 'assetName', label: 'Asset' },
+    { key: 'serialNumber', label: 'Serial Number' },
+    { key: 'assetType', label: 'Type' },
+    { key: 'departmentName', label: 'Department' },
+    { key: 'assignedToName', label: 'Assigned To' },
+    { key: 'currentStatus', label: 'Status', format: (r) => fmtStatus(r.currentStatus) },
+    { key: 'warrantyEndDate', label: 'Warranty End', format: (r) => fmtDate(r.warrantyEndDate) },
+    { key: 'daysUntilExpiry', label: 'Days Until Expiry' },
+    { key: 'urgencyLevel', label: 'Urgency' },
+  ];
+
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const res = await getWarrantyExpiryReport({ daysAhead, pageNumber: 1, pageSize: 10000 });
+      if (!res?.isSuccess) {
+        pushToast('error', res?.errorMessage || 'Failed to export report.');
+        return;
+      }
+      const rows = [...(res.data?.expiring?.items ?? []), ...(res.data?.expired ?? [])];
+      if (rows.length === 0) {
+        pushToast('error', 'Nothing to export.');
+        return;
+      }
+      const stamp = new Date().toISOString().slice(0, 10);
+      exportRowsToCsv(`warranty-expiry-report-${stamp}.csv`, rows, CSV_COLUMNS);
+      pushToast('success', `Exported ${rows.length} asset${rows.length !== 1 ? 's' : ''} to CSV.`);
+    } catch (err) {
+      pushToast('error', err.message || 'Failed to export report.');
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const summary = data?.summary;
   const expiring = data?.expiring;
   const expired  = data?.expired ?? [];
@@ -187,6 +224,9 @@ export default function WarrantyExpiryPage() {
               <option key={o.value} value={o.value}>{o.label}</option>
             ))}
           </select>
+          <button className="wr-btn" onClick={handleExport} disabled={exporting}>
+            {exporting ? 'Exporting...' : '⬇️ Export CSV'}
+          </button>
         </div>
       </div>
 
