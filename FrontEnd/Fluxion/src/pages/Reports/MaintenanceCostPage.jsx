@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { getMaintenanceCostReport } from '../../services/maintenanceLogService';
+import { exportRowsToCsv } from '../../utils/csvExport';
 import './MaintenanceCostPage.css';
 
 /* ── Skeleton row ────────────────────────────────────────── */
@@ -115,6 +116,7 @@ export default function MaintenanceCostPage() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [exporting, setExporting] = useState(false);
 
   const load = useCallback(async (start, end, page) => {
     setLoading(true);
@@ -156,6 +158,55 @@ export default function MaintenanceCostPage() {
 
   const reportData = data?.data; // PagedResult
 
+  const CSV_COLUMNS = [
+    { key: 'assetName', label: 'Asset' },
+    { key: 'assetTag', label: 'Asset Tag' },
+    { key: 'maintenanceCount', label: 'Total Maintenance Events' },
+    {
+      key: 'laborCost',
+      label: 'Labour Cost',
+      format: (r) => Number(r?.laborCost ?? (r?.partsCost == null ? (r?.totalCost ?? 0) : 0)).toFixed(2),
+    },
+    { key: 'partsCost', label: 'Parts Cost', format: (r) => Number(r?.partsCost ?? 0).toFixed(2) },
+    {
+      key: 'totalCost',
+      label: 'Total Cost',
+      format: (r) => {
+        const labor = Number(r?.laborCost ?? (r?.partsCost == null ? (r?.totalCost ?? 0) : 0));
+        const parts = Number(r?.partsCost ?? 0);
+        return Number(r?.totalCost ?? (labor + parts)).toFixed(2);
+      },
+    },
+  ];
+
+  const handleExport = async () => {
+    setExporting(true);
+    setError('');
+    try {
+      const res = await getMaintenanceCostReport({
+        startDate: startDate || undefined,
+        endDate: endDate || undefined,
+        pageNumber: 1,
+        pageSize: 10000,
+      });
+      if (!res?.isSuccess) {
+        setError(res?.errorMessage || 'Failed to export report.');
+        return;
+      }
+      const rows = res.data?.data?.items ?? [];
+      if (rows.length === 0) {
+        setError('Nothing to export.');
+        return;
+      }
+      const stamp = new Date().toISOString().slice(0, 10);
+      exportRowsToCsv(`maintenance-cost-report-${stamp}.csv`, rows, CSV_COLUMNS);
+    } catch (err) {
+      setError(err.message || 'Failed to export report.');
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <div className="page mc-page">
 
@@ -191,6 +242,9 @@ export default function MaintenanceCostPage() {
           <div className="mc-filter-actions">
             <button className="mc-btn mc-btn-primary" onClick={handleApplyFilters}>Apply</button>
             <button className="mc-btn mc-btn-secondary" onClick={clearFilters}>Clear</button>
+            <button className="mc-btn" onClick={handleExport} disabled={exporting}>
+              {exporting ? 'Exporting...' : '⬇️ Export CSV'}
+            </button>
           </div>
         </div>
       </div>
